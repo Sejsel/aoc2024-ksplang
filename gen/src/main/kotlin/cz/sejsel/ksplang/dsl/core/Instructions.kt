@@ -1,6 +1,6 @@
 @file:Suppress("ClassName")
 
-package cz.sejsel.ksplang.builder
+package cz.sejsel.ksplang.dsl.core
 
 /** A code block which can be formed into a list of instructions regardless of where they are in the program. **/
 sealed interface InstructionBlock {
@@ -16,14 +16,12 @@ class SimpleFunction(children: List<InstructionBlock> = emptyList()) : Instructi
         return children.flatMap { it.getInstructions() }
     }
 
-    /*
     @KsplangMarker
     fun function(init: SimpleFunction.() -> Unit) {
         val f = SimpleFunction()
         f.init()
         children.add(f)
     }
-     */
 
     fun CS() = children.add(CS)
     fun inc() = children.add(inc)
@@ -100,3 +98,10 @@ data object kpi : Instruction("kpi")
 data object rev : Instruction("rev")
 data object deez : Instruction("deez")
 data object spanek : Instruction("spanek")
+
+@KsplangMarker
+fun function(init: SimpleFunction.() -> Unit): SimpleFunction {
+    val f = SimpleFunction()
+    f.init()
+    return f
+}

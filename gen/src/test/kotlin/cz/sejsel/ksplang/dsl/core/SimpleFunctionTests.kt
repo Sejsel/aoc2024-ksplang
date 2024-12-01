@@ -1,9 +1,5 @@
-package cz.sejsel.ksplang
+package cz.sejsel.ksplang.dsl.core
 
-import cz.sejsel.ksplang.builder.CS
-import cz.sejsel.ksplang.builder.SimpleFunction
-import cz.sejsel.ksplang.builder.function
-import cz.sejsel.ksplang.builder.inc
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -28,9 +24,8 @@ class SimpleFunctionTests {
 
         assertEquals(listOf(CS, inc, CS, CS, inc, CS, CS, inc), f.getInstructions())
     }
-
     @Test
-    fun `simple function builder flattening`() {
+    fun `simple function dsl flattening`() {
         val f = function {
             function {
                 CS()
