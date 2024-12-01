@@ -1,11 +1,10 @@
 package cz.sejsel.ksplang.dsl.core
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainExactly
 
-class SimpleFunctionTests {
-    @Test
-    fun `simple function flattening`() {
+class SimpleFunctionTests : FunSpec({
+    test("simple function flattening") {
         val f = SimpleFunction(
             listOf(
                 SimpleFunction(
@@ -21,11 +20,10 @@ class SimpleFunctionTests {
                 ),
             )
         )
-
-        assertEquals(listOf(CS, inc, CS, CS, inc, CS, CS, inc), f.getInstructions())
+        f.getInstructions() shouldContainExactly listOf(CS, inc, CS, CS, inc, CS, CS, inc)
     }
-    @Test
-    fun `simple function dsl flattening`() {
+
+    test("simple function dsl flattening") {
         val f = function {
             function {
                 CS()
@@ -40,7 +38,6 @@ class SimpleFunctionTests {
                 inc()
             }
         }
-
-        assertEquals(listOf(CS, inc, CS, CS, inc, CS, CS, inc), f.getInstructions())
+        f.getInstructions() shouldContainExactly listOf(CS, inc, CS, CS, inc, CS, CS, inc)
     }
-}
+})

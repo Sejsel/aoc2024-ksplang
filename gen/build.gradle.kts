@@ -7,7 +7,8 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
+    testImplementation(libs.kotest.runner)
+    testImplementation(libs.kotest.framework.datatest)
 }
 
 kotlin {
