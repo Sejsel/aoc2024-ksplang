@@ -7,3 +7,6 @@ build
 gradle/wrapper
 gradlew
 gradlew.bat
+
+# Ignore IntelliJ project files
+.idea/
