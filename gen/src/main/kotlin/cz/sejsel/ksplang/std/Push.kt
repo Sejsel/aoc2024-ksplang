@@ -1,12 +1,16 @@
 package cz.sejsel.ksplang.std
 
 import cz.sejsel.ksplang.dsl.core.SimpleFunction
+import cz.sejsel.ksplang.dsl.core.extract
 import cz.sejsel.ksplang.dsl.core.function
 import kotlin.math.abs
 
-object PushFunctions {
-    /** Pushes a constant number to the top of the stack. */
-    fun push(n: Long): SimpleFunction = function("push($n)") {
+/** Pushes a constant number to the top of the stack. */
+fun SimpleFunction.push(n: Int) = push(n.toLong())
+
+/** Pushes a constant number to the top of the stack. */
+fun SimpleFunction.push(n: Long): SimpleFunction {
+    return function("push($n)") {
         // TODO: Port "short pushes"
         if (n == 0L) {
             // Requires a non-empty stack.
@@ -51,48 +55,38 @@ object PushFunctions {
             negate()
         }
     }
+}
 
-    /**
-     * Pushes a constant number to the top of the stack, using the given number of operations exactly.
-     * @throws PaddingFailureException if we don't have a short enough push to fit into the opCount.
-     */
-    fun pushPaddedTo(n: Long, opCount: Int): SimpleFunction = function("pushPaddedTo($n, $opCount)") {
-        val f = PushFunctions.push(n)
-        val len = f.getInstructions().size
+/**
+ * Pushes a constant number to the top of the stack, using the given number of operations exactly.
+ * @throws PaddingFailureException if we don't have a short enough push to fit into the opCount.
+ */
+fun SimpleFunction.pushPaddedTo(n: Long, opCount: Int) = function("pushPaddedTo($n, $opCount)") {
+    val f = extract { push(n) }
+    val len = f.getInstructions().size
 
-        // This cannot fit already.
-        if (len > opCount) {
-            throw PaddingFailureException(opCount, len)
-        }
-
-        // Add the push(n)
-        +f
-
-        if (len != opCount) {
-            // We need to pad, we can only do that with 2 or more instructions (CS pop) or (CS [++ ...] pop)
-            val padding = opCount - len
-            if (padding == 1) {
-                // We can only add one instruction, this is not satisfiable
-                throw PaddingFailureException(opCount, len + 2)
-            }
-
-            CS()
-            repeat(padding.toInt() - 2) {
-                inc()
-            }
-            pop()
-        }
+    // This cannot fit already.
+    if (len > opCount) {
+        throw PaddingFailureException(opCount, len)
     }
-}
 
-/** Pushes a constant number to the top of the stack. */
-fun SimpleFunction.push(n: Long) {
-    +PushFunctions.push(n)
-}
+    // Add the push(n)
+    +f
 
-/** Pushes a constant number to the top of the stack, using the given number of operations exactly. */
-fun SimpleFunction.pushPaddedTo(n: Long, opCount: Int) {
-    +PushFunctions.pushPaddedTo(n, opCount)
+    if (len != opCount) {
+        // We need to pad, we can only do that with 2 or more instructions (CS pop) or (CS [++ ...] pop)
+        val padding = opCount - len
+        if (padding == 1) {
+            // We can only add one instruction, this is not satisfiable
+            throw PaddingFailureException(opCount, len + 2)
+        }
+
+        CS()
+        repeat(padding.toInt() - 2) {
+            inc()
+        }
+        pop()
+    }
 }
 
 class PaddingFailureException(opCount: Int, minOpCount: Int) :

@@ -17,10 +17,11 @@ class SimpleFunction(name: String? = null, children: List<SimpleBlock> = emptyLi
     }
 
     @KsplangMarker
-    fun function(init: SimpleFunction.() -> Unit) {
-        val f = SimpleFunction()
+    fun function(name: String? = null, init: SimpleFunction.() -> Unit): SimpleFunction {
+        val f = SimpleFunction(name)
         f.init()
         children.add(f)
+        return f
     }
 
     operator fun SimpleFunction.unaryPlus() {
@@ -105,7 +106,30 @@ data object spanek : Instruction("spanek")
 
 @KsplangMarker
 fun function(name: String? = null, init: SimpleFunction.() -> Unit): SimpleFunction {
-    val f = SimpleFunction()
+    val f = SimpleFunction(name)
     f.init()
     return f
+}
+
+/**
+ * Extracts a single function from a block.
+ * This is mostly a helper function to avoid the need to separate builders
+ * and the underlying functions in the `std` package.
+ *
+ * Example use:
+ * ```kt
+ * val f = extract { push(1) }
+ * assert(f.name == "push(1)"))
+ * ```
+ *
+ * @throws AssertionError if the block does not contain exactly one function.
+ */
+@KsplangMarker
+fun extract(init: SimpleFunction.() -> Unit): SimpleFunction {
+    val f = SimpleFunction()
+    f.init()
+
+    assert(f.children.size == 1)
+    val extracted = f.children[0] as SimpleFunction
+    return extracted
 }

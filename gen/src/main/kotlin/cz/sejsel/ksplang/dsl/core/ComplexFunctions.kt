@@ -31,6 +31,18 @@ infix fun IfZero.orIfNonZero(init: ComplexFunction.() -> Unit) {
     this.orElse = f
 }
 
+data class DoWhileZero(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf()) : ComplexBlock
+
+// TODO: Maybe change syntax to something like
+//  doWhile {
+//  }.isZero()
+fun ComplexFunction.doWhileZero(init: DoWhileZero.() -> Unit): DoWhileZero {
+    val f = DoWhileZero()
+    f.init()
+    children.add(f)
+    return f
+}
+
 @KsplangMarker
 fun complex(init: ComplexFunction.() -> Unit): ComplexFunction {
     val f = ComplexFunction()

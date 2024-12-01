@@ -7,9 +7,10 @@ import cz.sejsel.ksplang.dsl.core.ComplexFunction
 import cz.sejsel.ksplang.dsl.core.ComplexOrSimpleBlock
 import cz.sejsel.ksplang.dsl.core.IfZero
 import cz.sejsel.ksplang.dsl.core.*
-import cz.sejsel.ksplang.std.PushFunctions
 import cz.sejsel.ksplang.std.PaddingFailureException
-import cz.sejsel.ksplang.std.StackFunctions.roll
+import cz.sejsel.ksplang.std.roll
+import cz.sejsel.ksplang.std.push
+import cz.sejsel.ksplang.std.pushPaddedTo
 
 /*
 The original Python version, we are translating this to Kotlin.
@@ -465,7 +466,7 @@ class KsplangBuilder {
 
                 fun applyPreparedPush(push: PreparedPush, n: Long, padding: Int) {
                     val index = state.program.indexOf(push.placeholder)
-                    val paddedPush = PushFunctions.pushPaddedTo(n, padding)
+                    val paddedPush = extract { pushPaddedTo(n, padding) }
                     state.program[index] = build(paddedPush.getInstructions())
                 }
 
@@ -529,7 +530,7 @@ class KsplangBuilder {
                             }
 
                             val thenPush = preparePaddedPush()
-                            e(roll(2, 1))
+                            e(extract { roll(2, 1) })
                             e(brz)
                             e(pop2)
                             val otherwiseJPush = preparePaddedPush()
@@ -551,6 +552,21 @@ class KsplangBuilder {
                             e(CS)
                             e(pop)
                             endJPush.set(state.index - endJIndex - 2)
+                        }
+                        is DoWhileZero -> {
+                            e(CS)
+                            e(CS)
+                            val redoIndex = state.index
+                            e(pop)
+                            e(pop)
+                            for (b in block.children) {
+                                e(b)
+                            }
+                            e(extract { push(redoIndex) })
+                            e(extract { roll(2, 1) })
+                            e(brz)
+                            e(pop2)
+                            e(pop)
                         }
                     }
                 }
