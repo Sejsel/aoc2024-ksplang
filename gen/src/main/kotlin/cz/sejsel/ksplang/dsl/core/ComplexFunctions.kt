@@ -23,13 +23,10 @@ fun ComplexFunction.ifZero(init: IfZero.() -> Unit): IfZero {
     return f
 }
 
-data class IfZero(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf(), var orElse: Else? = null) : ComplexBlock
-data class Else(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf()) : ComplexBlock {
-    constructor(vararg children: ComplexOrSimpleBlock) : this(children.toMutableList())
-}
+data class IfZero(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf(), var orElse: ComplexFunction? = null) : ComplexBlock
 
-infix fun IfZero.orIfNonZero(init: Else.() -> Unit) {
-    val f = Else()
+infix fun IfZero.orIfNonZero(init: ComplexFunction.() -> Unit) {
+    val f = ComplexFunction()
     f.init()
     this.orElse = f
 }

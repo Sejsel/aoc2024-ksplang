@@ -5,8 +5,11 @@ import cz.sejsel.ksplang.dsl.core.Instruction
 import cz.sejsel.ksplang.dsl.core.SimpleFunction
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
 import cz.sejsel.ksplang.dsl.core.ComplexOrSimpleBlock
-import cz.sejsel.ksplang.dsl.core.function
-import cz.sejsel.ksplang.std.push
+import cz.sejsel.ksplang.dsl.core.IfZero
+import cz.sejsel.ksplang.dsl.core.*
+import cz.sejsel.ksplang.std.PushFunctions
+import cz.sejsel.ksplang.std.PaddingFailureException
+import cz.sejsel.ksplang.std.StackFunctions.roll
 
 /*
 The original Python version, we are translating this to Kotlin.
@@ -392,15 +395,182 @@ def evaluate_as_ops(p: Union[ProgramBlock, list[ProgramBlock]]) -> list[Instruct
  */
 
 data class PreparedPush(
-    val index: Int
-)
+    val index: Int,
+    val setter: (PreparedPush, Long, Int) -> Unit,
+    val padding: Int,
+    var invalidated: Boolean = false,
+) {
+    val placeholder: String = "[PREPARED-PUSH-$index]"
 
+    fun set(n: Int) = set(n.toLong())
 
+    fun set(n: Long) {
+        if (invalidated) {
+            throw IllegalStateException("This push was already set")
+        }
+        setter(this, n, padding)
+        invalidated = true
+    }
+
+    fun setForJump(n: Int) {
+        set((n - indexAfter() - 1))
+    }
+
+    fun indexEnd(): Int {
+        return index + padding - 1
+    }
+
+    fun indexAfter(): Int {
+        return index + padding
+    }
+}
+
+private class BuilderState {
+    var index = 0
+    var program = mutableListOf<String>()
+    var lastDepth = 0
+    var lastSimpleFunction: SimpleFunction? = null
+    var earlyExitPushes = mutableListOf<PreparedPush>()
+    var preparedPushes = mutableListOf<PreparedPush>()
+}
 
 /** Transforms the ksplang DSL tree consisting of [Instruction], [SimpleFunction], and [ComplexFunction]
  * into real ksplang code. */
 class KsplangBuilder {
-    fun build(program: ComplexBlock) {
+    fun build(programTree: ComplexBlock): String {
+        // For simplification, we use a global address padding (all addresses are padded to the same length)
+        for (addressPad in 6..Int.MAX_VALUE) {
+            try {
+                val state = BuilderState()
+
+                fun backupState(): BuilderState {
+                    return BuilderState().apply {
+                        index = state.index
+                        program = state.program.toMutableList()
+                        lastDepth = state.lastDepth
+                        lastSimpleFunction = state.lastSimpleFunction
+                        earlyExitPushes = state.earlyExitPushes.toMutableList()
+                        preparedPushes = state.preparedPushes.toMutableList()
+                    }
+                }
+
+                fun restoreState(backup: BuilderState) {
+                    state.index = backup.index
+                    state.program = backup.program.toMutableList()
+                    state.lastDepth = backup.lastDepth
+                    state.lastSimpleFunction = backup.lastSimpleFunction
+                    state.earlyExitPushes = backup.earlyExitPushes.toMutableList()
+                    state.preparedPushes = backup.preparedPushes.toMutableList()
+                }
+
+                fun applyPreparedPush(push: PreparedPush, n: Long, padding: Int) {
+                    val index = state.program.indexOf(push.placeholder)
+                    val paddedPush = PushFunctions.pushPaddedTo(n, padding)
+                    state.program[index] = build(paddedPush.getInstructions())
+                }
+
+                fun preparePaddedPush(padding: Int? = null): PreparedPush {
+                    val padding = padding ?: addressPad
+                    val push = PreparedPush(state.index, ::applyPreparedPush, padding)
+                    state.program.add(push.placeholder)
+                    state.index += padding
+                    state.preparedPushes.add(push)
+                    return push
+                }
+
+                fun expand(
+                    block: ComplexOrSimpleBlock,
+                    isLast: Boolean = false,
+                    depth: Int = 0,
+                    useCalls: Boolean = true
+                ) {
+                    // A shorthand to expand recursively with correct params
+                    fun e(block: ComplexOrSimpleBlock) {
+                        expand(block, isLast, depth + 1, useCalls)
+                    }
+
+                    if (depth > state.lastDepth) {
+                        while (state.program.isNotEmpty() && state.program.last().isBlank()) {
+                            state.program.removeLast()
+                        }
+                        if (state.program.isNotEmpty() && state.program.last() != "\n") {
+                            state.program.add("\n")
+                        }
+                        state.program.add(" ".repeat(depth))
+                    }
+                    state.lastDepth = depth
+
+                    when (block) {
+                        is Instruction -> {
+                            state.lastSimpleFunction = null
+                            state.index++
+                            state.program.add(block.text)
+                            state.program.add(" ")
+                        }
+
+                        is SimpleFunction -> {
+                            // TODO: Reintroduce push_on optimization
+                            // TODO: Reintroduce callable functions
+                            block.getInstructions().forEach { e(it) }
+                            state.lastSimpleFunction = block
+                        }
+
+                        is ComplexFunction -> {
+                            // It may be called complex, but it is so simple, oh so simple:
+                            for (child in block.children) {
+                                e(child)
+                            }
+                        }
+
+                        is IfZero -> {
+                            if (block.orElse == null) {
+                                // We can specialize
+                                throw NotImplementedError()
+                            }
+
+                            val thenPush = preparePaddedPush()
+                            e(roll(2, 1))
+                            e(brz)
+                            e(pop2)
+                            val otherwiseJPush = preparePaddedPush()
+                            val otherwiseJIndex = state.index
+                            e(j)
+                            thenPush.set(state.index)
+                            e(pop2)
+                            for (b in block.children) {
+                                e(b)
+                            }
+                            val endJPush = preparePaddedPush()
+                            val endJIndex = state.index
+                            e(j)
+                            e(pop)
+                            otherwiseJPush.set(state.index - otherwiseJIndex - 2)
+                            for (b in block.orElse!!.children) {
+                                e(b)
+                            }
+                            e(CS)
+                            e(pop)
+                            endJPush.set(state.index - endJIndex - 2)
+                        }
+                    }
+                }
+
+                programTree.children.forEachIndexed { i, block ->
+                    val isLast = i == programTree.children.size - 1
+                    expand(block, isLast, depth = 0)
+                }
+
+                if (state.earlyExitPushes.isNotEmpty()) {
+                    TODO()
+                }
+
+                return state.program.joinToString(" ")
+            } catch (e: PaddingFailureException) {
+                // Try again with a different address padding
+            }
+        }
+
+        throw IllegalStateException("Could not find a suitable address padding")
     }
 
     fun build(instructions: SimpleFunction): String {

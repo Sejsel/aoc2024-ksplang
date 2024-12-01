@@ -6,15 +6,11 @@ import io.kotest.matchers.collections.shouldContainExactly
 class SimpleFunctionTests : FunSpec({
     test("simple function flattening") {
         val f = SimpleFunction(
-            listOf(
+            children = listOf(
                 SimpleFunction(
-                    listOf(
+                    children = listOf(
                         CS, inc,
-                        SimpleFunction(
-                            listOf(
-                                CS, CS, inc, CS
-                            )
-                        ),
+                        SimpleFunction(children = listOf(CS, CS, inc, CS)),
                         CS, inc
                     )
                 ),

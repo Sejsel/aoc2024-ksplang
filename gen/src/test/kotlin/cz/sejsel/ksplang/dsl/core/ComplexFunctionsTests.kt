@@ -18,7 +18,7 @@ class ComplexFunctionsTests : FunSpec({
         a shouldBe ComplexFunction(
             IfZero(
                 mutableListOf(CS, inc),
-                Else(CS, pop),
+                ComplexFunction(CS, pop),
             )
         )
     }

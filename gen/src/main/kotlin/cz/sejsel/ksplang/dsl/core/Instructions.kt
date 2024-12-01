@@ -9,7 +9,7 @@ sealed interface SimpleBlock : ComplexOrSimpleBlock {
 
 @Suppress("FunctionName")
 @KsplangMarker
-class SimpleFunction(children: List<SimpleBlock> = emptyList()) : SimpleBlock {
+class SimpleFunction(name: String? = null, children: List<SimpleBlock> = emptyList()) : SimpleBlock {
     var children = children.toMutableList()
 
     override fun getInstructions(): List<Instruction> {
@@ -104,7 +104,7 @@ data object deez : Instruction("deez")
 data object spanek : Instruction("spanek")
 
 @KsplangMarker
-fun function(init: SimpleFunction.() -> Unit): SimpleFunction {
+fun function(name: String? = null, init: SimpleFunction.() -> Unit): SimpleFunction {
     val f = SimpleFunction()
     f.init()
     return f
