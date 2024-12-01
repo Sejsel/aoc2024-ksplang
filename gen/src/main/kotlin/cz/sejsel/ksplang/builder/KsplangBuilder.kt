@@ -14,7 +14,7 @@ class KsplangBuilder {
     }
 
     fun build(instructions: List<Instruction>): String {
-        return instructions.joinToString(" ") { it.toString() }
+        return instructions.joinToString(" ") { it.text }
     }
 }
 

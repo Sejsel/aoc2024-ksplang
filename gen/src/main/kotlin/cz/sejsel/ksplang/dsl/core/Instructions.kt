@@ -23,6 +23,14 @@ class SimpleFunction(children: List<InstructionBlock> = emptyList()) : Instructi
         children.add(f)
     }
 
+    fun addChild(child: InstructionBlock) {
+        children.add(child)
+    }
+
+    operator fun SimpleFunction.unaryPlus() {
+        this@SimpleFunction.children.add(this@unaryPlus)
+    }
+
     fun CS() = children.add(CS)
     fun inc() = children.add(inc)
     fun pop() = children.add(pop)

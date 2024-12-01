@@ -33,6 +33,10 @@ class KsplangRunner(
             // Read the entire output from the stdout
             val output = process.inputStream.bufferedReader().readText()
 
+            if (process.waitFor() != 0) {
+                throw RuntimeException("Program exited with non-zero exit code")
+            }
+
             // Parse the output as a list of longs
             return output.trim().split("\\s+".toRegex()).map { it.toLong() }
         } finally {

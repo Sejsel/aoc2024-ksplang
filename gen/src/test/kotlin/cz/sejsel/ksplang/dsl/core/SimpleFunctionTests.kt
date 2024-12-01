@@ -40,4 +40,23 @@ class SimpleFunctionTests : FunSpec({
         }
         f.getInstructions() shouldContainExactly listOf(CS, inc, CS, CS, inc, CS, CS, inc)
     }
+
+    test("simple function insertion with unaryPlus") {
+        val inner = function {
+            CS()
+            CS()
+            inc()
+            CS()
+        }
+        val f = function {
+            function {
+                CS()
+                inc()
+                +inner
+                CS()
+                inc()
+            }
+        }
+        f.getInstructions() shouldContainExactly listOf(CS, inc, CS, CS, inc, CS, CS, inc)
+    }
 })
