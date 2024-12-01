@@ -25,18 +25,16 @@ class SimpleFunctionTests : FunSpec({
 
     test("simple function dsl flattening") {
         val f = function {
+            CS()
+            inc()
             function {
                 CS()
-                inc()
-                function {
-                    CS()
-                    CS()
-                    inc()
-                    CS()
-                }
                 CS()
                 inc()
+                CS()
             }
+            CS()
+            inc()
         }
         f.getInstructions() shouldContainExactly listOf(CS, inc, CS, CS, inc, CS, CS, inc)
     }
@@ -49,13 +47,11 @@ class SimpleFunctionTests : FunSpec({
             CS()
         }
         val f = function {
-            function {
-                CS()
-                inc()
-                +inner
-                CS()
-                inc()
-            }
+            CS()
+            inc()
+            +inner
+            CS()
+            inc()
         }
         f.getInstructions() shouldContainExactly listOf(CS, inc, CS, CS, inc, CS, CS, inc)
     }

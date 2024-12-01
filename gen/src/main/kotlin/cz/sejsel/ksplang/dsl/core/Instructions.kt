@@ -3,14 +3,14 @@
 package cz.sejsel.ksplang.dsl.core
 
 /** A code block which can be formed into a list of instructions regardless of where they are in the program. **/
-sealed interface InstructionBlock {
+sealed interface SimpleBlock : ComplexOrSimpleBlock {
     fun getInstructions(): List<Instruction>
 }
 
 @Suppress("FunctionName")
 @KsplangMarker
-class SimpleFunction(children: List<InstructionBlock> = emptyList()) : InstructionBlock {
-    private var children = children.toMutableList()
+class SimpleFunction(children: List<SimpleBlock> = emptyList()) : SimpleBlock {
+    var children = children.toMutableList()
 
     override fun getInstructions(): List<Instruction> {
         return children.flatMap { it.getInstructions() }
@@ -21,10 +21,6 @@ class SimpleFunction(children: List<InstructionBlock> = emptyList()) : Instructi
         val f = SimpleFunction()
         f.init()
         children.add(f)
-    }
-
-    fun addChild(child: InstructionBlock) {
-        children.add(child)
     }
 
     operator fun SimpleFunction.unaryPlus() {
@@ -67,7 +63,7 @@ class SimpleFunction(children: List<InstructionBlock> = emptyList()) : Instructi
 }
 
 
-sealed class Instruction(val text: String) : InstructionBlock {
+sealed class Instruction(val text: String) : SimpleBlock {
     override fun getInstructions(): List<Instruction> {
         return listOf(this)
     }

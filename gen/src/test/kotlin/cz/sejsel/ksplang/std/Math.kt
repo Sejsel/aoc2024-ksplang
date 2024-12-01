@@ -8,7 +8,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
 import kotlin.math.abs
-import kotlin.math.absoluteValue
 
 class AddTests : FunSpec({
     val runner = KsplangRunner()

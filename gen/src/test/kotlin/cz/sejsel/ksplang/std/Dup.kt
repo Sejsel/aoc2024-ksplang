@@ -7,8 +7,6 @@ import cz.sejsel.ksplang.KsplangRunner
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
-import kotlin.math.abs
-import kotlin.math.absoluteValue
 
 class DupTests : FunSpec({
     val runner = KsplangRunner()
