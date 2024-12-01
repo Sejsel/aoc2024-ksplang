@@ -3,6 +3,7 @@ package cz.sejsel.ksplang.std
 import cz.sejsel.ksplang.dsl.core.SimpleFunction
 import kotlin.math.abs
 
+/** Pushes a constant number to the top of the stack. */
 fun SimpleFunction.push(n: Long) {
     // TODO: Port "short pushes"
     if (n == 0L) {
@@ -49,3 +50,38 @@ fun SimpleFunction.push(n: Long) {
         negate()
     }
 }
+
+/** Pushes a constant number to the top of the stack, using the given number of operations exactly. */
+fun SimpleFunction.pushPaddedTo(n: Long, opCount: Long) {
+    val f = cz.sejsel.ksplang.dsl.core.function {
+        push(n)
+    }
+    val len = f.getInstructions().size.toLong()
+
+    // This cannot fit already.
+    if (len > opCount) {
+        throw PaddingFailureException(opCount, len)
+    }
+
+    if (len != opCount) {
+        // We need to pad, we can only do that with 2 or more instructions (CS pop) or (CS [++ ...] pop)
+        val padding = opCount - len
+        if (padding == 1L) {
+            // We can only add one instruction, this is not satisfiable
+            throw PaddingFailureException(opCount, len + 2)
+        }
+
+        f.apply {
+            CS()
+            repeat(padding.toInt() - 2) {
+                inc()
+            }
+            pop()
+        }
+    }
+
+    // Add the function
+    +f
+}
+
+class PaddingFailureException(opCount: Long, minOpCount: Long) : Exception("Failed to pad push to $opCount instructions, requires at least $minOpCount instructions.")

@@ -7,6 +7,7 @@ import cz.sejsel.ksplang.KsplangRunner
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import kotlin.random.Random
 
 class PushTests : FunSpec({
@@ -35,6 +36,23 @@ class PushTests : FunSpec({
                 push(n)
             })
             runner.run(program, listOf(stackTop)) shouldContainExactly listOf(stackTop, n)
+        }
+    }
+})
+
+class PushPaddedToTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    for (i in 0L..16L) {
+        context("pushPaddedTo($i, 100) onto single value should add $i") {
+            val func = function { pushPaddedTo(i, 100) }
+            func.getInstructions() shouldHaveSize 100
+
+            withData(VALUES_PER_DIGIT_SUM) {
+                val program = builder.build(func)
+                runner.run(program, listOf(it)) shouldContainExactly listOf(it, i)
+            }
         }
     }
 })
