@@ -581,7 +581,7 @@ class KsplangBuilder {
                     TODO()
                 }
 
-                return state.program.joinToString(" ")
+                return state.program.joinToString("")
             } catch (e: PaddingFailureException) {
                 // Try again with a different address padding
             }
