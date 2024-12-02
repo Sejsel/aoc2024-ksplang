@@ -1,13 +1,12 @@
 package cz.sejsel.ksplang.dsl.core
 
-import cz.sejsel.ksplang.dsl.core.ComplexFunction
 import cz.sejsel.ksplang.std.zeroNot
 
 // Instructions are individual instructions (single words)
 // SimpleFunction contains Instructions or SimpleFunctions
 // ComplexFunction contains ComplexFunctions or SimpleFunctions or Instructions
 
-sealed interface ComplexOrSimpleBlock {
+sealed interface Block {
     fun add(block: SimpleBlock)
 
     // These are functions and not extension functions very much on purpose.
@@ -186,12 +185,12 @@ sealed interface ComplexOrSimpleBlock {
     }
 }
 
-sealed interface ComplexBlock : ComplexOrSimpleBlock {
-    var children: MutableList<ComplexOrSimpleBlock>
+sealed interface ComplexBlock : Block {
+    var children: MutableList<Block>
 }
 
-data class ComplexFunction(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf()) : ComplexBlock {
-    constructor(vararg children: ComplexOrSimpleBlock) : this(children.toMutableList())
+data class ComplexFunction(override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
+    constructor(vararg children: Block) : this(children.toMutableList())
 
     override fun add(block: SimpleBlock) {
         children.add(block)
@@ -205,7 +204,7 @@ fun ComplexFunction.ifZero(init: IfZero.() -> Unit): IfZero {
     return f
 }
 
-data class IfZero(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf(), var orElse: ComplexFunction? = null) : ComplexBlock {
+data class IfZero(override var children: MutableList<Block> = mutableListOf(), var orElse: ComplexFunction? = null) : ComplexBlock {
     override fun add(block: SimpleBlock) {
         children.add(block)
     }
@@ -217,7 +216,7 @@ infix fun IfZero.orIfNonZero(init: ComplexFunction.() -> Unit) {
     this.orElse = f
 }
 
-data class DoWhileZero(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf()) : ComplexBlock {
+data class DoWhileZero(override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
     override fun add(block: SimpleBlock) {
         children.add(block)
     }

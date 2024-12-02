@@ -1,14 +1,13 @@
 package cz.sejsel.ksplang.std
 
-import cz.sejsel.ksplang.dsl.core.ComplexOrSimpleBlock
-import cz.sejsel.ksplang.dsl.core.SimpleFunction
+import cz.sejsel.ksplang.dsl.core.Block
 
 /**
  * Duplicates the top value on the stack.
  *
  * Signature: `a -> a a`
  */
-fun ComplexOrSimpleBlock.dup() {
+fun Block.dup() {
     push(0); push(3); m()
     // x 0 3 clamp(x, 0-3)
     CS(); CS(); inc(); gcd(); inc()  // push(2) onto 0-3

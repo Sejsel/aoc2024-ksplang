@@ -4,7 +4,7 @@ import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.Instruction
 import cz.sejsel.ksplang.dsl.core.SimpleFunction
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
-import cz.sejsel.ksplang.dsl.core.ComplexOrSimpleBlock
+import cz.sejsel.ksplang.dsl.core.Block
 import cz.sejsel.ksplang.dsl.core.IfZero
 import cz.sejsel.ksplang.dsl.core.*
 import cz.sejsel.ksplang.std.PaddingFailureException
@@ -480,13 +480,13 @@ class KsplangBuilder {
                 }
 
                 fun expand(
-                    block: ComplexOrSimpleBlock,
+                    block: Block,
                     isLast: Boolean = false,
                     depth: Int = 0,
                     useCalls: Boolean = true
                 ) {
                     // A shorthand to expand recursively with correct params
-                    fun e(block: ComplexOrSimpleBlock) {
+                    fun e(block: Block) {
                         expand(block, isLast, depth + 1, useCalls)
                     }
 

@@ -1,15 +1,13 @@
 package cz.sejsel.ksplang.std
 
-import cz.sejsel.ksplang.dsl.core.CS
-import cz.sejsel.ksplang.dsl.core.ComplexOrSimpleBlock
-import cz.sejsel.ksplang.dsl.core.SimpleFunction
+import cz.sejsel.ksplang.dsl.core.Block
 
 /**
  * Adds the top two values on the stack. Crashes in case of overflow.
  *
  * Signature: `a b -> a+b`
  */
-fun ComplexOrSimpleBlock.add() {
+fun Block.add() {
     push(0)
     u()
 }
@@ -19,7 +17,7 @@ fun ComplexOrSimpleBlock.add() {
  *
  * Signature: `a b -> |a-b|`
  */
-fun ComplexOrSimpleBlock.subabs() {
+fun Block.subabs() {
     push(1)
     u()
 }
@@ -29,7 +27,7 @@ fun ComplexOrSimpleBlock.subabs() {
  *
  * Signature: `a -> -a`
  */
-fun ComplexOrSimpleBlock.negate() {
+fun Block.negate() {
     // This works by using qeq to solve the equation x + n = 0
     push(1)
     CS()
@@ -46,7 +44,7 @@ fun ComplexOrSimpleBlock.negate() {
  *
  * Signature: `a -> sgn(a)`
  */
-fun ComplexOrSimpleBlock.sgn() {
+fun Block.sgn() {
     push(5)
     u()
 }
@@ -57,7 +55,7 @@ fun ComplexOrSimpleBlock.sgn() {
  *
  * Signature: `a -> |a|`
  */
-fun ComplexOrSimpleBlock.abs() {
+fun Block.abs() {
     // This is push(0) + subabs
     push(0)
     CS()
@@ -70,7 +68,7 @@ fun ComplexOrSimpleBlock.abs() {
  *
  * Signature: `a -> a == 0 ? 1 : 0`
  */
-fun ComplexOrSimpleBlock.zeroNot() {
+fun Block.zeroNot() {
     // x
     sgn()
     // sgn(x)

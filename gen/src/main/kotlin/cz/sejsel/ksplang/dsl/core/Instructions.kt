@@ -3,7 +3,7 @@
 package cz.sejsel.ksplang.dsl.core
 
 /** A code block which can be formed into a list of instructions regardless of where they are in the program. **/
-sealed interface SimpleBlock : ComplexOrSimpleBlock {
+sealed interface SimpleBlock : Block {
     fun getInstructions(): List<Instruction>
 }
 
