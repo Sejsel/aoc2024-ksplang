@@ -84,3 +84,55 @@ class NegateTests : FunSpec({
         }
     }
 })
+
+class SgnTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("sgn(1) = 1") {
+        val program = builder.build(function { sgn() })
+        runner.run(program, listOf(1)) shouldContainExactly listOf(1)
+    }
+    test("sgn(-1) = -1") {
+        val program = builder.build(function { sgn() })
+        runner.run(program, listOf(-1)) shouldContainExactly listOf(-1)
+    }
+    test("sgn(0) = 0") {
+        val program = builder.build(function { sgn() })
+        runner.run(program, listOf(0)) shouldContainExactly listOf(0)
+    }
+    test("sgn(2^63-1) = 1") {
+        val program = builder.build(function { sgn() })
+        runner.run(program, listOf(Long.MAX_VALUE)) shouldContainExactly listOf(1)
+    }
+    test("sgn(-2^63) = -1") {
+        val program = builder.build(function { sgn() })
+        runner.run(program, listOf(Long.MIN_VALUE)) shouldContainExactly listOf(-1)
+    }
+})
+
+class AbsTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("abs(1) = 1") {
+        val program = builder.build(function { abs() })
+        runner.run(program, listOf(1)) shouldContainExactly listOf(1)
+    }
+    test("abs(-1) = 1") {
+        val program = builder.build(function { abs() })
+        runner.run(program, listOf(-1)) shouldContainExactly listOf(1)
+    }
+    test("abs(0) = 0") {
+        val program = builder.build(function { abs() })
+        runner.run(program, listOf(0)) shouldContainExactly listOf(0)
+    }
+    test("abs(2^63-1) = 2^63-1") {
+        val program = builder.build(function { abs() })
+        runner.run(program, listOf(Long.MAX_VALUE)) shouldContainExactly listOf(Long.MAX_VALUE)
+    }
+    test("abs(-(2^63-1)) = 2^63-1") {
+        val program = builder.build(function { abs() })
+        runner.run(program, listOf(Long.MIN_VALUE + 1)) shouldContainExactly listOf(Long.MAX_VALUE)
+    }
+})

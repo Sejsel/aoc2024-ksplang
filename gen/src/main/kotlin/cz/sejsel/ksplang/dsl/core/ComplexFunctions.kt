@@ -1,12 +1,190 @@
 package cz.sejsel.ksplang.dsl.core
 
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
+import cz.sejsel.ksplang.std.zeroNot
 
 // Instructions are individual instructions (single words)
 // SimpleFunction contains Instructions or SimpleFunctions
 // ComplexFunction contains ComplexFunctions or SimpleFunctions or Instructions
 
-sealed interface ComplexOrSimpleBlock
+sealed interface ComplexOrSimpleBlock {
+    fun add(block: SimpleBlock)
+
+    // These are functions and not extension functions very much on purpose.
+    // They do not have to be imported, and they end up colored differently from (extension) functions.
+    @KsplangMarker
+    fun function(name: String? = null, init: SimpleFunction.() -> Unit): SimpleFunction {
+        val f = SimpleFunction(name)
+        f.init()
+        add(f)
+        return f
+    }
+
+    @KsplangMarker
+    fun CS() {
+        add(CS)
+    }
+
+    @KsplangMarker
+    fun inc() {
+        add(inc)
+    }
+
+    @KsplangMarker
+    fun pop() {
+        add(pop)
+    }
+
+    @KsplangMarker
+    fun pop2() {
+        add(pop2)
+    }
+
+    @KsplangMarker
+    fun swap() {
+        add(swap)
+    }
+
+    @KsplangMarker
+    fun tetr() {
+        add(tetr)
+    }
+
+    @KsplangMarker
+    fun tetr2() {
+        add(tetr2)
+    }
+
+    @KsplangMarker
+    fun funkcia() {
+        add(funkcia)
+    }
+
+    @KsplangMarker
+    fun lswap() {
+        add(lswap)
+    }
+
+    @KsplangMarker
+    fun modulo() {
+        add(modulo)
+    }
+
+    @KsplangMarker
+    fun lensum() {
+        add(lensum)
+    }
+
+    @KsplangMarker
+    fun REM() {
+        add(REM)
+    }
+
+    @KsplangMarker
+    fun bitshift() {
+        add(bitshift)
+    }
+
+    @KsplangMarker
+    fun qeq() {
+        add(qeq)
+    }
+
+    @KsplangMarker
+    fun lroll() {
+        add(lroll)
+    }
+
+    @KsplangMarker
+    fun u() {
+        add(u)
+    }
+
+    @KsplangMarker
+    fun gcd() {
+        add(gcd)
+    }
+
+    @KsplangMarker
+    fun d() {
+        add(d)
+    }
+
+    @KsplangMarker
+    fun bitand() {
+        add(bitand)
+    }
+
+    @KsplangMarker
+    fun praise() {
+        add(praise)
+    }
+
+    @KsplangMarker
+    fun m() {
+        add(m)
+    }
+
+    @KsplangMarker
+    fun brz() {
+        add(brz)
+    }
+
+    @KsplangMarker
+    fun j() {
+        add(j)
+    }
+
+    @KsplangMarker
+    fun call() {
+        add(call)
+    }
+
+    @KsplangMarker
+    fun goto() {
+        add(goto)
+    }
+
+    @KsplangMarker
+    fun bulkxor() {
+        add(bulkxor)
+    }
+
+    @KsplangMarker
+    fun max2() {
+        add(max2)
+    }
+
+    @KsplangMarker
+    fun sumall() {
+        add(sumall)
+    }
+
+    @KsplangMarker
+    fun ff() {
+        add(ff)
+    }
+
+    @KsplangMarker
+    fun kpi() {
+        add(kpi)
+    }
+
+    @KsplangMarker
+    fun rev() {
+        add(rev)
+    }
+
+    @KsplangMarker
+    fun deez() {
+        add(deez)
+    }
+
+    @KsplangMarker
+    fun spanek() {
+        add(spanek)
+    }
+}
 
 sealed interface ComplexBlock : ComplexOrSimpleBlock {
     var children: MutableList<ComplexOrSimpleBlock>
@@ -14,6 +192,10 @@ sealed interface ComplexBlock : ComplexOrSimpleBlock {
 
 data class ComplexFunction(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf()) : ComplexBlock {
     constructor(vararg children: ComplexOrSimpleBlock) : this(children.toMutableList())
+
+    override fun add(block: SimpleBlock) {
+        children.add(block)
+    }
 }
 
 fun ComplexFunction.ifZero(init: IfZero.() -> Unit): IfZero {
@@ -23,7 +205,11 @@ fun ComplexFunction.ifZero(init: IfZero.() -> Unit): IfZero {
     return f
 }
 
-data class IfZero(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf(), var orElse: ComplexFunction? = null) : ComplexBlock
+data class IfZero(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf(), var orElse: ComplexFunction? = null) : ComplexBlock {
+    override fun add(block: SimpleBlock) {
+        children.add(block)
+    }
+}
 
 infix fun IfZero.orIfNonZero(init: ComplexFunction.() -> Unit) {
     val f = ComplexFunction()
@@ -31,14 +217,25 @@ infix fun IfZero.orIfNonZero(init: ComplexFunction.() -> Unit) {
     this.orElse = f
 }
 
-data class DoWhileZero(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf()) : ComplexBlock
+data class DoWhileZero(override var children: MutableList<ComplexOrSimpleBlock> = mutableListOf()) : ComplexBlock {
+    override fun add(block: SimpleBlock) {
+        children.add(block)
+    }
+}
 
-// TODO: Maybe change syntax to something like
-//  doWhile {
-//  }.isZero()
 fun ComplexFunction.doWhileZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     val f = DoWhileZero()
     f.init()
+    children.add(f)
+    return f
+}
+
+fun ComplexFunction.doWhileNonZero(init: DoWhileZero.() -> Unit): DoWhileZero {
+    val f = DoWhileZero()
+    f.init()
+    f.apply {
+        zeroNot()
+    }
     children.add(f)
     return f
 }
@@ -48,169 +245,4 @@ fun complex(init: ComplexFunction.() -> Unit): ComplexFunction {
     val f = ComplexFunction()
     f.init()
     return f
-}
-
-@KsplangMarker
-fun ComplexBlock.CS() {
-    children.add(CS)
-}
-
-@KsplangMarker
-fun ComplexBlock.inc() {
-    children.add(inc)
-}
-
-@KsplangMarker
-fun ComplexBlock.pop() {
-    children.add(pop)
-}
-
-@KsplangMarker
-fun ComplexBlock.pop2() {
-    children.add(pop2)
-}
-
-@KsplangMarker
-fun ComplexBlock.swap() {
-    children.add(swap)
-}
-
-@KsplangMarker
-fun ComplexBlock.tetr() {
-    children.add(tetr)
-}
-
-@KsplangMarker
-fun ComplexBlock.tetr2() {
-    children.add(tetr2)
-}
-
-@KsplangMarker
-fun ComplexBlock.funkcia() {
-    children.add(funkcia)
-}
-
-@KsplangMarker
-fun ComplexBlock.lswap() {
-    children.add(lswap)
-}
-
-@KsplangMarker
-fun ComplexBlock.modulo() {
-    children.add(modulo)
-}
-
-@KsplangMarker
-fun ComplexBlock.lensum() {
-    children.add(lensum)
-}
-
-@KsplangMarker
-fun ComplexBlock.REM() {
-    children.add(REM)
-}
-
-@KsplangMarker
-fun ComplexBlock.bitshift() {
-    children.add(bitshift)
-}
-
-@KsplangMarker
-fun ComplexBlock.qeq() {
-    children.add(qeq)
-}
-
-@KsplangMarker
-fun ComplexBlock.lroll() {
-    children.add(lroll)
-}
-
-@KsplangMarker
-fun ComplexBlock.u() {
-    children.add(u)
-}
-
-@KsplangMarker
-fun ComplexBlock.gcd() {
-    children.add(gcd)
-}
-
-@KsplangMarker
-fun ComplexBlock.d() {
-    children.add(d)
-}
-
-@KsplangMarker
-fun ComplexBlock.bitand() {
-    children.add(bitand)
-}
-
-@KsplangMarker
-fun ComplexBlock.praise() {
-    children.add(praise)
-}
-
-@KsplangMarker
-fun ComplexBlock.m() {
-    children.add(m)
-}
-
-@KsplangMarker
-fun ComplexBlock.brz() {
-    children.add(brz)
-}
-
-@KsplangMarker
-fun ComplexBlock.j() {
-    children.add(j)
-}
-
-@KsplangMarker
-fun ComplexBlock.call() {
-    children.add(call)
-}
-
-@KsplangMarker
-fun ComplexBlock.goto() {
-    children.add(goto)
-}
-
-@KsplangMarker
-fun ComplexBlock.bulkxor() {
-    children.add(bulkxor)
-}
-
-@KsplangMarker
-fun ComplexBlock.max2() {
-    children.add(max2)
-}
-
-@KsplangMarker
-fun ComplexBlock.sumall() {
-    children.add(sumall)
-}
-
-@KsplangMarker
-fun ComplexBlock.ff() {
-    children.add(ff)
-}
-
-@KsplangMarker
-fun ComplexBlock.kpi() {
-    children.add(kpi)
-}
-
-@KsplangMarker
-fun ComplexBlock.rev() {
-    children.add(rev)
-}
-
-@KsplangMarker
-fun ComplexBlock.deez() {
-    children.add(deez)
-}
-
-@KsplangMarker
-fun ComplexBlock.spanek() {
-    children.add(spanek)
 }

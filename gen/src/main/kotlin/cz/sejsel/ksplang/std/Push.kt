@@ -1,15 +1,16 @@
 package cz.sejsel.ksplang.std
 
+import cz.sejsel.ksplang.dsl.core.ComplexOrSimpleBlock
 import cz.sejsel.ksplang.dsl.core.SimpleFunction
 import cz.sejsel.ksplang.dsl.core.extract
 import cz.sejsel.ksplang.dsl.core.function
 import kotlin.math.abs
 
 /** Pushes a constant number to the top of the stack. */
-fun SimpleFunction.push(n: Int) = push(n.toLong())
+fun ComplexOrSimpleBlock.push(n: Int) = push(n.toLong())
 
 /** Pushes a constant number to the top of the stack. */
-fun SimpleFunction.push(n: Long): SimpleFunction {
+fun ComplexOrSimpleBlock.push(n: Long): SimpleFunction {
     return function("push($n)") {
         // TODO: Port "short pushes"
         if (n == 0L) {
@@ -61,7 +62,7 @@ fun SimpleFunction.push(n: Long): SimpleFunction {
  * Pushes a constant number to the top of the stack, using the given number of operations exactly.
  * @throws PaddingFailureException if we don't have a short enough push to fit into the opCount.
  */
-fun SimpleFunction.pushPaddedTo(n: Long, opCount: Int) = function("pushPaddedTo($n, $opCount)") {
+fun ComplexOrSimpleBlock.pushPaddedTo(n: Long, opCount: Int) = function("pushPaddedTo($n, $opCount)") {
     val f = extract { push(n) }
     val len = f.getInstructions().size
 

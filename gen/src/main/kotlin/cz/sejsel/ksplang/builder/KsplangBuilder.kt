@@ -553,6 +553,7 @@ class KsplangBuilder {
                             e(pop)
                             endJPush.set(state.index - endJIndex - 2)
                         }
+
                         is DoWhileZero -> {
                             e(CS)
                             e(CS)

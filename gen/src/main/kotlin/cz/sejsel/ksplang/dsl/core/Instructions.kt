@@ -7,7 +7,6 @@ sealed interface SimpleBlock : ComplexOrSimpleBlock {
     fun getInstructions(): List<Instruction>
 }
 
-@Suppress("FunctionName")
 @KsplangMarker
 class SimpleFunction(name: String? = null, children: List<SimpleBlock> = emptyList()) : SimpleBlock {
     var children = children.toMutableList()
@@ -16,57 +15,22 @@ class SimpleFunction(name: String? = null, children: List<SimpleBlock> = emptyLi
         return children.flatMap { it.getInstructions() }
     }
 
-    @KsplangMarker
-    fun function(name: String? = null, init: SimpleFunction.() -> Unit): SimpleFunction {
-        val f = SimpleFunction(name)
-        f.init()
-        children.add(f)
-        return f
-    }
-
     operator fun SimpleFunction.unaryPlus() {
         this@SimpleFunction.children.add(this@unaryPlus)
     }
 
-    fun CS() = children.add(CS)
-    fun inc() = children.add(inc)
-    fun pop() = children.add(pop)
-    fun pop2() = children.add(pop2)
-    fun swap() = children.add(swap)
-    fun tetr() = children.add(tetr)
-    fun tetr2() = children.add(tetr2)
-    fun funkcia() = children.add(funkcia)
-    fun lswap() = children.add(lswap)
-    fun modulo() = children.add(modulo)
-    fun lensum() = children.add(lensum)
-    fun REM() = children.add(REM)
-    fun bitshift() = children.add(bitshift)
-    fun qeq() = children.add(qeq)
-    fun lroll() = children.add(lroll)
-    fun u() = children.add(u)
-    fun gcd() = children.add(gcd)
-    fun d() = children.add(d)
-    fun bitand() = children.add(bitand)
-    fun praise() = children.add(praise)
-    fun m() = children.add(m)
-    fun brz() = children.add(brz)
-    fun j() = children.add(j)
-    fun call() = children.add(call)
-    fun goto() = children.add(goto)
-    fun bulkxor() = children.add(bulkxor)
-    fun max2() = children.add(max2)
-    fun sumall() = children.add(sumall)
-    fun ff() = children.add(ff)
-    fun kpi() = children.add(kpi)
-    fun rev() = children.add(rev)
-    fun deez() = children.add(deez)
-    fun spanek() = children.add(spanek)
+    override fun add(block: SimpleBlock) {
+        children.add(block)
+    }
 }
 
 
 sealed class Instruction(val text: String) : SimpleBlock {
-    override fun getInstructions(): List<Instruction> {
-        return listOf(this)
+    override fun getInstructions(): List<Instruction> = listOf(this)
+    override fun add(block: SimpleBlock) {
+        // This is quite ugly API-wise, but not having Instructions
+        // implement ComplexOrSimpleBlock ends up even worse.
+        throw UnsupportedOperationException("Instructions cannot contain other blocks.")
     }
 }
 
@@ -114,7 +78,7 @@ fun function(name: String? = null, init: SimpleFunction.() -> Unit): SimpleFunct
 /**
  * Extracts a single function from a block.
  * This is mostly a helper function to avoid the need to separate builders
- * and the underlying functions in the `std` package.
+ * and the underlying [SimpleFunction] / [ComplexFunction] in the `std` package.
  *
  * Example use:
  * ```kt

@@ -1,13 +1,11 @@
 package cz.sejsel.ksplang.builder
 
 import cz.sejsel.ksplang.KsplangRunner
-import cz.sejsel.ksplang.dsl.core.CS
 import cz.sejsel.ksplang.dsl.core.complex
+import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.doWhileZero
 import cz.sejsel.ksplang.dsl.core.ifZero
-import cz.sejsel.ksplang.dsl.core.inc
 import cz.sejsel.ksplang.dsl.core.orIfNonZero
-import cz.sejsel.ksplang.dsl.core.pop
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
@@ -47,10 +45,29 @@ class DoWhileZeroBuilderTests : FunSpec({
 
     val program = builder.build(a)
     context("do while zero pop will pop all zeros at the end") {
-        // This checks first
         withData(1..20) {
             val stack = listOf(42L) + (0..<it).map { 0L }
             runner.run(program, stack) shouldBe listOf(42)
+        }
+    }
+})
+
+class DoWhileNonZeroBuilderTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    val a = complex {
+        doWhileNonZero {
+            pop()
+            CS()
+        }
+    }
+
+    val program = builder.build(a)
+    context("do while nonzero zero pop will pop all nonzeros at the end") {
+        withData(1..20) {
+            val stack = listOf(0L) + (1L..it)
+            runner.run(program, stack) shouldBe listOf(0)
         }
     }
 })
