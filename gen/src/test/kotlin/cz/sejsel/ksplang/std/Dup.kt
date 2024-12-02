@@ -33,3 +33,13 @@ class DupTests : FunSpec({
         }
     }
 })
+
+class DupVariationsTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("dupAb duplicates two values") {
+        val program = builder.build(function { dupAb() })
+        runner.run(program, listOf(1, 2)) shouldContainExactly listOf(1, 2, 1, 2)
+    }
+})

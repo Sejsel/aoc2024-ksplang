@@ -45,3 +45,23 @@ fun Block.dup() = function("dup") {
     pop2(); pop2()
     // x x
 }
+
+
+/**
+ * Duplicates the top two values on the stack.
+ *
+ * Signature: `a b -> a b a b`
+ */
+fun Block.dupAb() = function("dup_ab") {
+    // a b
+    dup()
+    // a b b
+    roll(3, 2)
+    // b b a
+    dup()
+    // b b a a
+    roll(4, 1)
+    // a b b a
+    roll(2, 1)
+    // a b a b
+}

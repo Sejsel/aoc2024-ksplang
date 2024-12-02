@@ -33,6 +33,35 @@ fun Block.mul() = function("mul") {
 }
 
 /**
+ * Divides the top values or calculates the modulo if they are not cleanly divisible.
+ *
+ * Signature: `a b -> b % a == 0 ? b // a : b % a`
+ */
+fun Block.cursedDiv() = function("cursedDiv") {
+    push(3)
+    u()
+}
+
+/**
+ * Divides the top two values on the stack. Crashes with division by zero.
+ *
+ * Signature: `a b -> b // a`
+ */
+fun Block.div() = function("div") {
+    // a b
+    dupAb()
+    // a b a b
+    REM()
+    // a b b%a
+    negate()
+    // a b -b%a
+    add()
+    // a b-b%a
+    cursedDiv()
+}
+
+
+/**
  * Negates the top value on the stack. Crashes with overflow with -2^63.
  *
  * Signature: `a -> -a`
