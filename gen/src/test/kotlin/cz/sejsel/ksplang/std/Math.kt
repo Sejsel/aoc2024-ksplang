@@ -35,6 +35,32 @@ class AddTests : FunSpec({
     }
 })
 
+class MulTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    val digitSumCases =
+        VALUES_PER_DIGIT_SUM.map { it to 0L } + VALUES_PER_DIGIT_SUM.map { it to -1L } + VALUES_PER_DIGIT_SUM.map { it to 1L }
+    val extraCases = listOf<Pair<Long, Long>>(
+        0L to 0,
+        Long.MIN_VALUE to 0,
+        Long.MAX_VALUE to 0,
+        0L to Long.MIN_VALUE,
+        0L to Long.MAX_VALUE,
+        10L to 10,
+        1000L to 1000,
+        -1000L to 1000
+    )
+
+    context("mul") {
+        withData(digitSumCases + extraCases) { (a, b) ->
+            val program = builder.build(function { mul() })
+            runner.run(program, listOf(a, b)) shouldContainExactly listOf(a * b)
+        }
+    }
+})
+
+
 class AbsSubTests : FunSpec({
     val runner = KsplangRunner()
     val builder = KsplangBuilder()

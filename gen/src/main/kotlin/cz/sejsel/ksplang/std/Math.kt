@@ -23,6 +23,16 @@ fun Block.subabs() = function("subabs") {
 }
 
 /**
+ * Multiplies the top two values on the stack. Crashes in case of overflow.
+ *
+ * Signature: `a b -> a*b`
+ */
+fun Block.mul() = function("mul") {
+    push(2)
+    u()
+}
+
+/**
  * Negates the top value on the stack. Crashes with overflow with -2^63.
  *
  * Signature: `a -> -a`
