@@ -7,7 +7,7 @@ import cz.sejsel.ksplang.dsl.core.Block
  *
  * Signature: `a -> a a`
  */
-fun Block.dup() {
+fun Block.dup() = function("dup") {
     push(0); push(3); m()
     // x 0 3 clamp(x, 0-3)
     CS(); CS(); inc(); gcd(); inc()  // push(2) onto 0-3

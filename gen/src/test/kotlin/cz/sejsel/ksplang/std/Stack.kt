@@ -3,6 +3,8 @@ package cz.sejsel.ksplang.std
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.function
 import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.VALUES_PER_DIGIT_SUM
+import cz.sejsel.ksplang.dsl.core.complexFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
@@ -54,3 +56,25 @@ class RollTests : FunSpec({
     }
 })
 
+class StacklenTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("stacklen on non-empty stack") {
+        val program = builder.build(complexFunction { stacklen() })
+        val input = listOf(1L, 2L, 3L)
+        runner.run(program, input) shouldContainExactly input + listOf(input.size.toLong())
+    }
+
+    test("stacklen on all CS values") {
+        val program = builder.build(complexFunction { stacklen() })
+        val input = VALUES_PER_DIGIT_SUM
+        runner.run(program, input) shouldContainExactly input + listOf(input.size.toLong())
+    }
+
+    test("stacklen on max and min values") {
+        val program = builder.build(complexFunction { stacklen() })
+        val input = listOf(Long.MAX_VALUE, Long.MIN_VALUE)
+        runner.run(program, input) shouldContainExactly input + listOf(2)
+    }
+})

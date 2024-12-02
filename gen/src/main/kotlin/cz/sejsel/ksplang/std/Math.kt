@@ -7,7 +7,7 @@ import cz.sejsel.ksplang.dsl.core.Block
  *
  * Signature: `a b -> a+b`
  */
-fun Block.add() {
+fun Block.add() = function("add") {
     push(0)
     u()
 }
@@ -17,7 +17,7 @@ fun Block.add() {
  *
  * Signature: `a b -> |a-b|`
  */
-fun Block.subabs() {
+fun Block.subabs() = function("subabs") {
     push(1)
     u()
 }
@@ -27,7 +27,7 @@ fun Block.subabs() {
  *
  * Signature: `a -> -a`
  */
-fun Block.negate() {
+fun Block.negate() = function("negate") {
     // This works by using qeq to solve the equation x + n = 0
     push(1)
     CS()
@@ -44,7 +44,7 @@ fun Block.negate() {
  *
  * Signature: `a -> sgn(a)`
  */
-fun Block.sgn() {
+fun Block.sgn() = function("sgn") {
     push(5)
     u()
 }
@@ -55,7 +55,7 @@ fun Block.sgn() {
  *
  * Signature: `a -> |a|`
  */
-fun Block.abs() {
+fun Block.abs() = function("abs") {
     // This is push(0) + subabs
     push(0)
     CS()
@@ -68,7 +68,7 @@ fun Block.abs() {
  *
  * Signature: `a -> a == 0 ? 1 : 0`
  */
-fun Block.zeroNot() {
+fun Block.zeroNot() = function("zeroNot") {
     // x
     sgn()
     // sgn(x)
@@ -79,4 +79,30 @@ fun Block.zeroNot() {
     CS()
     // |sgn(x)| 1 1
     bulkxor()
+}
+
+/**
+ * Decrements the top value on the stack.
+ *
+ * Signature: `a -> a-1`
+ */
+fun Block.dec() = function("dec") {
+    push(0)
+    CS()
+    inc()
+    CS()
+    qeq()
+    u()
+}
+
+/**
+ * Decrements the top **positive** value on the stack.
+ * For nonpositive values (including 0), the behavior is undefined.
+ *
+ * Signature: `a -> a-1`
+ */
+fun Block.decPositive() = function("decPositive") {
+    push(1)
+    CS()
+    u()
 }

@@ -136,3 +136,22 @@ class AbsTests : FunSpec({
         runner.run(program, listOf(Long.MIN_VALUE + 1)) shouldContainExactly listOf(Long.MAX_VALUE)
     }
 })
+
+class DecTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    context("dec subtracts 1") {
+        withData(VALUES_PER_DIGIT_SUM + listOf(-1, Long.MIN_VALUE + 1, Long.MAX_VALUE)) {
+            val program = builder.build(function { dec() })
+            runner.run(program, listOf(it)) shouldContainExactly listOf(it - 1)
+        }
+    }
+
+    context("decPositive subtracts 1") {
+        withData(VALUES_PER_DIGIT_SUM.filter { it > 0 } + listOf(Long.MAX_VALUE)) {
+            val program = builder.build(function { dec() })
+            runner.run(program, listOf(it)) shouldContainExactly listOf(it - 1)
+        }
+    }
+})

@@ -187,10 +187,18 @@ sealed interface Block {
 
 sealed interface ComplexBlock : Block {
     var children: MutableList<Block>
+
+    @KsplangMarker
+    fun complexFunction(name: String? = null, init: ComplexFunction.() -> Unit): ComplexFunction {
+        val f = ComplexFunction(name)
+        f.init()
+        children.add(f)
+        return f
+    }
 }
 
-data class ComplexFunction(override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
-    constructor(vararg children: Block) : this(children.toMutableList())
+data class ComplexFunction(val name: String? = null, override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
+    constructor(name: String? = null, vararg children: Block) : this(name, children.toMutableList())
 
     override fun add(block: SimpleBlock) {
         children.add(block)
@@ -240,8 +248,8 @@ fun ComplexFunction.doWhileNonZero(init: DoWhileZero.() -> Unit): DoWhileZero {
 }
 
 @KsplangMarker
-fun complex(init: ComplexFunction.() -> Unit): ComplexFunction {
-    val f = ComplexFunction()
+fun complexFunction(name: String? = null, init: ComplexFunction.() -> Unit): ComplexFunction {
+    val f = ComplexFunction(name)
     f.init()
     return f
 }
