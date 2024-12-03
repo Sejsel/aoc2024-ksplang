@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 
 class ComplexFunctionsTests : FunSpec({
     test("if zero else dsl") {
-        val a = complexFunction {
+        val a = buildComplexFunction {
             ifZero {
                 CS()
                 inc()
@@ -18,6 +18,37 @@ class ComplexFunctionsTests : FunSpec({
         a shouldBe ComplexFunction(null,
             IfZero(
                 mutableListOf(CS, inc),
+                ComplexFunction(null, CS, pop),
+            )
+        )
+    }
+
+    test("if zero nested dsl") {
+        val a = buildComplexFunction {
+            ifZero {
+                CS()
+                ifZero {
+                    CS()
+                } orIfNonZero {
+                    pop()
+                }
+                inc()
+            } orIfNonZero {
+                CS()
+                pop()
+            }
+        }
+
+        a shouldBe ComplexFunction(null,
+            IfZero(
+                mutableListOf(
+                    CS,
+                    IfZero(
+                        mutableListOf(CS),
+                        ComplexFunction(null, pop),
+                    ),
+                    inc,
+                ),
                 ComplexFunction(null, CS, pop),
             )
         )

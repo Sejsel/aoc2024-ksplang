@@ -65,3 +65,53 @@ fun Block.dupAb() = function("dup_ab") {
     roll(2, 1)
     // a b a b
 }
+
+/**
+ * Duplicates the *n*-th element on the stack, indexed from zero.
+ *
+ * dupNthZeroIndexed(0) = a -> a a
+ * dupNthZeroIndexed(1) = a b -> a b a
+ * dupNthZeroIndexed(2) = a b c -> a b c a
+ */
+fun Block.dupNthZeroIndexed(n: Long) = function("dup_nth_zero_indexed($n)") {
+    assert(n >= 0)
+    // a [...]
+    roll(n + 1, n)
+    // [...] a
+    dup()
+    // [...] a a
+    roll(n + 2, 1)
+    // a [...] a
+}
+
+/**
+ * Duplicates the second element on the stack.
+ *
+ * Signature: `a b -> a b a`
+ */
+fun Block.dupSecond() = dupNthZeroIndexed(1)
+/**
+ * Duplicates the third element on the stack.
+ *
+ * Signature: `a b c -> a b c a`
+ */
+fun Block.dupThird() = dupNthZeroIndexed(2)
+/**
+ * Duplicates the fourth element on the stack.
+ *
+ * Signature: `a b c d -> a b c d a`
+ */
+fun Block.dupFourth() = dupNthZeroIndexed(3)
+/**
+ * Duplicates the fifth element on the stack.
+ *
+ * Signature: `a b c d e -> a b c d e a`
+ */
+fun Block.dupFifth() = dupNthZeroIndexed(4)
+/**
+ * Duplicates the sixth element on the stack.
+ *
+ * Signature: `a b c d e f -> a b c d e f a`
+ */
+fun Block.dupSixth() = dupNthZeroIndexed(5)
+

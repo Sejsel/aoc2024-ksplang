@@ -1,7 +1,7 @@
 package cz.sejsel.ksplang.builder
 
 import cz.sejsel.ksplang.KsplangRunner
-import cz.sejsel.ksplang.dsl.core.complexFunction
+import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.doWhileZero
 import cz.sejsel.ksplang.dsl.core.ifZero
@@ -14,7 +14,7 @@ class IfZeroBuilderTests : FunSpec({
     val runner = KsplangRunner()
     val builder = KsplangBuilder()
 
-    val a = complexFunction {
+    val a = buildComplexFunction {
         ifZero {
             inc()
         } orIfNonZero {
@@ -36,7 +36,7 @@ class DoWhileZeroBuilderTests : FunSpec({
     val runner = KsplangRunner()
     val builder = KsplangBuilder()
 
-    val a = complexFunction {
+    val a = buildComplexFunction {
         doWhileZero {
             pop()
             CS()
@@ -56,7 +56,7 @@ class DoWhileNonZeroBuilderTests : FunSpec({
     val runner = KsplangRunner()
     val builder = KsplangBuilder()
 
-    val a = complexFunction {
+    val a = buildComplexFunction {
         doWhileNonZero {
             pop()
             CS()

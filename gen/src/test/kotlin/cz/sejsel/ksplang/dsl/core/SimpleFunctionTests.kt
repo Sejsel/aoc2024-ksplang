@@ -20,10 +20,10 @@ class SimpleFunctionTests : FunSpec({
     }
 
     test("simple function dsl flattening") {
-        val f = function {
+        val f = buildFunction {
             CS()
             inc()
-            function {
+            buildFunction {
                 CS()
                 CS()
                 inc()
@@ -36,13 +36,13 @@ class SimpleFunctionTests : FunSpec({
     }
 
     test("simple function insertion with unaryPlus") {
-        val inner = function {
+        val inner = buildFunction {
             CS()
             CS()
             inc()
             CS()
         }
-        val f = function {
+        val f = buildFunction {
             CS()
             inc()
             +inner

@@ -3,6 +3,7 @@
 package cz.sejsel.ksplang.dsl.core
 
 /** A code block which can be formed into a list of instructions regardless of where they are in the program. **/
+@KsplangMarker
 sealed interface SimpleBlock : Block {
     fun getInstructions(): List<Instruction>
 }
@@ -25,6 +26,7 @@ class SimpleFunction(val name: String? = null, children: List<SimpleBlock> = emp
 }
 
 
+@KsplangMarker
 sealed class Instruction(val text: String) : SimpleBlock {
     override fun getInstructions(): List<Instruction> = listOf(this)
     override fun add(block: SimpleBlock) {
@@ -69,7 +71,7 @@ data object deez : Instruction("deez")
 data object spanek : Instruction("spanek")
 
 @KsplangMarker
-fun function(name: String? = null, init: SimpleFunction.() -> Unit): SimpleFunction {
+fun buildFunction(name: String? = null, init: SimpleFunction.() -> Unit): SimpleFunction {
     val f = SimpleFunction(name)
     f.init()
     return f

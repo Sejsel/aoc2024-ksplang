@@ -50,6 +50,10 @@ fun Block.push(n: Long): SimpleFunction {
             repeat(numsToAdd - 1) {
                 add()
             }
+        } else if (n == Long.MIN_VALUE) {
+            push(-1)
+            push(63)
+            bitshift()
         } else {
             push(abs(n))
             negate()

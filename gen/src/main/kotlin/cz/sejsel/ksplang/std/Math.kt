@@ -13,6 +13,18 @@ fun Block.add() = function("add") {
 }
 
 /**
+ * Adds a constant to the top value on the stack. Crashes in case of overflow.
+ *
+ * Signature: `a -> a+n`
+ */
+fun Block.add(n: Long) = function("add($n)") {
+    if (n != 0L) {
+        push(n)
+        add()
+    }
+}
+
+/**
  * Subtracts the top two values and returns the absolute value of the difference.
  *
  * Signature: `a b -> |a-b|`
@@ -30,6 +42,22 @@ fun Block.subabs() = function("subabs") {
 fun Block.mul() = function("mul") {
     push(2)
     u()
+}
+
+/**
+ * Multiplies the top value on the stack by a constant. Crashes in case of overflow.
+ *
+ * Signature: `a -> a*n`
+ */
+fun Block.mul(n: Long) = function("mul($n)") {
+    if (n == 0L) {
+        // Shorter
+        pop()
+        push(0)
+    } else {
+        push(n)
+        mul()
+    }
 }
 
 /**
@@ -58,6 +86,21 @@ fun Block.div() = function("div") {
     add()
     // a b-b%a
     cursedDiv()
+}
+
+/**
+ * Divides the top value on the stack by a constant. Crashes with division by zero.
+ *
+ * Signature: `a -> a // n`
+ */
+fun Block.div(n: Long) = function("div($n)") {
+    // a
+    push(n)
+    // a n
+    swap2()
+    // n a
+    div()
+    // a//n
 }
 
 
@@ -144,4 +187,27 @@ fun Block.decPositive() = function("decPositive") {
     push(1)
     CS()
     u()
+}
+
+/*
+ * min(a, b) based on Filip Hejsek's solution to the removed 36-2-4 task.
+ * The initial pushes are optimized, but the rest is the same.
+ * The jump section has to be exactly the same as the "conditional" jumps rely
+ * on the length of the those sections.
+ * print_expand("""
+ *     IntMin IntMin 5 m 4 max % CS CS CS ++ gcd ++ ++ ++ u j j
+ *     ++ ++ pop2 pop2 pop2 m pop2 7 j
+ *     pop ++ m pop2 pop2 pop2 CS pop
+ *     pop2 pop2
+ * """)
+ *
+ * Signature: `a b -> min(a, b)`
+ */
+fun Block.min2() = function("min2") {
+    push(Long.MIN_VALUE); push(Long.MIN_VALUE); push(5); m(); push(4); max2(); modulo(); CS(); CS(); CS(); inc(); gcd(); inc(); inc(); inc(); u(); j(); j()
+    inc(); inc(); pop2(); pop2(); pop2(); m(); pop2()
+    // push(7) of the correct length
+    CS(); inc(); CS(); pop2(); CS(); pop2(); CS(); modulo(); repeat(7) { inc() }
+    j()
+    pop(); inc(); m(); pop2(); pop2(); pop2(); CS(); pop(); pop2(); pop2()
 }

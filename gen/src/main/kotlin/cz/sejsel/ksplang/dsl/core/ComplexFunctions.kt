@@ -6,12 +6,12 @@ import cz.sejsel.ksplang.std.zeroNot
 // SimpleFunction contains Instructions or SimpleFunctions
 // ComplexFunction contains ComplexFunctions or SimpleFunctions or Instructions
 
+@KsplangMarker
 sealed interface Block {
     fun add(block: SimpleBlock)
 
     // These are functions and not extension functions very much on purpose.
     // They do not have to be imported, and they end up colored differently from (extension) functions.
-    @KsplangMarker
     fun function(name: String? = null, init: SimpleFunction.() -> Unit): SimpleFunction {
         val f = SimpleFunction(name)
         f.init()
@@ -19,174 +19,151 @@ sealed interface Block {
         return f
     }
 
-    @KsplangMarker
     fun CS() {
         add(CS)
     }
 
-    @KsplangMarker
     fun inc() {
         add(inc)
     }
 
-    @KsplangMarker
     fun pop() {
         add(pop)
     }
 
-    @KsplangMarker
     fun pop2() {
         add(pop2)
     }
 
-    @KsplangMarker
     fun swap() {
         add(swap)
     }
 
-    @KsplangMarker
     fun tetr() {
         add(tetr)
     }
 
-    @KsplangMarker
     fun tetr2() {
         add(tetr2)
     }
 
-    @KsplangMarker
     fun funkcia() {
         add(funkcia)
     }
 
-    @KsplangMarker
     fun lswap() {
         add(lswap)
     }
 
-    @KsplangMarker
     fun modulo() {
         add(modulo)
     }
 
-    @KsplangMarker
     fun lensum() {
         add(lensum)
     }
 
-    @KsplangMarker
     fun REM() {
         add(REM)
     }
 
-    @KsplangMarker
     fun bitshift() {
         add(bitshift)
     }
 
-    @KsplangMarker
     fun qeq() {
         add(qeq)
     }
 
-    @KsplangMarker
+    /**
+     * Rotates right (assuming the stack grows right).
+     *
+     * Signature: `dist len ->`, also moves top len elements right (circularly).
+     */
     fun lroll() {
         add(lroll)
     }
 
-    @KsplangMarker
     fun u() {
         add(u)
     }
 
-    @KsplangMarker
     fun gcd() {
         add(gcd)
     }
 
-    @KsplangMarker
     fun d() {
         add(d)
     }
 
-    @KsplangMarker
     fun bitand() {
         add(bitand)
     }
 
-    @KsplangMarker
     fun praise() {
         add(praise)
     }
 
-    @KsplangMarker
     fun m() {
         add(m)
     }
 
-    @KsplangMarker
     fun brz() {
         add(brz)
     }
 
-    @KsplangMarker
     fun j() {
         add(j)
     }
 
-    @KsplangMarker
     fun call() {
         add(call)
     }
 
-    @KsplangMarker
     fun goto() {
         add(goto)
     }
 
-    @KsplangMarker
     fun bulkxor() {
         add(bulkxor)
     }
 
-    @KsplangMarker
     fun max2() {
         add(max2)
     }
 
-    @KsplangMarker
     fun sumall() {
         add(sumall)
     }
 
-    @KsplangMarker
     fun ff() {
         add(ff)
     }
 
-    @KsplangMarker
     fun kpi() {
         add(kpi)
     }
 
-    @KsplangMarker
     fun rev() {
         add(rev)
     }
 
-    @KsplangMarker
     fun deez() {
         add(deez)
     }
 
-    @KsplangMarker
     fun spanek() {
         add(spanek)
     }
 }
 
+@KsplangMarker
 sealed interface ComplexBlock : Block {
     var children: MutableList<Block>
+
+    operator fun Block.unaryPlus() {
+        this@ComplexBlock.children.add(this@unaryPlus)
+    }
 
     @KsplangMarker
     fun complexFunction(name: String? = null, init: ComplexFunction.() -> Unit): ComplexFunction {
@@ -197,6 +174,7 @@ sealed interface ComplexBlock : Block {
     }
 }
 
+@KsplangMarker
 data class ComplexFunction(val name: String? = null, override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
     constructor(name: String? = null, vararg children: Block) : this(name, children.toMutableList())
 
@@ -205,13 +183,14 @@ data class ComplexFunction(val name: String? = null, override var children: Muta
     }
 }
 
-fun ComplexFunction.ifZero(init: IfZero.() -> Unit): IfZero {
+fun ComplexBlock.ifZero(init: IfZero.() -> Unit): IfZero {
     val f = IfZero()
     f.init()
     children.add(f)
     return f
 }
 
+@KsplangMarker
 data class IfZero(override var children: MutableList<Block> = mutableListOf(), var orElse: ComplexFunction? = null) : ComplexBlock {
     override fun add(block: SimpleBlock) {
         children.add(block)
@@ -224,20 +203,21 @@ infix fun IfZero.orIfNonZero(init: ComplexFunction.() -> Unit) {
     this.orElse = f
 }
 
+@KsplangMarker
 data class DoWhileZero(override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
     override fun add(block: SimpleBlock) {
         children.add(block)
     }
 }
 
-fun ComplexFunction.doWhileZero(init: DoWhileZero.() -> Unit): DoWhileZero {
+fun ComplexBlock.doWhileZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     val f = DoWhileZero()
     f.init()
     children.add(f)
     return f
 }
 
-fun ComplexFunction.doWhileNonZero(init: DoWhileZero.() -> Unit): DoWhileZero {
+fun ComplexBlock.doWhileNonZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     val f = DoWhileZero()
     f.init()
     f.apply {
@@ -248,7 +228,7 @@ fun ComplexFunction.doWhileNonZero(init: DoWhileZero.() -> Unit): DoWhileZero {
 }
 
 @KsplangMarker
-fun complexFunction(name: String? = null, init: ComplexFunction.() -> Unit): ComplexFunction {
+fun buildComplexFunction(name: String? = null, init: ComplexFunction.() -> Unit): ComplexFunction {
     val f = ComplexFunction(name)
     f.init()
     return f

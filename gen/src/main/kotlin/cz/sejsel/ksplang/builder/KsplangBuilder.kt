@@ -467,7 +467,7 @@ class KsplangBuilder {
                 fun applyPreparedPush(push: PreparedPush, n: Long, padding: Int) {
                     val index = state.program.indexOf(push.placeholder)
                     val paddedPush = extract { pushPaddedTo(n, padding) }
-                    state.program[index] = build(paddedPush.getInstructions())
+                    state.program[index] = build(paddedPush.getInstructions()) + "\n"
                 }
 
                 fun preparePaddedPush(padding: Int? = null): PreparedPush {
