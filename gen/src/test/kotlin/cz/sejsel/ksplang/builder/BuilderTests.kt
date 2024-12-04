@@ -2,10 +2,12 @@ package cz.sejsel.ksplang.builder
 
 import cz.sejsel.ksplang.KsplangRunner
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
+import cz.sejsel.ksplang.dsl.core.doWhileNonNegative
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.doWhileZero
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.orIfNonZero
+import cz.sejsel.ksplang.std.dup
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
@@ -68,6 +70,26 @@ class DoWhileNonZeroBuilderTests : FunSpec({
         withData(1..20) {
             val stack = listOf(0L) + (1L..it)
             runner.run(program, stack) shouldBe listOf(0)
+        }
+    }
+})
+
+class DoWhileNonNegativeBuilderTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    val a = buildComplexFunction {
+        doWhileNonNegative {
+            pop()
+            dup()
+        }
+    }
+
+    val program = builder.build(a)
+    context("do while nonnegative pop will pop all non-negatives at the end") {
+        withData(1..20) {
+            val stack = listOf(-1L) + (0L..it)
+            runner.run(program, stack) shouldBe listOf(-1)
         }
     }
 })

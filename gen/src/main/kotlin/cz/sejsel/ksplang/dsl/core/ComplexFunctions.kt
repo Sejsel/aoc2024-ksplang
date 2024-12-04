@@ -1,6 +1,10 @@
 package cz.sejsel.ksplang.dsl.core
 
+import cz.sejsel.ksplang.std.dec
+import cz.sejsel.ksplang.std.push
+import cz.sejsel.ksplang.std.sgn
 import cz.sejsel.ksplang.std.zeroNot
+import cz.sejsel.ksplang.std.zeroNotPositive
 
 // Instructions are individual instructions (single words)
 // SimpleFunction contains Instructions or SimpleFunctions
@@ -222,6 +226,22 @@ fun ComplexBlock.doWhileNonZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     f.init()
     f.apply {
         zeroNot()
+    }
+    children.add(f)
+    return f
+}
+
+fun ComplexBlock.doWhileNonNegative(init: DoWhileZero.() -> Unit): DoWhileZero {
+    val f = DoWhileZero()
+    f.init()
+    f.apply {
+        // x
+        sgn()
+        // sgn(x)
+        inc()
+        // sgn(x)+1   -- negative is 0, 0 is 1, positive is 2
+        zeroNotPositive()
+        // negative is 1, 0 is 0, positive is 0
     }
     children.add(f)
     return f

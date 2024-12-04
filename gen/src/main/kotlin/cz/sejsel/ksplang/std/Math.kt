@@ -164,6 +164,18 @@ fun Block.zeroNot() = function("zeroNot") {
 }
 
 /**
+ * Returns 1 if the top value on the stack is zero or negative, 0 otherwise.
+ * A negation of "zeroity" where negative values are treated as zero.
+ *
+ * Signature: `a -> a == 0 ? 1 : 0`
+ */
+fun Block.zeroNotPositive() = function("zeroNot") {
+    push(1)
+    CS()
+    bulkxor()
+}
+
+/**
  * Decrements the top value on the stack.
  *
  * Signature: `a -> a-1`
