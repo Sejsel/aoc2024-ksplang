@@ -34,5 +34,6 @@ also painful at times. Turns out it's actually day 3 by now. Surely I can catch 
 The first task is quite nice, and it can be done without text mode as the input is just numbers.
 Writing the solution to the first part didn't take too long.
 
-#### Part 2 (2024-12-04)
-Made a little summary generator to generate that table above. Somehow it's too enjoyable to 
+#### Day 1 Part 2 (2024-12-04)
+Made a little summary generator to generate that table above. Somehow it's too enjoyable
+to try to get the instruction count down.

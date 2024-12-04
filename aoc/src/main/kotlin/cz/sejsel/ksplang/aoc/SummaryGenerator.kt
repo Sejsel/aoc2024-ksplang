@@ -15,13 +15,13 @@ data class Day(
 val DAYS = listOf(
     Day(
         name = "1",
-        gen1 = { day1() },
+        gen1 = { day1Part1() },
         gen2 = null,
         textInput = false
     ),
 )
 
-fun getInput(partName: String): String = File("inputs/$partName.txt").readText()
+fun getInput(dayName: String): String = File("inputs/$dayName.txt").readText()
 
 fun main() {
     val builder = KsplangBuilder()
@@ -42,7 +42,7 @@ fun main() {
 
             val program = builder.build(gen())
             val instructionCount = program.trim().split("\\s+".toRegex()).count()
-            val input = getInput(partName)
+            val input = getInput(day.name)
             val result = runner.run(program, input, inputText = day.textInput)
 
             val executionTime = "${result.executionTime.toSeconds()}.${result.executionTime.toMillis() % 1000}s"

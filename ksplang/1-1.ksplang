@@ -87,11 +87,11 @@
    CS CS lensum CS funkcia ++ CS CS lensum CS funkcia bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia u CS CS lensum CS funkcia u CS CS lensum CS funkcia u CS CS lensum CS funkcia u CS CS lensum CS funkcia u CS CS lensum CS funkcia u
    CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ lroll brz pop2 pop pop pop
  CS CS lensum CS funkcia CS ++ CS qeq u
- CS CS pop pop pop2
-  CS CS lensum CS funkcia CS ++ CS qeq u CS
-  CS CS lensum CS funkcia ++ ++ ++ ++ ++ u CS CS lensum CS funkcia CS ++ u CS j ++ CS bulkxor
-  CS CS lensum CS funkcia ++ m bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia u CS CS lensum CS funkcia u CS CS lensum CS funkcia u CS CS lensum CS funkcia u CS CS lensum CS funkcia u
-  CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ lroll brz pop2 pop pop
+  CS CS pop pop pop2
+   CS CS lensum CS funkcia CS ++ CS qeq u CS
+   CS CS lensum CS funkcia ++ ++ ++ ++ ++ u CS CS lensum CS funkcia CS ++ u CS j ++ CS bulkxor
+   CS CS lensum CS funkcia ++ m bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ bitshift CS CS lensum CS funkcia u CS CS lensum CS funkcia u CS CS lensum CS funkcia u CS CS lensum CS funkcia u CS CS lensum CS funkcia u
+   CS CS lensum CS funkcia ++ CS CS lensum CS funkcia ++ ++ lroll brz pop2 pop pop
   CS CS lensum CS funkcia
   CS CS pop pop
    CS CS lensum CS funkcia
