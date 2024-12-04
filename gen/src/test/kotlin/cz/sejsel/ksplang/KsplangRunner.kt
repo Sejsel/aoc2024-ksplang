@@ -32,9 +32,10 @@ class KsplangRunner(
 
             // Read the entire output from the stdout
             val output = process.inputStream.bufferedReader().readText()
+            val error = process.errorStream.bufferedReader().readText()
 
             if (process.waitFor() != 0) {
-                throw RuntimeException("Program exited with non-zero exit code")
+                throw RuntimeException("Program exited with non-zero exit code: $error")
             }
 
             // Parse the output as a list of longs

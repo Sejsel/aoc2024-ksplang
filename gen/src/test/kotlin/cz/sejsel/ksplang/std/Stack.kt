@@ -122,3 +122,16 @@ class LeaveTopTests : FunSpec({
         }
     }
 })
+
+class PopNTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    for (i in 0L..9L) {
+        test("popN $i") {
+            val program = builder.build(buildComplexFunction { popN() })
+            val input = (1..10).map { 42L } + listOf(i)
+            runner.run(program, input) shouldContainExactly (1..(10 - i)).map { 42L }
+        }
+    }
+})

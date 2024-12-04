@@ -6,6 +6,8 @@ import cz.sejsel.ksplang.dsl.core.ComplexFunction
 import cz.sejsel.ksplang.dsl.core.SimpleFunction
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.doWhileZero
+import cz.sejsel.ksplang.dsl.core.ifZero
+import cz.sejsel.ksplang.dsl.core.orIfNonZero
 
 
 /**
@@ -139,7 +141,6 @@ fun ComplexBlock.leaveTop() = complexFunction {
     // [stack]
     stacklen()
     // [stack] stacklen
-    // [stack] stacklen
     push(1); swap2()
     // [stack|top] 1 stacklen
     lroll()
@@ -156,4 +157,22 @@ fun ComplexBlock.leaveTop() = complexFunction {
     }
     pop()
     // [stack]
+}
+
+/**
+ * With n on top of the stack, pops n elements from the stack (not counting n), n is also consumed.
+ *
+ * e.g. `1 2 3 4 2 -> 1 2` (*n* was 2)
+ */
+fun ComplexBlock.popN() = complexFunction {
+    ifZero {
+        pop()
+    } orIfNonZero {
+        doWhileNonZero {
+            pop2()
+            dec()
+            CS()
+        }
+        pop()
+    }
 }
