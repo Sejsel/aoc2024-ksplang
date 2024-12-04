@@ -16,6 +16,23 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 
 ## Progress
 
-| Day | Instructions | Runtime | Executed instructions |
-|-----|--------------|---------|-----------------------|
-| 1-1 | 9635         | 26.803s | 2460870296            |
+| Day | Instructions                 | Input mode | Runtime | Executed instructions |
+|-----|------------------------------|------------|---------|-----------------------|
+| 1-1 | [9635](/ksplang/1-1.ksplang) | numeric    | 27.75s  | 2460870296            |
+
+
+## Journal
+
+Might as well keep some notes here, maybe some archaeologists will find them in the future.
+And despair over the time ~~wasted~~ spent on this. Entries are numbered by the days of each task, not real days.
+
+### Day 1 (2024-12-03)
+Took a bit of time to port my ksplang tooling from Python to Kotlin, mainly for better organization.
+Python is unsuitable because of its inability to do circular imports, and its performance is
+also painful at times. Turns out it's actually day 3 by now. Surely I can catch up.
+
+The first task is quite nice, and it can be done without text mode as the input is just numbers.
+Writing the solution to the first part didn't take too long.
+
+#### Part 2 (2024-12-04)
+Made a little summary generator to generate that table above. Somehow it's too enjoyable to 

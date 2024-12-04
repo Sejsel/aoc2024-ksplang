@@ -13,7 +13,7 @@ fun main() {
     val builder = KsplangBuilder()
     val program = builder.build(day1())
     println(program)
-    File("ksplang/day1/1.ksplang").writeText(program)
+    File("ksplang/1-1.ksplang").writeText(program)
 }
 
 fun ComplexBlock.extractColumn(columnIndex: Long) = complexFunction {

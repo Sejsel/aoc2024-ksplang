@@ -29,8 +29,8 @@ fun main() {
 
     // Markdown table output, two rows per day (one for gen1 and one for gen2)
     // Columns: Day, program instruction count, runtime, executed instructions
-    println("| Day | Instructions | Runtime | Executed instructions |")
-    println("|-----|--------------|---------|-----------------------|")
+    println("| Day | Instructions | Input mode | Runtime | Executed instructions |")
+    println("|-----|--------------|------------|---------|-----------------------|")
 
 
     DAYS.forEach { day ->
@@ -46,7 +46,8 @@ fun main() {
             val result = runner.run(program, input, inputText = day.textInput)
 
             val executionTime = "${result.executionTime.toSeconds()}.${result.executionTime.toMillis() % 1000}s"
-            println("| $partName | $instructionCount | $executionTime | ${result.instructionsExecuted} |")
+            val mode = if (day.textInput) "text" else "numeric"
+            println("| $partName | [$instructionCount](/ksplang/$partName.ksplang) | $mode | $executionTime | ${result.instructionsExecuted} |")
         }
     }
 }
