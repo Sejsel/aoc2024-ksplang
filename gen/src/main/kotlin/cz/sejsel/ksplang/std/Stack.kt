@@ -137,7 +137,7 @@ fun Block.yeet(): SimpleFunction = function("yeet") {
 }
 
 /** Clears the entire stack, leaving only the top value. */
-fun ComplexBlock.leaveTop() = complexFunction {
+fun ComplexBlock.leaveTop() = complexFunction("leaveTop") {
     // [stack]
     stacklen()
     // [stack] stacklen
@@ -164,7 +164,7 @@ fun ComplexBlock.leaveTop() = complexFunction {
  *
  * e.g. `1 2 3 4 2 -> 1 2` (*n* was 2)
  */
-fun ComplexBlock.popN() = complexFunction {
+fun ComplexBlock.popN() = complexFunction("popN") {
     ifZero {
         pop()
     } orIfNonZero {
@@ -175,4 +175,80 @@ fun ComplexBlock.popN() = complexFunction {
         }
         pop()
     }
+}
+
+// Adaptation of the following code:
+// https://stackoverflow.com/questions/53749357/idiomatic-way-to-create-n-ary-cartesian-product-combinations-of-several-sets-of/53763936#53763936
+private fun cartesianProduct(sets: List<Set<*>>): Set<List<*>> {
+    return sets.fold(listOf(listOf<Any?>())) { acc, set ->
+        acc.flatMap { list -> set.map { element -> list + element } }
+    }.toSet()
+}
+
+/**
+ * Permutes the top elements according to the given permutation.
+ *
+ * @param before Values in the original order separated by spaces, e.g. "a b c" or "sum i j"
+ * @param after Values in the wanted order separated by spaces, e.g. "b c a" or "i j sum"
+ *
+ */
+fun Block.permute(before: String, after: String): SimpleFunction {
+    val beforeValues = before.split(" ")
+    val afterValues = after.split(" ")
+
+    check(beforeValues.size == afterValues.size) { "Before and after must have the same number of values" }
+    check(beforeValues.toSet() == afterValues.toSet()) { "Before and after must have the same values" }
+    check(beforeValues.size == beforeValues.toSet().size) { "Before must not contain duplicates" }
+    check(afterValues.size == afterValues.toSet().size) { "After must not contain duplicates" }
+
+    val permutation = afterValues.map { beforeValues.indexOf(it) }
+
+    val possibleRolls = buildList {
+        for (length in 1..permutation.size) {
+            for (distance in 1..<length) {
+                add(length.toLong() to distance.toLong())
+            }
+        }
+    }
+
+    fun checkSequence(rollSequence: List<Pair<Long, Long>>): Boolean {
+        var objects = (0..<permutation.size).toList()
+
+        rollSequence.forEach { (length, distance) ->
+            val prefix = objects.take(objects.size - length.toInt())
+            val moving = objects.takeLast(length.toInt())
+            val end = moving.takeLast(distance.toInt()) + moving.take(moving.size - distance.toInt())
+            objects = prefix + end
+        }
+
+        val isCorrect = objects == permutation
+        return isCorrect
+    }
+
+    for (rolls in 0..Int.MAX_VALUE) {
+        val sets = buildList {
+            repeat(rolls) {
+                add(possibleRolls.toSet())
+            }
+        }
+
+        if(checkSequence(emptyList())) {
+            return function("permute(\"$before\", \"$after\")") {}
+        }
+
+        cartesianProduct(sets).forEach {
+            @Suppress("UNCHECKED_CAST")
+            val rollSequence = it as? List<Pair<Long, Long>> ?: error("still better than Python")
+            val isCorrect = checkSequence(rollSequence)
+            if (isCorrect) {
+                return function("permute(\"$before\", \"$after\")") {
+                    rollSequence.forEach { (length, distance) ->
+                        roll(length, distance)
+                    }
+                }
+            }
+        }
+    }
+
+    error("Permutation not possible. Also probably beyond the heat death of the universe.")
 }

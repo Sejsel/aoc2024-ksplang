@@ -135,3 +135,43 @@ class PopNTests : FunSpec({
         }
     }
 })
+
+class PermuteTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("permute(a b c, a b c) does nothing") {
+        val program = builder.build(buildComplexFunction { permute("a b c", "a b c") })
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6)
+        val output = listOf<Long>(1, 2, 3, 4, 5, 6)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("permute(a b c, b a c)") {
+        val program = builder.build(buildComplexFunction { permute("a b c", "b a c") })
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6)
+        val output = listOf<Long>(1, 2, 3, 5, 4, 6)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("permute(a b c, c a b)") {
+        val program = builder.build(buildComplexFunction { permute("a b c", "c a b") })
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6)
+        val output = listOf<Long>(1, 2, 3, 6, 4, 5)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("permute(a b c d e f, f e d c b a)") {
+        val program = builder.build(buildComplexFunction { permute("a b c d e f", "f e d c b a") })
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6)
+        val output = listOf<Long>(6, 5, 4, 3, 2, 1)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("permute(a b c d e f, a e d c b f)") {
+        val program = builder.build(buildComplexFunction { permute("a b c d e f", "a e d c b f") })
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6)
+        val output = listOf<Long>(1, 5, 4, 3, 2, 6)
+        runner.run(program, input) shouldContainExactly output
+    }
+})
