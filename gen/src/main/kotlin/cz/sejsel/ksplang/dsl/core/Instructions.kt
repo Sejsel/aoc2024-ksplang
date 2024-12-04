@@ -34,6 +34,45 @@ sealed class Instruction(val text: String) : SimpleBlock {
         // implement ComplexOrSimpleBlock ends up even worse.
         throw UnsupportedOperationException("Instructions cannot contain other blocks.")
     }
+
+    companion object {
+        fun fromText(text: String): Instruction? = when (text.lowercase()) {
+            "cs" -> CS
+            "++" -> inc
+            "pop" -> pop
+            "pop2" -> pop2
+            "swap" -> swap
+            "tetr" -> tetr
+            "^^" -> tetr2
+            "funkcia" -> funkcia
+            "l-swap" -> lswap
+            "%" -> modulo
+            "lensum" -> lensum
+            "rem" -> REM
+            "bitshift" -> bitshift
+            "qeq" -> qeq
+            "lroll" -> lroll
+            "u" -> u
+            "gcd" -> gcd
+            "d" -> d
+            "and" -> bitand
+            "praise" -> praise
+            "m" -> m
+            "brz" -> brz
+            "j" -> j
+            "call" -> call
+            "goto" -> goto
+            "bulkxor" -> bulkxor
+            "max" -> max2
+            "sum" -> sumall
+            "-ff" -> ff
+            "kpi" -> kpi
+            "rev" -> rev
+            "deez" -> deez
+            "spanek" -> spanek
+            else -> null
+        }
+    }
 }
 
 data object CS : Instruction("CS")

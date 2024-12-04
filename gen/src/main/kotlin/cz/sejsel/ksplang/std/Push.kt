@@ -1,9 +1,27 @@
 package cz.sejsel.ksplang.std
 
 import cz.sejsel.ksplang.dsl.core.Block
+import cz.sejsel.ksplang.dsl.core.Instruction
 import cz.sejsel.ksplang.dsl.core.SimpleFunction
 import cz.sejsel.ksplang.dsl.core.extract
+import java.io.File
 import kotlin.math.abs
+
+// short_pushes.txt in resources
+object ShortPushes {
+    val sequencesByNumber = this::class.java.getResourceAsStream("/short_pushes.txt")?.bufferedReader()!!
+        .readText()
+        .lines()
+        .map { it.trim() }
+        .filter { !it.startsWith("#") && !it.isBlank() }
+        .associate {
+            val number = it.split(":")[0].trim().toLong()
+            val program = it.split(":")[1].split("'")[1]
+            val instructions = program.split(" ").map { Instruction.fromText(it)!! }
+            number to instructions
+        }
+}
+
 
 /** Pushes a constant number to the top of the stack. */
 fun Block.push(n: Int) = push(n.toLong())
@@ -11,7 +29,13 @@ fun Block.push(n: Int) = push(n.toLong())
 /** Pushes a constant number to the top of the stack. */
 fun Block.push(n: Long): SimpleFunction {
     return function("push($n)") {
-        // TODO: Port "short pushes"
+        ShortPushes.sequencesByNumber[n]?.let {
+            for (instruction in it) {
+                add(instruction)
+            }
+            return@function
+        }
+
         if (n == 0L) {
             // Requires a non-empty stack.
             // CS CS lensum will take any value down to 0-5
