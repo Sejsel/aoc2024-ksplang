@@ -16,4 +16,6 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 
 ## Progress
 
-- [ ] Day 1
+| Day | Instructions | Runtime | Executed instructions |
+|-----|--------------|---------|-----------------------|
+| 1-1 | 9635         | 26.803s | 2460870296            |

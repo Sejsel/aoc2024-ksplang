@@ -10,3 +10,6 @@ gradlew.bat
 
 # Ignore IntelliJ project files
 .idea/
+
+# AoC input files
+inputs

@@ -438,7 +438,13 @@ private class BuilderState {
 /** Transforms the ksplang DSL tree consisting of [Instruction], [SimpleFunction], and [ComplexFunction]
  * into real ksplang code. */
 class KsplangBuilder {
-    fun build(programTree: ComplexBlock): String {
+    fun build(programTree: Block): String = when (programTree) {
+        is ComplexBlock -> build(programTree)
+        is SimpleFunction -> build(programTree)
+        is Instruction -> build(programTree)
+    }
+
+    private fun build(programTree: ComplexBlock): String {
         // For simplification, we use a global address padding (all addresses are padded to the same length)
         for (addressPad in 6..Int.MAX_VALUE) {
             try {
@@ -590,7 +596,7 @@ class KsplangBuilder {
         throw IllegalStateException("Could not find a suitable address padding")
     }
 
-    fun build(instructions: SimpleFunction): String {
+    private fun build(instructions: SimpleFunction): String {
         return build(instructions.getInstructions())
     }
 
