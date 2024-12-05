@@ -7,18 +7,33 @@ import cz.sejsel.ksplang.dsl.core.extract
 import java.io.File
 import kotlin.math.abs
 
-// short_pushes.txt in resources
 object ShortPushes {
-    val sequencesByNumber = this::class.java.getResourceAsStream("/short_pushes.txt")?.bufferedReader()!!
+    val sequencesByNumber: Map<Long, List<Instruction>> = this::class.java.getResourceAsStream("/short_pushes.txt")?.bufferedReader()!!
         .readText()
         .lines()
         .map { it.trim() }
         .filter { !it.startsWith("#") && !it.isBlank() }
         .associate {
             val number = it.split(":")[0].trim().toLong()
-            val program = it.split(":")[1].split("'")[1]
+            val program = it.split(":")[1].split("'")[1].trim()
             val instructions = program.split(" ").map { Instruction.fromText(it)!! }
             number to instructions
+        }
+
+    /** Programs by  **/
+    val pushOnSequencesByNumbers: Map<Pair<Long, Long>, List<Instruction>> = this::class.java.getResourceAsStream("/short_push_ons.txt")?.bufferedReader()!!
+        .readText()
+        .lines()
+        .map { it.trim() }
+        .filter { !it.startsWith("#") && !it.isBlank() }
+        .associate {
+            val numbers = it.split(":")[0].trim().removePrefix("(").removeSuffix(")").split(",").map { it.trim().toLong() }
+            check(numbers.size == 2)
+            val on = numbers[0]
+            val number = numbers[1]
+            val program = it.split(":")[1].split("'")[1].trim()
+            val instructions = program.split(" ").map { Instruction.fromText(it)!! }
+            (on to number) to instructions
         }
 }
 
@@ -83,6 +98,22 @@ fun Block.push(n: Long): SimpleFunction {
             negate()
         }
     }
+}
+
+/**
+ * Pushes a constant number to the top of the stack if there is a specific value on top of the stack already.
+ *
+ * Generally more useful as an optimization for generating ksplang code than being used manually.
+ */
+fun Block.pushOn(stackTop: Long, n: Long): SimpleFunction = function("pushOn($stackTop, $n)") {
+    ShortPushes.pushOnSequencesByNumbers[stackTop to n]?.let {
+        for (instruction in it) {
+            add(instruction)
+        }
+        return@function
+    }
+
+    push(n)
 }
 
 /**

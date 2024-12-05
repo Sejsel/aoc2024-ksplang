@@ -56,3 +56,23 @@ class PushPaddedToTests : FunSpec({
         }
     }
 })
+
+class PushOnTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    val params = buildList {
+        for (top in -1L..16L) {
+            for (n in -1L..16L) {
+                add(top to n)
+            }
+        }
+    }
+    context("pushOn") {
+        withData(params) { (top, n) ->
+            val func = buildFunction { pushOn(top, n) }
+            val program = builder.build(func)
+            runner.run(program, listOf(top)) shouldContainExactly listOf(top, n)
+        }
+    }
+})
