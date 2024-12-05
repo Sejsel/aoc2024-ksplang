@@ -18,8 +18,8 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 
 | Day | Instructions                 | Input mode | Runtime | Executed instructions |
 |-----|------------------------------|------------|---------|-----------------------|
-| 1-1 | [8150](/ksplang/1-1.ksplang) | numeric    | 23.66s  | 1741886242            |
-| 1-2 | [5254](/ksplang/1-2.ksplang) | numeric    | 16.983s | 1331944030            |
+| 1-1 | [7046](/ksplang/1-1.ksplang) | numeric    | 21.486s | 1535730275            |
+| 1-2 | [4490](/ksplang/1-2.ksplang) | numeric    | 15.260s | 1176145375            |
 
 
 ## Journal

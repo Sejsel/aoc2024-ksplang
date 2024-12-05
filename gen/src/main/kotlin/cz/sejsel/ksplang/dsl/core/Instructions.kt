@@ -9,9 +9,7 @@ sealed interface SimpleBlock : Block {
 }
 
 @KsplangMarker
-class SimpleFunction(val name: String? = null, children: List<SimpleBlock> = emptyList()) : SimpleBlock {
-    var children = children.toMutableList()
-
+data class SimpleFunction(val name: String? = null, var children: MutableList<SimpleBlock> = mutableListOf()) : SimpleBlock {
     override fun getInstructions(): List<Instruction> {
         return children.flatMap { it.getInstructions() }
     }

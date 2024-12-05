@@ -10,6 +10,7 @@ import cz.sejsel.ksplang.dsl.core.*
 import cz.sejsel.ksplang.std.PaddingFailureException
 import cz.sejsel.ksplang.std.roll
 import cz.sejsel.ksplang.std.push
+import cz.sejsel.ksplang.std.pushOn
 import cz.sejsel.ksplang.std.pushPaddedTo
 
 /*
@@ -437,7 +438,9 @@ private class BuilderState {
 
 /** Transforms the ksplang DSL tree consisting of [Instruction], [SimpleFunction], and [ComplexFunction]
  * into real ksplang code. */
-class KsplangBuilder {
+class KsplangBuilder(
+    val enablePushOptimizations: Boolean = true
+) {
     fun build(programTree: Block): String = when (programTree) {
         is ComplexBlock -> build(programTree)
         is SimpleFunction -> build(programTree)
@@ -449,6 +452,7 @@ class KsplangBuilder {
         for (addressPad in 6..Int.MAX_VALUE) {
             try {
                 val state = BuilderState()
+                val pushNameRegex = """^push\((-?\d+)\)$""".toRegex()
 
                 fun backupState(): BuilderState {
                     return BuilderState().apply {
@@ -516,9 +520,31 @@ class KsplangBuilder {
                         }
 
                         is SimpleFunction -> {
-                            // TODO: Reintroduce push_on optimization
                             // TODO: Reintroduce callable functions
-                            block.getInstructions().forEach { e(it) }
+                            var optimized = false
+                            if (enablePushOptimizations && state.lastSimpleFunction != null) {
+                                val lastMatch = pushNameRegex.find(state.lastSimpleFunction!!.name ?: "")
+                                val thisMatch = pushNameRegex.find(block.name ?: "")
+                                if (lastMatch != null && thisMatch != null) {
+                                    val lastN = lastMatch.groupValues[1].toLong()
+                                    val thisN = thisMatch.groupValues[1].toLong()
+                                    // We must not optimize again in case push_on falls back onto push(n)
+                                    // That would result in an infinite loop.
+                                    state.lastSimpleFunction = null
+                                    e(extract { pushOn(lastN, thisN) })
+                                    optimized = true
+                                }
+                                // else if (thisMatch != null && state.lastSimpleFunction == sgn) {
+                                //     val thisN = thisMatch.groupValues[1].toLong()
+                                //     e(extract { pushOnSgn(thisN, isLast) })
+                                //     state.lastSimpleFunction = null
+                                //     optimized = true
+                                // }
+                            }
+
+                            if (!optimized) {
+                                block.children.forEach { e(it) }
+                            }
                             state.lastSimpleFunction = block
                         }
 
