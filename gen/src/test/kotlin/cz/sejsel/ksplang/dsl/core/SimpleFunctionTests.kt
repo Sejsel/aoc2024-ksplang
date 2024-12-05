@@ -23,7 +23,7 @@ class SimpleFunctionTests : FunSpec({
         val f = buildFunction {
             CS()
             inc()
-            buildFunction {
+            function {
                 CS()
                 CS()
                 inc()
