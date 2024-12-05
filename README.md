@@ -39,6 +39,12 @@ Writing the solution to the first part didn't take too long.
 Made a little summary generator to generate that table above. Somehow it's too enjoyable
 to try to get the instruction count down.
 
-Reintroduced my catalogue of [short ways to push a constant](gen/src/main/resources/short_pushes.txt).
+I also reintroduced my catalogue of [short ways to push a constant](gen/src/main/resources/short_pushes.txt).
 There are still a few more optimizations that I need to reintroduce from my Python tooling, but this one
 was somehow the most fun back then and it makes a decent difference (~16% speedup in day 1-1).
+
+The second part of the task was fine, my lovely quadratic algorithm ended up faster than
+the (quadratic) [sort](https://arxiv.org/abs/2110.01111) I used in part 1. Perhaps I will replace the sort
+with something faster later on.
+
+### Day 2 (2024-12-05)
