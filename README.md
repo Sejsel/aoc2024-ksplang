@@ -48,3 +48,6 @@ the (quadratic) [sort](https://arxiv.org/abs/2110.01111) I used in part 1. Perha
 with something faster later on.
 
 ### Day 2 (2024-12-05)
+
+Checked the example input in the description, looked easy enough with numeric mode. Checked the actual input,
+and it turns out that we need to count how many nubmers are on each line, so text mode it is. Yay.

@@ -252,3 +252,38 @@ fun Block.permute(before: String, after: String): SimpleFunction {
 
     error("Permutation not possible. Also probably beyond the heat death of the universe.")
 }
+
+/**
+ * Finds the first instance of a value from a given index (inclusive).
+ * If the value does not exist, this will behave unpredictably (crash or wrong results).
+ * If i is outside of the stack, this will crash.
+ *
+ * Signature: ```i a -> first(s[i] == a)```
+ */
+fun ComplexBlock.findUnsafe() = complexFunction("findUnsafe") {
+    // i a
+    swap2()
+    // a i
+    doWhileZero {
+        // a i
+        dup()
+        // a i i
+        yoink()
+        // a i s[i]
+        dupThird()
+        // a i s[i] a
+        cmp()
+        // a i CMP(s[i]==a)
+        zeroNot()
+        // a i s[i]==a?1:0
+        swap2()
+        inc()
+        swap2()
+        // a i+1 s[i]==a?1:0
+    }
+    // a i+1
+    decPositive()
+    // a i
+    pop2()
+    // i
+}

@@ -175,3 +175,22 @@ class PermuteTests : FunSpec({
         runner.run(program, input) shouldContainExactly output
     }
 })
+
+class FindUnsafeTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    val program = builder.build(buildComplexFunction { findUnsafe() })
+
+    test("findUnsafe finds at the end") {
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6, 42, 0, 42)
+        val output = listOf<Long>(1, 2, 3, 4, 5, 6, 42, 6)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("findUnsafe finds at the start") {
+        val input = listOf<Long>(42, 2, 3, 4, 5, 6, 42, 0, 42)
+        val output = listOf<Long>(42, 2, 3, 4, 5, 6, 42, 0)
+        runner.run(program, input) shouldContainExactly output
+    }
+})
