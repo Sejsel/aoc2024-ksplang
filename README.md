@@ -18,10 +18,9 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 
 | Day | Instructions                  | Input mode | Runtime | Executed instructions |
 |-----|-------------------------------|------------|---------|-----------------------|
-| 1-1 | [6554](/ksplang/1-1.ksplang)  | numeric    | 21.245s | 1533825452            |
-| 1-2 | [4490](/ksplang/1-2.ksplang)  | numeric    | 15.444s | 1176145375            |
-| 2-1 | [13960](/ksplang/2-1.ksplang) | text       | 1.517s  | 127734468             |
-
+| 1-1 | [6554](/ksplang/1-1.ksplang)  | numeric    | 21.388s | 1533825452            |
+| 1-2 | [4490](/ksplang/1-2.ksplang)  | numeric    | 15.973s | 1176145375            |
+| 2-1 | [14909](/ksplang/2-1.ksplang) | text       | 1.702s  | 144668637             |
 ## Journal
 
 Might as well keep some notes here, maybe some archaeologists will find them in the future.
