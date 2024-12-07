@@ -3,6 +3,8 @@ package cz.sejsel.ksplang.aoc
 import cz.sejsel.ksplang.aoc.summary.KsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.Block
+import cz.sejsel.ksplang.dsl.core.extract
+import cz.sejsel.ksplang.std.dup
 import java.io.File
 
 data class Day(
@@ -31,6 +33,8 @@ fun getInput(dayName: String): String = File("inputs/$dayName.txt").readText()
 
 fun main() {
     val builder = KsplangBuilder()
+    // Enabling the following line greatly reduces program size at the cost of some performance:
+    // builder.registerFunction(extract { dup() }, 1, 2)
     val runner = KsplangRunner()
 
     // Markdown table output, two rows per day (one for gen1 and one for gen2)

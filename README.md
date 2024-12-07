@@ -21,6 +21,12 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 | 1-1 | [6554](/ksplang/1-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 21.388s | 1533825452            |
 | 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 15.973s | 1176145375            |
 | 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 1.702s  | 144668637             |
+
+**Note: Some instruction counts optimizations are not enabled. You can place some functions at the start of the file and use
+the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
+Keeping the functions inlined is faster, at least for the standard interpreter. Optimizing for performance here is more
+interesting than optimizing for the shortest program.**
+
 ## Journal
 
 Might as well keep some notes here, maybe some archaeologists will find them in the future.
