@@ -2,6 +2,7 @@ package cz.sejsel.ksplang.aoc
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
+import cz.sejsel.ksplang.dsl.core.ComplexFunction
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.doWhileNonNegative
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
@@ -21,8 +22,10 @@ fun main() {
     println("Generated program for day 2 part 1, $instructionCount instructions")
 }
 
+fun day2Part1() = day2(validityCheck = checkValidity())
+
 // We are using text input for this - we need the newlines.
-fun day2Part1() = buildComplexFunction("day2") {
+fun day2(validityCheck: ComplexFunction) = buildComplexFunction("day2") {
     // [stack]
     stacklen()
     // [stack] inputlen
@@ -91,78 +94,8 @@ fun day2Part1() = buildComplexFunction("day2") {
         permute("i spaces new pos", "new i spaces pos")
         // [stack] inputlen result [numbers|new] i #spaces pos
         // [stack] inputlen result [numbers] i #spaces pos
-        dupFifth()
-        // [stack] inputlen result [numbers] i #spaces pos secondLastNum
-        dupFifth()
-        // [stack] inputlen result [numbers] i #spaces pos secondLastNum lastNum
-        negate()
-        // [stack] inputlen result [numbers] i #spaces pos secondLastNum -lastNum
-        add()
-        // [stack] inputlen result [numbers] i #spaces pos secondLastNum-lastNum
-        sgn()
-        // [stack] inputlen result [numbers] i #spaces pos sgn(secondLastNum-lastNum)
-        //                                                   ^ -1 for ascending sequence (from stack bottom)
-        //                                                   ^  0 for invalid sequence (can treat as either)
-        //                                                   ^  1 for descending sequence
-        inc()
-        // [stack] inputlen result [numbers] i #spaces pos isAscending?0:1/2
-        ifZero {
-            // if ascending
-            push(1)
-            push(3)
-        } orIfNonZero {
-            // if descending
-            push(-3)
-            push(-1)
-        }
-        // [stack] inputlen result [numbers] i #spaces pos isAscending?0:1/2 minDiff maxDiff
-        pop3()
-        // [stack] inputlen result [numbers] i #spaces pos minDiff maxDiff
-        push(0)
-        // [stack] inputlen result [numbers] i #spaces pos minDiff maxDiff 0
-        // [stack] inputlen result [numbers] i #spaces pos minDiff maxDiff mistakes
-        permute("spaces pos min max mistakes", "pos mistakes min max spaces")
-        // [stack] inputlen result [numbers] i pos mistakes minDiff maxDiff spaces
-        doWhileNonZero { // over spaces
-            // [stack] inputlen result [numbers] i pos mistakes minDiff maxDiff spaces+1
-            dec()
-            // [stack] inputlen result [numbers] i pos mistakes minDiff maxDiff spaces
-            dupEighth()
-            dupEighth()
-            // [stack] inputlen result [numbers] i pos mistakes minDiff maxDiff spaces prevLast last
-            swap2(); negate(); add()
-            // [stack] inputlen result [numbers] i pos mistakes minDiff maxDiff spaces last-prevLast
-            dupFourth()
-            dupFourth()
-            // [stack] inputlen result [numbers] i pos mistakes minDiff maxDiff spaces last-prevLast minDiff maxDiff
-            isInRange()
-            // [stack] inputlen result [numbers] i pos mistakes minDiff maxDiff spaces ok?1:0
-            zeroNotPositive()
-            // [stack] inputlen result [numbers] i pos mistakes minDiff maxDiff spaces ok?0:1
-            permute("mistakes min max spaces ok", "min max spaces ok mistakes")
-            // [stack] inputlen result [numbers] i pos minDiff maxDiff spaces ok?0:1 mistakes
-            add()
-            // [stack] inputlen result [numbers] i pos minDiff maxDiff spaces mistakes
-            permute("min max spaces mistakes", "mistakes min max spaces")
-            // [stack] inputlen result [numbers] i pos mistakes minDiff maxDiff spaces
-            popNth(7) // remove last number in [numbers]
-            CS()
-        }
-        // [stack] inputlen result firstnum i pos mistakes minDiff maxDiff 0
-        pop(); pop(); pop()
-        // [stack] inputlen result firstnum i pos mistakes
-        pop4()
-        // [stack] inputlen result i pos mistakes
-        ifZero {
-            // increment result
-            pop()
-            permute("result i pos", "i pos result")
-            inc()
-            permute("i pos result", "result i pos")
-        } orIfNonZero {
-            pop()
-        }
-        // [stack] inputlen result i pos
+        +validityCheck
+        // [stack] inputlen result pos i
         swap2()
         // [stack] inputlen result pos i
         CS()
@@ -171,3 +104,80 @@ fun day2Part1() = buildComplexFunction("day2") {
     pop()
     leaveTop()
 }
+
+fun checkValidity() = buildComplexFunction("isValid") {
+    // result [numbers] i #spaces pos
+    dupFifth()
+    // result [numbers] i #spaces pos secondLastNum
+    dupFifth()
+    // result [numbers] i #spaces pos secondLastNum lastNum
+    negate()
+    // result [numbers] i #spaces pos secondLastNum -lastNum
+    add()
+    // result [numbers] i #spaces pos secondLastNum-lastNum
+    sgn()
+    // result [numbers] i #spaces pos sgn(secondLastNum-lastNum)
+    //                                                   ^ -1 for ascending sequence (from stack bottom)
+    //                                                   ^  0 for invalid sequence (can treat as either)
+    //                                                   ^  1 for descending sequence
+    inc()
+    // result [numbers] i #spaces pos isAscending?0:1/2
+    ifZero {
+        // if ascending
+        push(1)
+        push(3)
+    } orIfNonZero {
+        // if descending
+        push(-3)
+        push(-1)
+    }
+    // result [numbers] i #spaces pos isAscending?0:1/2 minDiff maxDiff
+    pop3()
+    // result [numbers] i #spaces pos minDiff maxDiff
+    push(0)
+    // result [numbers] i #spaces pos minDiff maxDiff 0
+    // result [numbers] i #spaces pos minDiff maxDiff mistakes
+    permute("spaces pos min max mistakes", "pos mistakes min max spaces")
+    // result [numbers] i pos mistakes minDiff maxDiff spaces
+    doWhileNonZero { // over spaces
+        // result [numbers] i pos mistakes minDiff maxDiff spaces+1
+        dec()
+        // result [numbers] i pos mistakes minDiff maxDiff spaces
+        dupEighth()
+        dupEighth()
+        // result [numbers] i pos mistakes minDiff maxDiff spaces prevLast last
+        swap2(); negate(); add()
+        // result [numbers] i pos mistakes minDiff maxDiff spaces last-prevLast
+        dupFourth()
+        dupFourth()
+        // result [numbers] i pos mistakes minDiff maxDiff spaces last-prevLast minDiff maxDiff
+        isInRange()
+        // result [numbers] i pos mistakes minDiff maxDiff spaces ok?1:0
+        zeroNotPositive()
+        // result [numbers] i pos mistakes minDiff maxDiff spaces ok?0:1
+        permute("mistakes min max spaces ok", "min max spaces ok mistakes")
+        // result [numbers] i pos minDiff maxDiff spaces ok?0:1 mistakes
+        add()
+        // result [numbers] i pos minDiff maxDiff spaces mistakes
+        permute("min max spaces mistakes", "mistakes min max spaces")
+        // result [numbers] i pos mistakes minDiff maxDiff spaces
+        popNth(7) // remove last number in [numbers]
+        CS()
+    }
+    // result firstnum i pos mistakes minDiff maxDiff 0
+    pop(); pop(); pop()
+    // result firstnum i pos mistakes
+    pop4()
+    // result i pos mistakes
+    ifZero {
+        // increment result
+        pop()
+        permute("result i pos", "i pos result")
+        inc()
+        permute("i pos result", "result i pos")
+    } orIfNonZero {
+        pop()
+    }
+    // result i pos
+}
+
