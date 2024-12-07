@@ -52,6 +52,8 @@ Checked the example input in the description, looked easy enough with numeric mo
 and it turns out that we need to count how many nubmers are on each line, so text mode it is. Yay.
 
 The text mode of the ksplang interpreter takes text input and converts each unicode codepoint to a number.
-This is equivalent to the ASCII encoding for characters that are in the ASCII range.
+This is equivalent to the ASCII encoding for characters that are in the ASCII range. We can also use the same
+conversion to produce text, but we don't need that for now, text input and numeric (raw stack value) output is fine.
 
-Part 1 wasn't too bad except for the need to parse numbers. It's somehow already December 6th, though.
+Part 1 wasn't too bad except for the need to parse numbers. It all ended up as one big program without
+any functions, so surely it won't be hard to adapt for part 2.
