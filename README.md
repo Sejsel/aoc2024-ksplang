@@ -16,11 +16,11 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 
 ## Progress
 
-| Day | Instructions                 | Input mode | Runtime | Executed instructions |
-|-----|------------------------------|------------|---------|-----------------------|
-| 1-1 | [7046](/ksplang/1-1.ksplang) | numeric    | 21.486s | 1535730275            |
-| 1-2 | [4490](/ksplang/1-2.ksplang) | numeric    | 15.260s | 1176145375            |
-
+| Day | Instructions                  | Input mode | Runtime | Executed instructions |
+|-----|-------------------------------|------------|---------|-----------------------|
+| 1-1 | [6554](/ksplang/1-1.ksplang)  | numeric    | 21.245s | 1533825452            |
+| 1-2 | [4490](/ksplang/1-2.ksplang)  | numeric    | 15.444s | 1176145375            |
+| 2-1 | [13960](/ksplang/2-1.ksplang) | text       | 1.517s  | 127734468             |
 
 ## Journal
 
@@ -47,7 +47,12 @@ The second part of the task was fine, my lovely quadratic algorithm ended up fas
 the (quadratic) [sort](https://arxiv.org/abs/2110.01111) I used in part 1. Perhaps I will replace the sort
 with something faster later on.
 
-### Day 2 (2024-12-05)
+### Day 2 (2024-12-06)
 
 Checked the example input in the description, looked easy enough with numeric mode. Checked the actual input,
 and it turns out that we need to count how many nubmers are on each line, so text mode it is. Yay.
+
+The text mode of the ksplang interpreter takes text input and converts each unicode codepoint to a number.
+This is equivalent to the ASCII encoding for characters that are in the ASCII range.
+
+Part 1 wasn't too bad except for the need to parse numbers. It's somehow already December 6th, though.

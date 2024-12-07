@@ -3,6 +3,13 @@ package cz.sejsel.ksplang.std
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 
+/**
+ * Parse a text number starting on index i and ending before terminator. If the terminator is not found,
+ * undefined behavior occurs. If there is no valid number, undefined behavior occurs.
+ * For example parse_number(' ') will parse a number that is followed by a space.
+ *
+ * Signature: i -> number index_of_terminator
+ */
 fun ComplexBlock.parseNonNegativeNum(terminator: Int, base: Int = 10) = parseNonNegativeNum(terminator.toLong(), base)
 
 /**

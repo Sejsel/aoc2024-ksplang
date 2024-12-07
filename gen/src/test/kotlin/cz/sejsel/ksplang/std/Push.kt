@@ -40,6 +40,23 @@ class PushTests : FunSpec({
     }
 })
 
+class PushOptimizedTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    context("short push programs") {
+        withData(ShortPushes.sequencesByNumber.keys) { i ->
+            val program = builder.build(buildFunction {
+                push(i)
+            })
+            withData(VALUES_PER_DIGIT_SUM) {
+                runner.run(program, listOf(it)) shouldContainExactly listOf(it, i)
+            }
+        }
+    }
+})
+
+
 class PushPaddedToTests : FunSpec({
     val runner = KsplangRunner()
     val builder = KsplangBuilder()

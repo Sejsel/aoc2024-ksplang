@@ -1,7 +1,5 @@
 package cz.sejsel.ksplang.dsl.core
 
-import cz.sejsel.ksplang.std.dec
-import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.sgn
 import cz.sejsel.ksplang.std.zeroNot
 import cz.sejsel.ksplang.std.zeroNotPositive

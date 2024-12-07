@@ -19,6 +19,12 @@ val DAYS = listOf(
         gen2 = { day1Part2() },
         textInput = false
     ),
+    Day(
+        name = "2",
+        gen1 = { day2Part1() },
+        gen2 = null,
+        textInput = true
+    ),
 )
 
 fun getInput(dayName: String): String = File("inputs/$dayName.txt").readText()

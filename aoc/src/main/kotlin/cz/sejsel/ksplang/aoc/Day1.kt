@@ -3,9 +3,7 @@ package cz.sejsel.ksplang.aoc
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
-import cz.sejsel.ksplang.dsl.core.doWhileNonNegative
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
-import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.std.*
 import java.io.File
 
@@ -157,7 +155,7 @@ private fun ComplexBlock.extractColumns() = complexFunction {
     lroll()
     // [column1] [column2] [stack|inputlen]
     dec()
-    popN()
+    popMany()
     // [column1] [column2]
 }
 private fun ComplexBlock.extractAndSortColumns() = complexFunction {

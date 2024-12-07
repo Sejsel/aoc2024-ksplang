@@ -114,4 +114,27 @@ fun Block.dupFifth() = dupNthZeroIndexed(4)
  * Signature: `a b c d e f -> a b c d e f a`
  */
 fun Block.dupSixth() = dupNthZeroIndexed(5)
-
+/**
+ * Duplicates the seventh element on the stack.
+ *
+ * Signature: `a b c d e f g  -> a b c d e f g a`
+ */
+fun Block.dupSeventh() = dupNthZeroIndexed(6)
+/**
+ * Duplicates the eighth element on the stack.
+ *
+ * Signature: `a b c d e f g h -> a b c d e f g h a`
+ */
+fun Block.dupEighth() = dupNthZeroIndexed(7)
+/**
+ * Duplicates the ninth element on the stack.
+ *
+ * Signature: `a b c d e f g h i -> a b c d e f g h i a`
+ */
+fun Block.dupNinth() = dupNthZeroIndexed(8)
+/**
+ * Duplicates the tenth element on the stack.
+ *
+ * Signature: `a b c d e f g h i j -> a b c d e f g h i j a`
+ */
+fun Block.dupTenth() = dupNthZeroIndexed(9)

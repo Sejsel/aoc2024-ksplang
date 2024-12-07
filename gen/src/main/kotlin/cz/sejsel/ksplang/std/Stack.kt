@@ -164,7 +164,7 @@ fun ComplexBlock.leaveTop() = complexFunction("leaveTop") {
  *
  * e.g. `1 2 3 4 2 -> 1 2` (*n* was 2)
  */
-fun ComplexBlock.popN() = complexFunction("popN") {
+fun ComplexBlock.popMany() = complexFunction("popMany") {
     ifZero {
         pop()
     } orIfNonZero {
@@ -176,6 +176,24 @@ fun ComplexBlock.popN() = complexFunction("popN") {
         pop()
     }
 }
+
+fun Block.popNth(n: Long) = function("popNth($n)") {
+    require(n >= 1) { "n must be at least 1" }
+    if (n == 1L) {
+        pop()
+    } else if (n == 2L) {
+        pop2()
+    } else {
+        roll(n, -1)
+        pop()
+    }
+}
+
+fun Block.pop3() = popNth(3)
+fun Block.pop4() = popNth(4)
+fun Block.pop5() = popNth(5)
+fun Block.pop6() = popNth(6)
+
 
 // Adaptation of the following code:
 // https://stackoverflow.com/questions/53749357/idiomatic-way-to-create-n-ary-cartesian-product-combinations-of-several-sets-of/53763936#53763936

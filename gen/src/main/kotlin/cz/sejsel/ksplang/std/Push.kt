@@ -14,8 +14,8 @@ object ShortPushes {
         .map { it.trim() }
         .filter { !it.startsWith("#") && !it.isBlank() }
         .associate {
-            val number = it.split(":")[0].trim().toLong()
-            val program = it.split(":")[1].split("'")[1].trim()
+            val number = it.split(" ")[0].trim().toLong()
+            val program = it.substringAfter(' ').trim()
             val instructions = program.split(" ").map { Instruction.fromText(it)!! }
             number to instructions
         }

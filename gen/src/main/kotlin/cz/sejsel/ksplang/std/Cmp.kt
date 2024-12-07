@@ -61,13 +61,14 @@ Signature: a b => sgn(a-b)
  */
 
 /** A comparison of two values on the stack. Handles all i64 values.
- * a > b => 1
- * a < b => -1
- * a == b => 0
+ *
+ * - `a > b` → 1
+ * - `a < b` → -1
+ * - `a = b` → 0
  *
  * Signature: a b => sgn(a-b)
  */
-fun ComplexBlock.cmp() = complexFunction {
+fun ComplexBlock.cmp() = complexFunction("cmp") {
     // a b
     dupAb()
     // a b a b
@@ -109,3 +110,24 @@ fun ComplexBlock.cmp() = complexFunction {
     pop2()
 }
 
+/**
+ * Checks whether a number *x* is in a given range (inclusive start and end).
+ * Result is 1 if the number is in the range, 0 otherwise.
+ *
+ * Signature: x from to -> 1 if x is in [from, to], 0 otherwise
+ */
+fun ComplexBlock.isInRange() = complexFunction("isInRange") {
+    // x from to
+    dupThird()
+    // x from to x
+    cmp(); inc(); zeroNotPositive()
+    // x from !(cmp(to,x)+1)
+    permute("x f c", "c x f")
+    // cmp(to,x)+1 x from
+    cmp(); inc(); zeroNotPositive()
+    // cmp(to,x)+1 !(cmp(x,from)+1)
+    add()
+    // 0 if x is in range, something positive otherwise
+    zeroNotPositive()
+    // 0 if x is out of range, 1 otherwise
+}
