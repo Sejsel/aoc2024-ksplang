@@ -3,6 +3,7 @@ package cz.sejsel.ksplang.std
 import cz.sejsel.ksplang.KsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
+import cz.sejsel.ksplang.dsl.core.buildFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
@@ -43,5 +44,27 @@ class CountOccurrencesTests : FunSpec({
             val count = slice.count { it == of }.toLong()
             runner.run(program, input) shouldContainExactly prefix + slice + listOf(count)
         }
+    }
+})
+
+class YoinkSliceTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+    val program = builder.build(buildComplexFunction { yoinkSlice() })
+
+    test("yoink slice from 0, len 3") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 0, 3)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 1, 2, 3, 3)
+    }
+
+    test("yoink slice from 1, len 3") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 1, 3)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 2, 3, 4, 3)
+    }
+
+    test("yoink slice from 2, len 1") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 2, 1)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 3, 1)
+    }
+
+    test("yoink slice from 1, len 0") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 1, 0)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 0)
     }
 })
