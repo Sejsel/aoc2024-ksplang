@@ -177,7 +177,33 @@ fun ComplexBlock.popMany() = complexFunction("popMany") {
     }
 }
 
-fun Block.popNth(n: Long) = function("popNth($n)") {
+/**
+ * Pops the *n*-th element from the top of the stack where *n* is the topmost value on the stack (1-indexed, not counting *n*).
+ * See also [popKth] for a version with a constant *n*.
+ *
+ * Requires *n* to be 1 or bigger.
+ *
+ * Example: `1 2 3 4 2 -> 1 2 4` (*n* was 2)
+ *
+ * Signature: `n -> ` and *n*-th element from top is removed (not counting *n*)
+ */
+fun Block.popNth() = function("popNth") {
+    // n
+    push(-1)
+    // n -1
+    swap2()
+    // -1 n
+    lroll()
+    // nth
+    pop()
+}
+
+/**
+ * Pops the k-th element from the top of the stack (1-indexed).
+ *
+ * See also [popNth] for a version which gets the *k* from the stack.
+ */
+fun Block.popKth(n: Long) = function("popKth($n)") {
     require(n >= 1) { "n must be at least 1" }
     if (n == 1L) {
         pop()
@@ -189,11 +215,35 @@ fun Block.popNth(n: Long) = function("popNth($n)") {
     }
 }
 
-fun Block.pop3() = popNth(3)
-fun Block.pop4() = popNth(4)
-fun Block.pop5() = popNth(5)
-fun Block.pop6() = popNth(6)
+fun Block.pop3() = popKth(3)
+fun Block.pop4() = popKth(4)
+fun Block.pop5() = popKth(5)
+fun Block.pop6() = popKth(6)
 
+
+/**
+ * Pops the *n*-th element from the top of the stack and moves it to the top of the stack (basically [dupNth] + [popNth]).
+ * 1-indexed, not counting *n*. **Requires *n* to be 1 or bigger.**
+ *
+ * Example: `1 2 3 4 2 -> 1 2 4 3` (*n* was 2)
+ *
+ * Signature: `n -> s[stacklen-1-n]` and *n*-th element from top is removed
+ */
+fun Block.moveNthToTop() = function("moveNthToTop") {
+    // n
+    dup()
+    // n n
+    inc()
+    // n n+1
+    dupNth()
+    // n nth
+    swap2()
+    // nth n
+    inc()
+    // nth n+1
+    popNth()
+    // nth
+}
 
 // Adaptation of the following code:
 // https://stackoverflow.com/questions/53749357/idiomatic-way-to-create-n-ary-cartesian-product-combinations-of-several-sets-of/53763936#53763936

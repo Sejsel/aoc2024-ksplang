@@ -4,6 +4,7 @@ import cz.sejsel.ksplang.VALUES_PER_DIGIT_SUM
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildFunction
 import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
@@ -62,5 +63,24 @@ class DupVariationsTests : FunSpec({
     test("dupSixth duplicates sixth") {
         val program = builder.build(buildFunction { dupSixth() })
         runner.run(program, listOf(1, 2, 3, 4, 5, 6)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 1)
+    }
+})
+
+class DupNthTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("dupNth duplicates first") {
+        val program = builder.build(buildComplexFunction { dupNth() })
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 1)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 6)
+    }
+
+    test("dupNth duplicates second") {
+        val program = builder.build(buildComplexFunction { dupNth() })
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 2)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 5)
+    }
+    test("dupNth duplicates third") {
+        val program = builder.build(buildComplexFunction { dupNth() })
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 3)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 4)
     }
 })

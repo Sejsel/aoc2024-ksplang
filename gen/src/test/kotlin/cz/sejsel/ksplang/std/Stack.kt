@@ -136,35 +136,89 @@ class PopManyTests : FunSpec({
     }
 })
 
-class PopNthTests : FunSpec({
+class PopKthTests : FunSpec({
     val runner = KsplangRunner()
     val builder = KsplangBuilder()
 
-    test("popNth(1)") {
-        val program = builder.build(buildFunction { popNth(1) })
+    test("popKth(1)") {
+        val program = builder.build(buildFunction { popKth(1) })
         runner.run(program, listOf(1, 2, 3, 4, 5)) shouldContainExactly listOf<Long>(1, 2, 3, 4)
     }
 
-    test("popNth(2)") {
-        val program = builder.build(buildFunction { popNth(2) })
+    test("popKth(2)") {
+        val program = builder.build(buildFunction { popKth(2) })
         runner.run(program, listOf(1, 2, 3, 4, 5)) shouldContainExactly listOf<Long>(1, 2, 3, 5)
     }
 
-    test("popNth(3)") {
-        val program = builder.build(buildFunction { popNth(3) })
+    test("popKth(3)") {
+        val program = builder.build(buildFunction { popKth(3) })
         runner.run(program, listOf(1, 2, 3, 4, 5)) shouldContainExactly listOf<Long>(1, 2, 4, 5)
     }
 
-    test("popNth(4)") {
-        val program = builder.build(buildFunction { popNth(4) })
+    test("popKth(4)") {
+        val program = builder.build(buildFunction { popKth(4) })
         runner.run(program, listOf(1, 2, 3, 4, 5)) shouldContainExactly listOf<Long>(1, 3, 4, 5)
     }
 
-    test("popNth(5)") {
-        val program = builder.build(buildFunction { popNth(5) })
+    test("popKth(5)") {
+        val program = builder.build(buildFunction { popKth(5) })
         runner.run(program, listOf(1, 2, 3, 4, 5)) shouldContainExactly listOf<Long>(2, 3, 4, 5)
     }
 })
+
+
+class PopNthTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+    val program = builder.build(buildFunction { popNth() })
+
+    test("popNth 1") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 1)) shouldContainExactly listOf<Long>(1, 2, 3, 4)
+    }
+
+    test("popNth 2") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 2)) shouldContainExactly listOf<Long>(1, 2, 3, 5)
+    }
+
+    test("popNth 3") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 3)) shouldContainExactly listOf<Long>(1, 2, 4, 5)
+    }
+
+    test("popNth 4") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 4)) shouldContainExactly listOf<Long>(1, 3, 4, 5)
+    }
+
+    test("popNth 5") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 5)) shouldContainExactly listOf<Long>(2, 3, 4, 5)
+    }
+})
+
+class MoveNthToTopTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+    val program = builder.build(buildFunction { moveNthToTop() })
+
+    test("moveNthToTop 1") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 1)) shouldContainExactly listOf<Long>(1, 2, 3, 4, 5)
+    }
+
+    test("moveNthToTop 2") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 2)) shouldContainExactly listOf<Long>(1, 2, 3, 5, 4)
+    }
+
+    test("moveNthToTop 3") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 3)) shouldContainExactly listOf<Long>(1, 2, 4, 5, 3)
+    }
+
+    test("moveNthToTop 4") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 4)) shouldContainExactly listOf<Long>(1, 3, 4, 5, 2)
+    }
+
+    test("moveNthToTop 5") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 5)) shouldContainExactly listOf<Long>(2, 3, 4, 5, 1)
+    }
+})
+
 
 class PermuteTests : FunSpec({
     val runner = KsplangRunner()

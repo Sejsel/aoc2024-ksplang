@@ -1,6 +1,7 @@
 package cz.sejsel.ksplang.std
 
 import cz.sejsel.ksplang.dsl.core.Block
+import cz.sejsel.ksplang.dsl.core.ComplexBlock
 
 /**
  * Duplicates the top value on the stack.
@@ -90,51 +91,91 @@ fun Block.dupNthZeroIndexed(n: Long) = function("dup_nth_zero_indexed($n)") {
  * Signature: `a b -> a b a`
  */
 fun Block.dupSecond() = dupNthZeroIndexed(1)
+
 /**
  * Duplicates the third element on the stack.
  *
  * Signature: `a b c -> a b c a`
  */
 fun Block.dupThird() = dupNthZeroIndexed(2)
+
 /**
  * Duplicates the fourth element on the stack.
  *
  * Signature: `a b c d -> a b c d a`
  */
 fun Block.dupFourth() = dupNthZeroIndexed(3)
+
 /**
  * Duplicates the fifth element on the stack.
  *
  * Signature: `a b c d e -> a b c d e a`
  */
 fun Block.dupFifth() = dupNthZeroIndexed(4)
+
 /**
  * Duplicates the sixth element on the stack.
  *
  * Signature: `a b c d e f -> a b c d e f a`
  */
 fun Block.dupSixth() = dupNthZeroIndexed(5)
+
 /**
  * Duplicates the seventh element on the stack.
  *
  * Signature: `a b c d e f g  -> a b c d e f g a`
  */
 fun Block.dupSeventh() = dupNthZeroIndexed(6)
+
 /**
  * Duplicates the eighth element on the stack.
  *
  * Signature: `a b c d e f g h -> a b c d e f g h a`
  */
 fun Block.dupEighth() = dupNthZeroIndexed(7)
+
 /**
  * Duplicates the ninth element on the stack.
  *
  * Signature: `a b c d e f g h i -> a b c d e f g h i a`
  */
 fun Block.dupNinth() = dupNthZeroIndexed(8)
+
 /**
  * Duplicates the tenth element on the stack.
  *
  * Signature: `a b c d e f g h i j -> a b c d e f g h i j a`
  */
 fun Block.dupTenth() = dupNthZeroIndexed(9)
+
+/**
+ * Duplicates the *n*-th element on the stack, **indexed from one** and **n is not counted**.
+ *
+ * For example:
+ * - `1 2 3 4 2` → `1 2 3 4 4`
+ * - `1 2 3 4 4` → `1 2 3 4 2`
+ *
+ * Signature: `n -> s[stacklen-1-n]`
+ */
+fun Block.dupNth() = function("dupNth") {
+    // n
+    dup(); inc()
+    // n n+1
+    push(-1)
+    swap2()
+    // n -1 n+1
+    lroll()
+    // n nth
+    dup()
+    // n nth nth
+    roll(3, 2)
+    // nth nth n
+    inc()
+    // nth nth n+1
+    push(1)
+    // nth nth n+1 1
+    swap2()
+    // nth nth 1 n+1
+    lroll()
+    // nth
+}
