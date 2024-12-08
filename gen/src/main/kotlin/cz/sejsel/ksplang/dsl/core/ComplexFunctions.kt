@@ -193,7 +193,7 @@ fun ComplexBlock.ifZero(init: IfZero.() -> Unit): IfZero {
 }
 
 @KsplangMarker
-data class IfZero(override var children: MutableList<Block> = mutableListOf(), var orElse: ComplexFunction? = null) : ComplexBlock {
+data class IfZero(override var children: MutableList<Block> = mutableListOf(), var orElse: ComplexFunction? = null, var popChecked: Boolean = false) : ComplexBlock {
     override fun add(block: SimpleBlock) {
         children.add(block)
     }

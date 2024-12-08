@@ -22,6 +22,7 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 | 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 15.973s  | 1176145375            |
 | 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 1.702s   | 144668637             |
 | 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 521.645s | 47360521764           |
+| 3-1 | [64550](/ksplang/3-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 0.773s   | 71764648              |
 
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
@@ -65,7 +66,7 @@ conversion to produce text, but we don't need that for now, text input and numer
 Part 1 wasn't too bad except for the need to parse numbers. It all ended up as one big program without
 any functions, so surely it won't be hard to adapt for part 2.
 
-#### Day 1 Part 2 (2024-12-08)
+#### Day 2 Part 2 (2024-12-08)
 
 This was surprisingly annoying, thankfully was able to reuse part 1 validity check quite nicely.
 
@@ -74,3 +75,11 @@ down to ~70 seconds or so, there is a stack length calculation in the hot sectio
 loop.
 I tried it multiple times and yet, every time, there was some kind of off-by-one error I just could not fix.
 At this point I would rather play with other tasks, so this is staying horribly slow, at least for now.
+
+#### Day 3 (2024-12-08)
+
+Finally a nice task. This one was actually quite easy, even though it's text mode. I may have created one of the
+[ugliest if chains](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt) I have ever seen, but it was pretty easy to write.
+Being able to separate the part before and after the comma helped a lot to reduce the complexity a lot.
+
+My favorite so far.

@@ -612,6 +612,9 @@ class KsplangBuilder(
                             e(j)
                             thenPush.set(state.index)
                             e(pop2)
+                            if (block.popChecked) {
+                                e(pop)
+                            }
                             for (b in block.children) {
                                 e(b)
                             }
@@ -620,6 +623,9 @@ class KsplangBuilder(
                             e(j)
                             e(pop)
                             otherwiseJPush.set(state.index - otherwiseJIndex - 2)
+                            if (block.popChecked) {
+                                e(pop)
+                            }
                             for (b in block.orElse!!.children) {
                                 e(b)
                             }

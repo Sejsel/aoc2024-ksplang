@@ -77,7 +77,11 @@ class KsplangRunner(
 
         val lines = str.lines()
         val seconds = lines[0].removePrefix("Execution time: ")
-        val executionTime = Duration.parse("PT${seconds.replace('s', 'S')}")
+        val executionTime = if (seconds.contains("ms")) {
+            seconds.trim().removeSuffix("ms").toDouble().let { Duration.ofMillis(it.toLong()) }
+        } else {
+            Duration.parse("PT${seconds.replace('s', 'S')}")
+        }
         val instructionsExecuted = lines[1].removePrefix("Instructions executed: ").split(" ")[0].toLong()
         return Pair(executionTime, instructionsExecuted)
     }
