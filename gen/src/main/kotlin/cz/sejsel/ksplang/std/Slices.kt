@@ -99,3 +99,53 @@ fun ComplexBlock.yoinkSlice() = complexFunction("yoinkSlice") {
     }
 }
 
+/**
+ * Yoinks a slice nondestructively, skipping one element.
+ * That is, performs a copy of a slice onto the top of the stack, except for the *gap*-th element (from the bottom).
+ * The length is kept at the top (otherwise this would be unusable in most cases).
+ *
+ * `len` must be positive, `gap` has to be in range 0..len-1.
+ *
+ * For example a slice of `10 20 30 40 50` with `gap` 3 would result in `10 20 30 50` being copied.
+ *
+ * Signature: `from len gap -> s[from:from+gap) s[from+gap+1:from+len) len-1`
+ */
+fun ComplexBlock.yoinkSliceWithGap() = complexFunction("yoinkSliceWithGap") {
+    // from len gap
+    dupThird()
+    // from len gap from
+    swap2()
+    // from len from gap
+    yoinkSlice()
+    // from len s[from:from+gap) gap
+    dup(); inc(); inc(); inc()
+    // from len s[from:from+gap) gap gap+3
+    moveNthToTop()
+    // len s[from:from+gap) gap from
+    dupSecond(); inc(); inc(); inc()
+    // len s[from:from+gap) gap from gap+3
+    moveNthToTop()
+    // s[from:from+gap) gap from len
+    dupThird(); dupThird()
+    // s[from:from+gap) gap from len gap from
+    add(); inc()
+    // s[from:from+gap) gap from len from+gap+1
+    dupSecond()
+    // s[from:from+gap) gap from len from+gap+1 len
+    dupFifth()
+    // s[from:from+gap) gap from len from+gap+1 len gap
+    negate(); add(); dec()
+    // s[from:from+gap) gap from len from+gap+1 len-gap
+    // s[from:from+gap) gap from len from+gap+1 len-gap-1
+    pop3()
+    pop3()
+    // s[from:from+gap) gap from+gap+1 len-gap-1
+    yoinkSlice()
+    // s[from:from+gap) gap s[from+gap+1:from+len) len-gap-1
+    dup(); inc(); inc()
+    // s[from:from+gap) gap s[from+gap+1:from+len) len-gap-1 len-gap+1
+    moveNthToTop()
+    // s[from:from+gap) s[from+gap+1:from+len) len-gap-1 gap
+    add()
+    // s[from:from+gap) s[from+gap+1:from+len) len-1
+}

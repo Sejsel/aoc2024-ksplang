@@ -68,3 +68,27 @@ class YoinkSliceTests : FunSpec({
         runner.run(program, listOf(1, 2, 3, 4, 5, 6, 1, 0)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 0)
     }
 })
+
+class YoinkSliceWithGapTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+    val program = builder.build(buildComplexFunction { yoinkSliceWithGap() })
+
+    test("yoink slice from 0, len 3, gap 0") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 0, 3, 0)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 2, 3, 2)
+    }
+    test("yoink slice from 0, len 3, gap 1") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 0, 3, 1)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 1, 3, 2)
+    }
+    test("yoink slice from 0, len 3, gap 2") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 0, 3, 2)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 1, 2, 2)
+    }
+
+    test("yoink slice from 1, len 3, gap 1") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 1, 3, 1)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 2, 4, 2)
+    }
+
+    test("yoink slice from 2, len 1, gap 0") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 2, 1, 0)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 0)
+    }
+})
