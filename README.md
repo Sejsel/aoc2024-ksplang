@@ -23,10 +23,10 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 | 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 1.702s   | 144668637             |
 | 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 521.645s | 47360521764           |
 
-**Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
+*Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
 Keeping the functions inlined is faster, at least for the standard interpreter. Optimizing for performance here is more
-interesting than optimizing for the shortest program.**
+interesting than optimizing for the shortest program.*
 
 ## Journal
 
