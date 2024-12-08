@@ -16,13 +16,13 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 
 ## Progress
 
-| Day | Instructions                                                                                    | Input mode | Runtime | Executed instructions |
-|-----|-------------------------------------------------------------------------------------------------|------------|---------|-----------------------|
-| 1-1 | [6554](/ksplang/1-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 21.388s | 1533825452            |
-| 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 15.973s | 1176145375            |
-| 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 1.702s  | 144668637             |
-
-**Note: Some instruction counts optimizations are not enabled. You can place some functions at the start of the file and use
+| Day | Instructions                                                                                    | Input mode | Runtime  | Executed instructions |
+|-----|-------------------------------------------------------------------------------------------------|------------|----------|-----------------------|
+| 1-1 | [6554](/ksplang/1-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 21.388s  | 1533825452            |
+| 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 15.973s  | 1176145375            |
+| 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 1.702s   | 144668637             |
+| 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 521.645s | 47360521764           |
+**Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
 Keeping the functions inlined is faster, at least for the standard interpreter. Optimizing for performance here is more
 interesting than optimizing for the shortest program.**
@@ -63,3 +63,13 @@ conversion to produce text, but we don't need that for now, text input and numer
 
 Part 1 wasn't too bad except for the need to parse numbers. It all ended up as one big program without
 any functions, so surely it won't be hard to adapt for part 2.
+
+#### Day 1 Part 2 (2024-12-08)
+
+This was surprisingly annoying, thankfully was able to reuse part 1 validity check quite nicely.
+
+First correct version took 517 seconds to finish. There is an "easy" opportunity to speed it up a lot,
+down to ~70 seconds or so, there is a stack length calculation in the hot section and it could be moved outside of the
+loop.
+I tried it multiple times and yet, every time, there was some kind of off-by-one error I just could not fix.
+At this point I would rather play with other tasks, so this is staying horribly slow, at least for now.

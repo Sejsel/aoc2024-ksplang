@@ -3,8 +3,6 @@ package cz.sejsel.ksplang.aoc
 import cz.sejsel.ksplang.aoc.summary.KsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.Block
-import cz.sejsel.ksplang.dsl.core.extract
-import cz.sejsel.ksplang.std.dup
 import java.io.File
 
 data class Day(
@@ -24,7 +22,7 @@ val DAYS = listOf(
     Day(
         name = "2",
         gen1 = { day2Part1() },
-        gen2 = null,
+        gen2 = { day2Part2() },
         textInput = true
     ),
 )
