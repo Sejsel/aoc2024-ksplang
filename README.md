@@ -16,14 +16,14 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 
 ## Progress
 
-| Day | Instructions                                                                                     | Input mode | Runtime  | Executed instructions |
-|-----|--------------------------------------------------------------------------------------------------|------------|----------|-----------------------|
-| 1-1 | [6554](/ksplang/1-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))   | numeric    | 21.388s  | 1533825452            |
-| 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))   | numeric    | 15.973s  | 1176145375            |
-| 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt))  | text       | 1.702s   | 144668637             |
-| 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt))  | text       | 521.645s | 47360521764           |
-| 3-1 | [64550](/ksplang/3-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt))  | text       | 0.773s   | 71764648              |
-| 3-2 | [82426](/ksplang/3-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt))  | text | 1.239s | 119309701 |
+| Day | Instructions                                                                                    | Input mode | Runtime  | Executed instructions |
+|-----|-------------------------------------------------------------------------------------------------|------------|----------|-----------------------|
+| 1-1 | [6554](/ksplang/1-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 21.388s  | 1533825452            |
+| 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 15.973s  | 1176145375            |
+| 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 1.702s   | 144668637             |
+| 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 521.645s | 47360521764           |
+| 3-1 | [64550](/ksplang/3-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 0.773s   | 71764648              |
+| 3-2 | [82426](/ksplang/3-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 1.239s   | 119309701             |
 
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
@@ -69,7 +69,7 @@ any functions, so surely it won't be hard to adapt for part 2.
 
 #### Day 2 Part 2 (2024-12-08)
 
-This was surprisingly annoying, thankfully was able to reuse part 1 validity check quite nicely.
+This was surprisingly annoying, thankfully was able to reuse the part 1 validity check quite nicely.
 
 First correct version took 517 seconds to finish. There is an "easy" opportunity to speed it up a lot,
 down to ~70 seconds or so, there is a stack length calculation in the hot section and it could be moved outside of the
