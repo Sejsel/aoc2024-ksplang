@@ -57,8 +57,8 @@ with something faster later on.
 
 ### Day 2 (2024-12-06)
 
-Checked the example input in the description, looked easy enough with numeric mode. Checked the actual input,
-and it turns out that we need to count how many nubmers are on each line, so text mode it is. Yay.
+I checked the example input in the description, looked easy enough with numeric mode. Checked the actual input,
+and it turns out that we need to count how many numbers are on each line, so text mode it is. Yay.
 
 The text mode of the ksplang interpreter takes text input and converts each unicode codepoint to a number.
 This is equivalent to the ASCII encoding for characters that are in the ASCII range. We can also use the same
