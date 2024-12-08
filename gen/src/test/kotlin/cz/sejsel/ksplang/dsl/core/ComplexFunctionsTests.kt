@@ -9,7 +9,7 @@ class ComplexFunctionsTests : FunSpec({
             ifZero {
                 CS()
                 inc()
-            } orIfNonZero {
+            } otherwise {
                 CS()
                 pop()
             }
@@ -29,11 +29,11 @@ class ComplexFunctionsTests : FunSpec({
                 CS()
                 ifZero {
                     CS()
-                } orIfNonZero {
+                } otherwise {
                     pop()
                 }
                 inc()
-            } orIfNonZero {
+            } otherwise {
                 CS()
                 pop()
             }

@@ -1,9 +1,8 @@
 package cz.sejsel.ksplang.std
 
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
-import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.ifZero
-import cz.sejsel.ksplang.dsl.core.orIfNonZero
+import cz.sejsel.ksplang.dsl.core.otherwise
 
 /* Python original:
 cmp = ComplexFunction("cmp", [
@@ -101,7 +100,7 @@ fun ComplexBlock.cmp() = complexFunction("cmp") {
         // a a-b
         sgn()
         // a sgn(a-b)
-    } orIfNonZero {
+    } otherwise {
         sgn()
         // a b sgn(sgn(a)-sgn(b))
     }

@@ -6,7 +6,7 @@ import cz.sejsel.ksplang.dsl.core.doWhileNonNegative
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.doWhileZero
 import cz.sejsel.ksplang.dsl.core.ifZero
-import cz.sejsel.ksplang.dsl.core.orIfNonZero
+import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.std.dup
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
@@ -19,7 +19,7 @@ class IfZeroBuilderTests : FunSpec({
     val a = buildComplexFunction {
         ifZero {
             inc()
-        } orIfNonZero {
+        } otherwise {
             inc()
             inc()
         }

@@ -3,7 +3,7 @@ package cz.sejsel.ksplang.std
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.ifZero
-import cz.sejsel.ksplang.dsl.core.orIfNonZero
+import cz.sejsel.ksplang.dsl.core.otherwise
 
 /**
  * Given a slice, count the number of occurrences of a number
@@ -63,7 +63,7 @@ fun ComplexBlock.yoinkSlice() = complexFunction("yoinkSlice") {
     ifZero {
         pop2()
         // len
-    } orIfNonZero {
+    } otherwise {
         // from len
         swap2()
         // len from

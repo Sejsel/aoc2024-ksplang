@@ -1,13 +1,11 @@
 package cz.sejsel.ksplang.aoc
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
-import cz.sejsel.ksplang.dsl.core.Block
-import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.ifZero
-import cz.sejsel.ksplang.dsl.core.orIfNonZero
+import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.std.*
 import java.io.File
 
@@ -131,7 +129,7 @@ fun isValid() = buildComplexFunction("isValid") {
         // if ascending
         push(1)
         push(3)
-    } orIfNonZero {
+    } otherwise {
         // if descending
         push(-3)
         push(-1)
@@ -180,7 +178,7 @@ fun isValid() = buildComplexFunction("isValid") {
         permute("result i pos", "i pos result")
         inc()
         permute("i pos result", "result i pos")
-    } orIfNonZero {
+    } otherwise {
         pop()
     }
     // result i pos
@@ -261,7 +259,7 @@ fun isValidOrWithOneMistake() = buildComplexFunction("isValidOrWithOneMistake") 
     ifZero {
         // do not increment result
         pop()
-    } orIfNonZero {
+    } otherwise {
         // increment result
         pop()
         permute("result i pos", "i pos result")

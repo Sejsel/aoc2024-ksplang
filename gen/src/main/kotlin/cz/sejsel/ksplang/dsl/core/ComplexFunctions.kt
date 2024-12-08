@@ -199,7 +199,7 @@ data class IfZero(override var children: MutableList<Block> = mutableListOf(), v
     }
 }
 
-infix fun IfZero.orIfNonZero(init: ComplexFunction.() -> Unit) {
+infix fun IfZero.otherwise(init: ComplexFunction.() -> Unit) {
     val f = ComplexFunction()
     f.init()
     this.orElse = f

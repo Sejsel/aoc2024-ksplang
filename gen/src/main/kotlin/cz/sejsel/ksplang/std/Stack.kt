@@ -7,7 +7,7 @@ import cz.sejsel.ksplang.dsl.core.SimpleFunction
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.doWhileZero
 import cz.sejsel.ksplang.dsl.core.ifZero
-import cz.sejsel.ksplang.dsl.core.orIfNonZero
+import cz.sejsel.ksplang.dsl.core.otherwise
 
 
 /**
@@ -167,7 +167,7 @@ fun ComplexBlock.leaveTop() = complexFunction("leaveTop") {
 fun ComplexBlock.popMany() = complexFunction("popMany") {
     ifZero {
         pop()
-    } orIfNonZero {
+    } otherwise {
         doWhileNonZero {
             pop2()
             dec()
