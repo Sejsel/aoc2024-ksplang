@@ -13,22 +13,22 @@ data class Day(
 )
 
 val DAYS = listOf(
-    Day(
-        name = "1",
-        gen1 = { day1Part1() },
-        gen2 = { day1Part2() },
-        textInput = false
-    ),
-    Day(
-        name = "2",
-        gen1 = { day2Part1() },
-        gen2 = { day2Part2() },
-        textInput = true
-    ),
+    //Day(
+    //    name = "1",
+    //    gen1 = { day1Part1() },
+    //    gen2 = { day1Part2() },
+    //    textInput = false
+    //),
+    //Day(
+    //    name = "2",
+    //    gen1 = { day2Part1() },
+    //    gen2 = { day2Part2() },
+    //    textInput = true
+    //),
     Day(
         name = "3",
         gen1 = { day3Part1() },
-        gen2 = null,
+        gen2 = { day3Part2() },
         textInput = true
     ),
 )

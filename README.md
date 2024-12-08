@@ -16,14 +16,15 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 
 ## Progress
 
-| Day | Instructions                                                                                    | Input mode | Runtime  | Executed instructions |
-|-----|-------------------------------------------------------------------------------------------------|------------|----------|-----------------------|
-| 1-1 | [6554](/ksplang/1-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 21.388s  | 1533825452            |
-| 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 15.973s  | 1176145375            |
-| 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 1.702s   | 144668637             |
-| 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 521.645s | 47360521764           |
-| 3-1 | [64550](/ksplang/3-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 0.773s   | 71764648              |
-
+| Day | Instructions                                                                                     | Input mode | Runtime  | Executed instructions |
+|-----|--------------------------------------------------------------------------------------------------|------------|----------|-----------------------|
+| 1-1 | [6554](/ksplang/1-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))   | numeric    | 21.388s  | 1533825452            |
+| 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))   | numeric    | 15.973s  | 1176145375            |
+| 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt))  | text       | 1.702s   | 144668637             |
+| 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt))  | text       | 521.645s | 47360521764           |
+| 3-1 | [64550](/ksplang/3-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt))  | text       | 0.773s   | 71764648              |
+| 3-2 | [82426](/ksplang/3-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt))  | text | 1.239s | 119309701 |
+k
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
 Keeping the functions inlined is faster, at least for the standard interpreter. Optimizing for performance here is more
@@ -76,10 +77,10 @@ loop.
 I tried it multiple times and yet, every time, there was some kind of off-by-one error I just could not fix.
 At this point I would rather play with other tasks, so this is staying horribly slow, at least for now.
 
-#### Day 3 (2024-12-08)
+### Day 3 (2024-12-08)
 
 Finally a nice task. This one was actually quite easy, even though it's text mode. I may have created one of the
 [ugliest if chains](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt) I have ever seen, but it was pretty easy to write.
 Being able to separate the part before and after the comma helped a lot to reduce the complexity a lot.
 
-My favorite so far.
+My favorite so far. Part 2 was also easy to adapt to.
