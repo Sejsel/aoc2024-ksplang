@@ -25,6 +25,7 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 | 3-1 | [64550](/ksplang/3-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 0.773s   | 71764648              |
 | 3-2 | [82426](/ksplang/3-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 1.239s   | 119309701             |
 | 4-1 | [46162](/ksplang/4-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt)) | text       | 3.345s   | 290696045             |
+| 4-2 | [28003](/ksplang/4-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt)) | text       | 2.24s    | 176488689             |
 
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
@@ -88,4 +89,4 @@ My favorite so far. Part 2 was also easy to adapt to.
 
 ### Day 4 (2024-12-09)
 
-Straightforward. At least as long as you don't mind a few nested if statements.
+Straightforward. At least as long as you don't mind a few nested if statements. And some mild copy-pasting for part 2.

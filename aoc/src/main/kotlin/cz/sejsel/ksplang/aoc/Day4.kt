@@ -16,14 +16,14 @@ fun main() {
     val instructionCount = program.trim().split("\\s+".toRegex()).count()
     File("ksplang/4-1.ksplang").writeText(program)
     println("Generated program for day 4 part 1, $instructionCount instructions")
-    //val program2 = builder.build(day4Part2())
-    //val instructionCount2 = program2.trim().split("\\s+".toRegex()).count()
-    //File("ksplang/4-2.ksplang").writeText(program2)
-    //println("Generated program for day 4 part 2, $instructionCount2 instructions")
+    val program2 = builder.build(day4Part2())
+    val instructionCount2 = program2.trim().split("\\s+".toRegex()).count()
+    File("ksplang/4-2.ksplang").writeText(program2)
+    println("Generated program for day 4 part 2, $instructionCount2 instructions")
 }
 
 
-fun day4Part1() = buildComplexFunction {
+fun ComplexBlock.getWidthAndHeight() = complexFunction("getWidthAndHeight") {
     // [stack]
     stacklen()
     // [stack] inputlen
@@ -44,6 +44,10 @@ fun day4Part1() = buildComplexFunction {
     // [stack] inputlen width height
     pop3()
     // [stack] width height
+}
+
+fun day4Part1() = buildComplexFunction {
+    getWidthAndHeight()
     push(0)
     // [stack] width height 0
     // [stack] width height count
@@ -67,6 +71,60 @@ fun day4Part1() = buildComplexFunction {
     pop()
     leaveTop()
 }
+
+fun day4Part2() = buildComplexFunction {
+    getWidthAndHeight()
+    push(0)
+    // [stack] width height 0
+    // [stack] width height count
+    permute("width height count", "count width height")
+    // [stack] count width height
+
+    // [stack] count width height
+    // 2 3
+    //  1
+    // 4 5
+    findCross('A'.code, 'M'.code, 'M'.code, 'S'.code, 'S'.code)
+    findCross('A'.code, 'M'.code, 'S'.code, 'M'.code, 'S'.code)
+    findCross('A'.code, 'S'.code, 'M'.code, 'S'.code, 'M'.code)
+    findCross('A'.code, 'S'.code, 'S'.code, 'M'.code, 'M'.code)
+    // [stack] count width height
+    pop()
+    pop()
+    leaveTop()
+}
+
+// 2 3
+//  1
+// 4 5
+fun ComplexBlock.findCross(first: Int, second: Int, third: Int, fourth: Int, fifth: Int) = findGeneric5(
+    first, second, third, fourth, fifth,
+    1, -1, 1, -1,
+    {
+        // x y
+        dec()
+        swap2(); dec(); swap2()
+        // x-1 y-1
+    },
+    {
+        // x y
+        dec()
+        swap2(); inc(); swap2()
+        // x+1 y-1
+    },
+    {
+        // x y
+        inc()
+        swap2(); dec(); swap2()
+        // x-1 y+1
+    },
+    {
+        // x y
+        inc()
+        swap2(); inc(); swap2()
+        // x+1 y+1
+    },
+)
 
 fun ComplexBlock.findHorizontal(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
     first, second, third, fourth,
@@ -213,6 +271,107 @@ fun ComplexBlock.findGeneric(
                             inc()
                             permute("width height x y count", "count width height x y")
                             // count+1 width height x y
+                        } otherwise {
+                            pop(); pop(); pop()
+                        }
+                    } otherwise {
+                        pop(); pop(); pop()
+                    }
+                } otherwise {
+                    pop(); pop(); pop()
+                }
+            } otherwise {
+                pop(); pop(); pop()
+            }
+            // count width height x y
+            swap2()
+            // count width height y x
+            dup()
+            // count width height y x y
+            permute("y x y2", "x y y2")
+            // count width height x y y
+            add(-xStartLimit)
+        }
+        // count width height 0 y
+        pop2()
+        // count width height y
+        dup()
+        add(-yStartLimit)
+    }
+    // count width height 0
+    pop()
+    // count width height
+}
+
+
+// Kinda ugly that we are just copy-pasting this
+fun ComplexBlock.findGeneric5(
+    first: Int, second: Int, third: Int, fourth: Int, fifth: Int,
+    xStartLimit: Long, xEndLimit: Long, yStartLimit: Long, yEndLimit: Long,
+    secondCoords: ComplexBlock.() -> Unit,
+    thirdCoords: ComplexBlock.() -> Unit,
+    fourthCoords: ComplexBlock.() -> Unit,
+    fifthCoords: ComplexBlock.() -> Unit,
+) = complexFunction {
+    // count width height
+    dup()
+    // count width height height
+    // count width height y
+    add(yEndLimit)
+    doWhileNonZero { // over y
+        // count width height y+1
+        dec()
+        // count width height y
+        dupThird()
+        // count width height y width
+        add(xEndLimit) // we cannot be too close to the right edge
+        // count width height y x
+        swap2()
+        // count width height x y
+        doWhileNonZero { // over x
+            // count width height x+1 y
+            swap2(); dec(); swap2()
+            // count width height x y
+            dupFourth(); dupFourth(); dupFourth(); dupFourth()
+            // count width height x y width height x y
+            getXY()
+            // count width height x y width height s[x,y]
+            ifIs(first) {
+                // count width height x y width height s[x,y]
+                pop()
+                // count width height x y width height
+                dupFourth(); dupFourth()
+                // count width height x y width height x y
+                secondCoords()
+                // count width height x y width height x+1 y
+                getXY()
+                // count width height x y width height s[x+1,y]
+                ifIs(second) {
+                    pop()
+                    dupFourth(); dupFourth()
+                    thirdCoords()
+                    getXY()
+                    ifIs(third) {
+                        pop()
+                        dupFourth(); dupFourth()
+                        fourthCoords()
+                        getXY()
+                        ifIs(fourth) {
+                            pop()
+                            dupFourth(); dupFourth()
+                            fifthCoords()
+                            getXY()
+                            ifIs(fifth) {
+                                // count width height x y width height fifth
+                                pop(); pop(); pop()
+                                // count width height x y
+                                permute("count width height x y", "width height x y count")
+                                inc()
+                                permute("width height x y count", "count width height x y")
+                                // count+1 width height x y
+                            } otherwise {
+                                pop(); pop(); pop()
+                            }
                         } otherwise {
                             pop(); pop(); pop()
                         }

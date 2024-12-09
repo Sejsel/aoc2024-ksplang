@@ -34,7 +34,7 @@ val DAYS = listOf(
     Day(
         name = "4",
         gen1 = { day4Part1() },
-        gen2 = null,
+        gen2 = { day4Part2() },
         textInput = true
     ),
 )
