@@ -37,7 +37,7 @@ interesting than optimizing for the shortest program.*
 Might as well keep some notes here, maybe some archaeologists will find them in the future.
 And despair over the time ~~wasted~~ spent on this. Entries are numbered by the days of each task, not real days.
 
-### Day 1 (2024-12-03)
+### [Day 1](https://adventofcode.com/2024/day/1) (2024-12-03)
 Took a bit of time to port my ksplang tooling from Python to Kotlin, mainly for better organization.
 Python is unsuitable because of its inability to do circular imports, and its performance is
 also painful at times. Turns out it's actually day 3 by now. Surely I can catch up.
@@ -57,7 +57,7 @@ The second part of the task was fine, my lovely quadratic algorithm ended up fas
 the (quadratic) [sort](https://arxiv.org/abs/2110.01111) I used in part 1. Perhaps I will replace the sort
 with something faster later on.
 
-### Day 2 (2024-12-06)
+### [Day 2](https://adventofcode.com/2024/day/2) (2024-12-06)
 
 I checked the example input in the description, looked easy enough with numeric mode. Checked the actual input,
 and it turns out that we need to count how many numbers are on each line, so text mode it is. Yay.
@@ -79,7 +79,7 @@ loop.
 I tried it multiple times and yet, every time, there was some kind of off-by-one error I just could not fix.
 At this point I would rather play with other tasks, so this is staying horribly slow, at least for now.
 
-### Day 3 (2024-12-08)
+### [Day 3](https://adventofcode.com/2024/day/3) (2024-12-08)
 
 Finally a nice task. This one was actually quite easy, even though it's text mode. I may have created one of the
 [ugliest if chains](https://github.com/Sejsel/aoc2024-ksplang/blob/master/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt#L272-L395) I have ever seen, but it was pretty easy to write.
@@ -87,6 +87,7 @@ Being able to separate the part before and after the comma helped a lot to reduc
 
 My favorite so far. Part 2 was also easy to adapt to.
 
-### Day 4 (2024-12-09)
+### [Day 4](https://adventofcode.com/2024/day/4) (2024-12-09)
 
-Straightforward. At least as long as you don't mind a few nested if statements. And some mild copy-pasting for part 2.
+Straightforward. At least as long as you don't mind a few nested if statements. And some mild copy-pasting for part 2,
+the overall approach I chose made the second part very easy to adapt to.
