@@ -24,6 +24,7 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 | 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 521.645s | 47360521764           |
 | 3-1 | [64550](/ksplang/3-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 0.773s   | 71764648              |
 | 3-2 | [82426](/ksplang/3-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 1.239s   | 119309701             |
+| 4-1 | [46162](/ksplang/4-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt)) | text       | 3.345s   | 290696045             |
 
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
@@ -84,3 +85,7 @@ Finally a nice task. This one was actually quite easy, even though it's text mod
 Being able to separate the part before and after the comma helped a lot to reduce the complexity a lot.
 
 My favorite so far. Part 2 was also easy to adapt to.
+
+### Day 4 (2024-12-09)
+
+Straightforward. At least as long as you don't mind a few nested if statements.

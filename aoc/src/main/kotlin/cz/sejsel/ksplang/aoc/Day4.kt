@@ -50,25 +50,130 @@ fun day4Part1() = buildComplexFunction {
     permute("width height count", "count width height")
     // [stack] count width height
 
-    // horizontal
+    // [stack] count width height
     findHorizontal('X'.code, 'M'.code, 'A'.code, 'S'.code)
     findHorizontal('S'.code, 'A'.code, 'M'.code, 'X'.code)
     // [stack] count width height
+    findVertical('X'.code, 'M'.code, 'A'.code, 'S'.code)
+    findVertical('S'.code, 'A'.code, 'M'.code, 'X'.code)
+    // [stack] count width height
+    findDownRight('X'.code, 'M'.code, 'A'.code, 'S'.code)
+    findDownRight('S'.code, 'A'.code, 'M'.code, 'X'.code)
+    // [stack] count width height
+    findUpRight('X'.code, 'M'.code, 'A'.code, 'S'.code)
+    findUpRight('S'.code, 'A'.code, 'M'.code, 'X'.code)
+    // [stack] count width height
+    pop()
+    pop()
+    leaveTop()
 }
 
-fun ComplexBlock.findHorizontal(first: Int, second: Int, third: Int, fourth: Int) = complexFunction {
+fun ComplexBlock.findHorizontal(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
+    first, second, third, fourth,
+    0, -3, 0, 0,
+    {
+        // x y
+        swap2(); inc(); swap2()
+        // x+1 y
+    },
+    {
+        // x y
+        swap2(); inc(); inc(); swap2()
+        // x+2 y
+    },
+    {
+        // x y
+        swap2(); inc(); inc(); inc(); swap2()
+        // x+3 y
+    },
+)
+
+fun ComplexBlock.findVertical(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
+    first, second, third, fourth,
+    0, 0, 0, -3,
+    {
+        // x y
+        inc()
+        // x y+1
+    },
+    {
+        // x y
+        inc(); inc()
+        // x y+2
+    },
+    {
+        // x y
+        inc(); inc(); inc();
+        // x y+3
+    },
+)
+
+fun ComplexBlock.findDownRight(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
+    first, second, third, fourth,
+    0, -3, 0, -3,
+    {
+        // x y
+        inc()
+        swap2(); inc(); swap2()
+        // x+1 y+1
+    },
+    {
+        // x y
+        inc(); inc()
+        swap2(); inc(); inc(); swap2()
+        // x+2 y+2
+    },
+    {
+        // x y
+        inc(); inc(); inc();
+        swap2(); inc(); inc(); inc(); swap2()
+        // x+3 y+3
+    },
+)
+
+fun ComplexBlock.findUpRight(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
+    first, second, third, fourth,
+    0, -3, 3, 0,
+    {
+        // x y
+        add(-1)
+        swap2(); inc(); swap2()
+        // x+1 y-1
+    },
+    {
+        // x y
+        add(-2)
+        swap2(); inc(); inc(); swap2()
+        // x+2 y-2
+    },
+    {
+        // x y
+        add(-3)
+        swap2(); inc(); inc(); inc(); swap2()
+        // x+3 y-3
+    },
+)
+
+
+fun ComplexBlock.findGeneric(
+    first: Int, second: Int, third: Int, fourth: Int,
+    xStartLimit: Long, xEndLimit: Long, yStartLimit: Long, yEndLimit: Long,
+    secondCoords: ComplexBlock.() -> Unit,
+    thirdCoords: ComplexBlock.() -> Unit,
+    fourthCoords: ComplexBlock.() -> Unit,
+) = complexFunction {
     // count width height
     dup()
     // count width height height
     // count width height y
+    add(yEndLimit)
     doWhileNonZero { // over y
         // count width height y+1
         dec()
         // count width height y
         dupThird()
         // count width height y width
-        add(-3) // we cannot be too close to the right edge
-        // count width height y width-3
+        add(xEndLimit) // we cannot be too close to the right edge
         // count width height y x
         swap2()
         // count width height x y
@@ -86,19 +191,19 @@ fun ComplexBlock.findHorizontal(first: Int, second: Int, third: Int, fourth: Int
                 // count width height x y width height
                 dupFourth(); dupFourth()
                 // count width height x y width height x y
-                swap2(); inc(); swap2()
+                secondCoords()
                 // count width height x y width height x+1 y
                 getXY()
                 // count width height x y width height s[x+1,y]
                 ifIs(second) {
                     pop()
                     dupFourth(); dupFourth()
-                    swap2(); inc(); inc(); swap2()
+                    thirdCoords()
                     getXY()
                     ifIs(third) {
                         pop()
                         dupFourth(); dupFourth()
-                        swap2(); inc(); inc(); inc(); swap2()
+                        fourthCoords()
                         getXY()
                         ifIs(fourth) {
                             // count width height x y width height s[x+3,y]
@@ -123,15 +228,17 @@ fun ComplexBlock.findHorizontal(first: Int, second: Int, third: Int, fourth: Int
             // count width height x y
             swap2()
             // count width height y x
-            CS()
-            // count width height y x CS
-            permute("y x CS", "x y CS")
-            // count width height x y CS
+            dup()
+            // count width height y x y
+            permute("y x y2", "x y y2")
+            // count width height x y y
+            add(-xStartLimit)
         }
         // count width height 0 y
         pop2()
         // count width height y
-        CS()
+        dup()
+        add(-yStartLimit)
     }
     // count width height 0
     pop()

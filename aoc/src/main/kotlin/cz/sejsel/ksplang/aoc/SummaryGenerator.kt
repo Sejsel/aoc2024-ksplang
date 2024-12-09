@@ -25,10 +25,16 @@ val DAYS = listOf(
     //    gen2 = { day2Part2() },
     //    textInput = true
     //),
+    //Day(
+    //    name = "3",
+    //    gen1 = { day3Part1() },
+    //    gen2 = { day3Part2() },
+    //    textInput = true
+    //),
     Day(
-        name = "3",
-        gen1 = { day3Part1() },
-        gen2 = { day3Part2() },
+        name = "4",
+        gen1 = { day4Part1() },
+        gen2 = null,
         textInput = true
     ),
 )
