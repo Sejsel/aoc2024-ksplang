@@ -26,6 +26,7 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 | 3-2 | [82426](/ksplang/3-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 1.239s   | 119309701             |
 | 4-1 | [46162](/ksplang/4-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt)) | text       | 3.345s   | 290696045             |
 | 4-2 | [28003](/ksplang/4-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt)) | text       | 2.24s    | 176488689             |
+| 5-1 | [20021](/ksplang/5-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt)) | text       | 1.856s   | 132478368             |
 
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
@@ -91,3 +92,11 @@ My favorite so far. Part 2 was also easy to adapt to.
 
 Straightforward. At least as long as you don't mind a few nested if statements. And some mild copy-pasting for part 2,
 the overall approach I chose made the second part very easy to adapt to.
+
+### [Day 5](https://adventofcode.com/2024/day/5) (2024-12-12)
+
+I have an idea for how to revolutionize the industry! Or rather, revolutionize the way we can write ksplang programs.
+Stay tuned. I will definitely find time to implement it soon.
+
+Also, this task was quite a pain due to an ugly off-by-one error in loop bounds. Maybe it is time to build some other
+loop than a "do while".

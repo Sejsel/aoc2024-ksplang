@@ -1,10 +1,11 @@
 package cz.sejsel.ksplang.std
 
 import cz.sejsel.ksplang.dsl.core.Block
+import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.Instruction
 import cz.sejsel.ksplang.dsl.core.SimpleFunction
+import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.extract
-import java.io.File
 import kotlin.math.abs
 
 object ShortPushes {
@@ -146,6 +147,48 @@ fun Block.pushPaddedTo(n: Long, opCount: Int) = function("pushPaddedTo($n, $opCo
         }
         pop()
     }
+}
+
+/**
+ * Pushes `count` times `n` to the bottom of the stack.
+ */
+fun ComplexBlock.pushManyBottom(n: Long, count: Long) = complexFunction("pushBottomMany($n, $count)") {
+    // [stack]
+    pushMany(n, count)
+    // [stack] [count * n]
+    stacklen()
+    push(count)
+    swap2()
+    // [stack] [count * n] count stacklen
+    lroll()
+    // [count * n] [stack]
+}
+
+/**
+ * Pushes `count` times `n` to the top of the stack.
+ *
+ * Does so using a loop, not *count* push instructions. This keeps the instruction count down which means that
+ * later parts of the program will needed lower constants for branching.
+ */
+fun ComplexBlock.pushMany(n: Long, count: Long) = complexFunction("pushMany($n, $count)") {
+    check(count >= 0) { "count must be non-negative" }
+
+    if (count == 0L) return@complexFunction
+
+    // count
+    push(count)
+    doWhileNonZero {
+        // count
+        push(n)
+        // count n
+        swap2()
+        // n count
+        dec()
+        // n count-1
+        CS()
+    }
+    // [count * n] 0
+    pop()
 }
 
 class PaddingFailureException(opCount: Int, minOpCount: Int) :

@@ -23,7 +23,7 @@ fun main() {
 }
 
 
-fun ComplexBlock.getWidthAndHeight() = complexFunction("getWidthAndHeight") {
+private fun ComplexBlock.getWidthAndHeight() = complexFunction("getWidthAndHeight") {
     // [stack]
     stacklen()
     // [stack] inputlen
@@ -97,7 +97,7 @@ fun day4Part2() = buildComplexFunction {
 // 2 3
 //  1
 // 4 5
-fun ComplexBlock.findCross(first: Int, second: Int, third: Int, fourth: Int, fifth: Int) = findGeneric5(
+private fun ComplexBlock.findCross(first: Int, second: Int, third: Int, fourth: Int, fifth: Int) = findGeneric5(
     first, second, third, fourth, fifth,
     1, -1, 1, -1,
     {
@@ -126,7 +126,7 @@ fun ComplexBlock.findCross(first: Int, second: Int, third: Int, fourth: Int, fif
     },
 )
 
-fun ComplexBlock.findHorizontal(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
+private fun ComplexBlock.findHorizontal(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
     first, second, third, fourth,
     0, -3, 0, 0,
     {
@@ -146,7 +146,7 @@ fun ComplexBlock.findHorizontal(first: Int, second: Int, third: Int, fourth: Int
     },
 )
 
-fun ComplexBlock.findVertical(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
+private fun ComplexBlock.findVertical(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
     first, second, third, fourth,
     0, 0, 0, -3,
     {
@@ -166,7 +166,7 @@ fun ComplexBlock.findVertical(first: Int, second: Int, third: Int, fourth: Int) 
     },
 )
 
-fun ComplexBlock.findDownRight(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
+private fun ComplexBlock.findDownRight(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
     first, second, third, fourth,
     0, -3, 0, -3,
     {
@@ -189,7 +189,7 @@ fun ComplexBlock.findDownRight(first: Int, second: Int, third: Int, fourth: Int)
     },
 )
 
-fun ComplexBlock.findUpRight(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
+private fun ComplexBlock.findUpRight(first: Int, second: Int, third: Int, fourth: Int) = findGeneric(
     first, second, third, fourth,
     0, -3, 3, 0,
     {
@@ -213,7 +213,7 @@ fun ComplexBlock.findUpRight(first: Int, second: Int, third: Int, fourth: Int) =
 )
 
 
-fun ComplexBlock.findGeneric(
+private fun ComplexBlock.findGeneric(
     first: Int, second: Int, third: Int, fourth: Int,
     xStartLimit: Long, xEndLimit: Long, yStartLimit: Long, yEndLimit: Long,
     secondCoords: ComplexBlock.() -> Unit,
@@ -305,7 +305,7 @@ fun ComplexBlock.findGeneric(
 
 
 // Kinda ugly that we are just copy-pasting this
-fun ComplexBlock.findGeneric5(
+private fun ComplexBlock.findGeneric5(
     first: Int, second: Int, third: Int, fourth: Int, fifth: Int,
     xStartLimit: Long, xEndLimit: Long, yStartLimit: Long, yEndLimit: Long,
     secondCoords: ComplexBlock.() -> Unit,
@@ -405,7 +405,7 @@ fun ComplexBlock.findGeneric5(
 }
 
 /** `width height x y -> width height s[x,y]` */
-fun ComplexBlock.getXY() = complexFunction {
+private fun ComplexBlock.getXY() = complexFunction {
     // we need s[y*(width+1)+x], +1 is for the newline
 
     // width height x y

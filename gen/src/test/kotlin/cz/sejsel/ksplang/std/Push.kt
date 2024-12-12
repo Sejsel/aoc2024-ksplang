@@ -4,6 +4,7 @@ import cz.sejsel.ksplang.VALUES_PER_DIGIT_SUM
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildFunction
 import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
@@ -91,5 +92,41 @@ class PushOnTests : FunSpec({
             val program = builder.build(func)
             runner.run(program, listOf(top)) shouldContainExactly listOf(top, n)
         }
+    }
+})
+
+class PushManyTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("pushMany 4 7") {
+        val program = builder.build(buildComplexFunction {
+            pushMany(4, 7)
+        })
+        runner.run(program, listOf(42)) shouldContainExactly listOf(42, 4, 4, 4, 4, 4, 4, 4)
+    }
+    test("pushMany 4 0") {
+        val program = builder.build(buildComplexFunction {
+            pushMany(4, 0)
+        })
+        runner.run(program, listOf(42)) shouldContainExactly listOf(42)
+    }
+})
+
+class PushManyBottomTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("pushManyBottom 4 7") {
+        val program = builder.build(buildComplexFunction {
+            pushManyBottom(4, 7)
+        })
+        runner.run(program, listOf(42)) shouldContainExactly listOf(4, 4, 4, 4, 4, 4, 4, 42)
+    }
+    test("pushManyBottom 4 0") {
+        val program = builder.build(buildComplexFunction {
+            pushManyBottom(4, 0)
+        })
+        runner.run(program, listOf(42)) shouldContainExactly listOf(42)
     }
 })

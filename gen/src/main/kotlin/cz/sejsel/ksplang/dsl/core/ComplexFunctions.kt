@@ -1,5 +1,6 @@
 package cz.sejsel.ksplang.dsl.core
 
+import cz.sejsel.ksplang.std.dec
 import cz.sejsel.ksplang.std.sgn
 import cz.sejsel.ksplang.std.zeroNot
 import cz.sejsel.ksplang.std.zeroNotPositive
@@ -244,6 +245,21 @@ fun ComplexBlock.doWhileNonNegative(init: DoWhileZero.() -> Unit): DoWhileZero {
     children.add(f)
     return f
 }
+
+fun ComplexBlock.doWhilePositive(init: DoWhileZero.() -> Unit): DoWhileZero {
+    val f = DoWhileZero()
+    f.init()
+    f.apply {
+        // x
+        sgn()
+        // sgn(x)
+        dec()
+        // sgn(x)-1   -- negative is -2, 0 is -1, positive is 0
+    }
+    children.add(f)
+    return f
+}
+
 
 @KsplangMarker
 fun buildComplexFunction(name: String? = null, init: ComplexFunction.() -> Unit): ComplexFunction {
