@@ -3,9 +3,7 @@ package cz.sejsel.ksplang.aoc
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
-import cz.sejsel.ksplang.dsl.core.doWhileNonNegative
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
-import cz.sejsel.ksplang.dsl.core.doWhilePositive
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.std.*
@@ -30,7 +28,66 @@ const val HEIGHT = 100L
 
 const val INPUT_START_INDEX = WIDTH * HEIGHT
 
-fun day5Part1() = buildComplexFunction {
+fun day5Part1() = day5(ComplexBlock::accumulateCorrectLines)
+
+fun ComplexBlock.accumulateCorrectLines() {
+    // inputlen pos result lines
+    permute("inputlen pos result lines", "result lines inputlen pos")
+    // result lines inputlen pos
+    // result lines inputlen pos
+    dup()
+    push('\n'.code)
+    findUnsafe()
+    // result lines inputlen pos eol
+    dupSecond()
+    // result lines inputlen pos eol pos
+    subabs()
+    // result lines inputlen pos eol-pos
+    add(1)
+    div(3)
+    // result lines inputlen pos (eol-pos+1)/3
+    // result lines inputlen pos nums           -- numbers on the line starting with pos
+    parseRow()
+    // result lines inputlen pos [numbers] nums
+    countInversions()
+    // result lines inputlen pos [numbers] nums inversions
+    ifZero {
+        pop()
+        // result lines inputlen pos [numbers] nums
+        dup(); div(2); inc(); inc()
+        // result lines inputlen pos [numbers] nums nums/2+2
+        dupNth()
+        // result lines inputlen pos [numbers] nums midNum
+        swap2()
+        // result lines inputlen pos [numbers] midNum nums
+        doWhileNonZero {
+            dec()
+            pop3()
+            CS()
+        }
+        pop()
+        // result lines inputlen pos midNum
+        roll(5, -1); add();
+        // lines inputlen pos midNum+result
+        roll(4, 1);
+        // result lines inputlen pos
+    } otherwise {
+        pop()
+        // result lines inputlen pos [numbers] nums
+        doWhileNonZero {
+            dec()
+            pop2()
+            CS()
+        }
+        pop()
+        // result lines inputlen pos
+    }
+    // result lines inputlen pos
+    permute("result lines inputlen pos", "inputlen pos result lines")
+    // inputlen pos result lines
+}
+
+fun day5(processLine: ComplexBlock.() -> Unit) = buildComplexFunction {
     pushManyBottom(0, WIDTH * HEIGHT)
     // [matrix] [input]
     stacklen()
@@ -101,115 +158,71 @@ fun day5Part1() = buildComplexFunction {
     // [matrix] [input] inputlen pos lines 0
     // [matrix] [input] inputlen pos lines valid         -- valid rows
     swap2()
-    // [matrix] [input] inputlen pos valid lines
+    // [matrix] [input] inputlen pos result lines
     doWhileNonZero { // over lines
-        // inputlen pos valid lines+1
+        // inputlen pos result lines+1
         dec()
-        // inputlen pos valid lines
-        permute("inputlen pos valid lines", "valid lines inputlen pos")
-        // valid lines inputlen pos
-        // valid lines inputlen pos
-        dup()
-        push('\n'.code)
-        findUnsafe()
-        // valid lines inputlen pos eol
-        dupSecond()
-        // valid lines inputlen pos eol pos
-        subabs()
-        // valid lines inputlen pos eol-pos
-        add(1)
-        div(3)
-        // valid lines inputlen pos (eol-pos+1)/3
-        // valid lines inputlen pos nums           -- numbers on the line starting with pos
-        parseRow()
-        // valid lines inputlen pos [numbers] nums
-        dup()
-        // valid lines inputlen pos [numbers] nums nums 0
-        push(0)
-        swap2()
-        // valid lines inputlen pos [numbers] nums 0          nums
-        // valid lines inputlen pos [numbers] nums inversions first_i
-
-        doWhileNonZero { // over first_i
-            // valid lines inputlen pos [numbers] nums inversions first_i+1
-            dec()
-            // valid lines inputlen pos [numbers] nums inversions first_i
-            dup()
-            // valid lines inputlen pos [numbers] nums inversions first_i first_i
-            // valid lines inputlen pos [numbers] nums inversions first_i second_i
-
-            ifZero { // this is such a lovely `while` loop, maybe I should finally make one
-            } otherwise {
-                doWhileNonZero { // over second_i
-                    // valid lines inputlen pos [numbers] nums inversions first_i second_i+1
-                    dec()
-                    // valid lines inputlen pos [numbers] nums inversions first_i second_i
-                    dup(); add(5)
-                    // valid lines inputlen pos [numbers] nums inversions first_i second_i second_i+5
-                    dupNth()
-                    // valid lines inputlen pos [numbers] nums inversions first_i second_i numbers[second_i]
-                    dupThird(); add(6)
-                    // valid lines inputlen pos [numbers] nums inversions first_i second_i numbers[second_i] first_i+6
-                    dupNth()
-                    // valid lines inputlen pos [numbers] nums inversions first_i second_i numbers[second_i] numbers[first_i]
-                    getXY()
-                    // valid lines inputlen pos [numbers] nums inversions first_i second_i is_inversion
-                    permute("inversions first_i second_i is_inversion", "first_i second_i is_inversion inversions")
-                    // valid lines inputlen pos [numbers] nums first_i second_i is_inversion inversions
-                    add()
-                    // valid lines inputlen pos [numbers] nums first_i second_i inversions
-                    permute("first_i second_i inversions", "inversions first_i second_i")
-                    // valid lines inputlen pos [numbers] nums inversions first_i second_i
-                    dup()
-                }
-            }
-            // valid lines inputlen pos [numbers] nums inversions <=0
-            pop()
-            // valid lines inputlen pos [numbers] nums inversions first_i
-            CS()
-        }
-        // valid lines inputlen pos [numbers] nums inversions 0
-        pop()
-        // valid lines inputlen pos [numbers] nums inversions
-        ifZero {
-            pop()
-            // valid lines inputlen pos [numbers] nums
-            dup(); div(2); inc(); inc()
-            // valid lines inputlen pos [numbers] nums nums/2+2
-            dupNth()
-            // valid lines inputlen pos [numbers] nums midNum
-            swap2()
-            // valid lines inputlen pos [numbers] midNum nums
-            doWhileNonZero {
-                dec()
-                pop3()
-                CS()
-            }
-            pop()
-            // valid lines inputlen pos midNum
-            roll(5, -1); add();
-            // lines inputlen pos midNum+valid
-            roll(4, 1);
-            // valid lines inputlen pos
-        } otherwise {
-            pop()
-            // valid lines inputlen pos [numbers] nums
-            doWhileNonZero {
-                dec()
-                pop2()
-                CS()
-            }
-            pop()
-            // valid lines inputlen pos
-        }
-        // valid lines inputlen pos
-        permute("valid lines inputlen pos", "inputlen pos valid lines")
-        // inputlen pos valid lines
+        // inputlen pos result lines
+        processLine()
+        // inputlen pos result lines
         CS()
     }
     pop()
     leaveTop()
 }
+
+fun ComplexBlock.countInversions() = complexFunction("countInversions") {
+    // [numbers] nums
+    dup()
+    // [numbers] nums nums 0
+    push(0)
+    swap2()
+    // [numbers] nums 0          nums
+    // [numbers] nums inversions first_i
+
+    doWhileNonZero { // over first_i
+        // [numbers] nums inversions first_i+1
+        dec()
+        // [numbers] nums inversions first_i
+        dup()
+        // [numbers] nums inversions first_i first_i
+        // [numbers] nums inversions first_i second_i
+
+        ifZero { // this is such a lovely `while` loop, maybe I should finally make one
+        } otherwise {
+            doWhileNonZero { // over second_i
+                // [numbers] nums inversions first_i second_i+1
+                dec()
+                // [numbers] nums inversions first_i second_i
+                dup(); add(5)
+                // [numbers] nums inversions first_i second_i second_i+5
+                dupNth()
+                // [numbers] nums inversions first_i second_i numbers[second_i]
+                dupThird(); add(6)
+                // [numbers] nums inversions first_i second_i numbers[second_i] first_i+6
+                dupNth()
+                // [numbers] nums inversions first_i second_i numbers[second_i] numbers[first_i]
+                getXY()
+                // [numbers] nums inversions first_i second_i is_inversion
+                permute("inversions first_i second_i is_inversion", "first_i second_i is_inversion inversions")
+                // [numbers] nums first_i second_i is_inversion inversions
+                add()
+                // [numbers] nums first_i second_i inversions
+                permute("first_i second_i inversions", "inversions first_i second_i")
+                // [numbers] nums inversions first_i second_i
+                dup()
+            }
+        }
+        // [numbers] nums inversions <=0
+        pop()
+        // [numbers] nums inversions first_i
+        CS()
+    }
+    // [numbers] nums inversions 0
+    pop()
+    // [numbers] nums inversions
+}
+
 
 /** ```pos nums -> newPos [numbers] nums``` */
 private fun ComplexBlock.parseRow() = complexFunction {
