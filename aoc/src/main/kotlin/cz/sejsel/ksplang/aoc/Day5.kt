@@ -17,10 +17,10 @@ fun main() {
     val instructionCount = program.trim().split("\\s+".toRegex()).count()
     File("ksplang/5-1.ksplang").writeText(program)
     println("Generated program for day 5 part 1, $instructionCount instructions")
-    // val program2 = builder.build(day5Part2())
-    // val instructionCount2 = program2.trim().split("\\s+".toRegex()).count()
-    // File("ksplang/5-2.ksplang").writeText(program2)
-    // println("Generated program for day 5 part 2, $instructionCount2 instructions")
+    val program2 = builder.build(day5Part2())
+    val instructionCount2 = program2.trim().split("\\s+".toRegex()).count()
+    File("ksplang/5-2.ksplang").writeText(program2)
+    println("Generated program for day 5 part 2, $instructionCount2 instructions")
 }
 
 const val WIDTH = 100L
@@ -30,24 +30,10 @@ const val INPUT_START_INDEX = WIDTH * HEIGHT
 
 fun day5Part1() = day5(ComplexBlock::accumulateCorrectLines)
 
+fun day5Part2() = day5(ComplexBlock::accumulateFixedWrongLines)
+
+// Part 1
 fun ComplexBlock.accumulateCorrectLines() {
-    // inputlen pos result lines
-    permute("inputlen pos result lines", "result lines inputlen pos")
-    // result lines inputlen pos
-    // result lines inputlen pos
-    dup()
-    push('\n'.code)
-    findUnsafe()
-    // result lines inputlen pos eol
-    dupSecond()
-    // result lines inputlen pos eol pos
-    subabs()
-    // result lines inputlen pos eol-pos
-    add(1)
-    div(3)
-    // result lines inputlen pos (eol-pos+1)/3
-    // result lines inputlen pos nums           -- numbers on the line starting with pos
-    parseRow()
     // result lines inputlen pos [numbers] nums
     countInversions()
     // result lines inputlen pos [numbers] nums inversions
@@ -86,6 +72,54 @@ fun ComplexBlock.accumulateCorrectLines() {
     permute("result lines inputlen pos", "inputlen pos result lines")
     // inputlen pos result lines
 }
+
+// Part 2
+fun ComplexBlock.accumulateFixedWrongLines() {
+    // result lines inputlen pos [numbers] nums
+    countInversions()
+    // result lines inputlen pos [numbers] nums inversions
+    ifZero { // Ignore correct lines
+        pop()
+        // result lines inputlen pos [numbers] nums
+        doWhileNonZero {
+            dec()
+            pop2()
+            CS()
+        }
+        pop()
+        // result lines inputlen pos
+    } otherwise {
+        pop()
+        // result lines inputlen pos [numbers] nums
+        doWhileNonZero {
+            fixInversions()
+            countInversions()
+            // result lines inputlen pos [numbers] nums inversions
+        }
+        // result lines inputlen pos [numbers] nums
+        dup(); div(2); inc(); inc()
+        // result lines inputlen pos [numbers] nums nums/2+2
+        dupNth()
+        // result lines inputlen pos [numbers] nums midNum
+        swap2()
+        // result lines inputlen pos [numbers] midNum nums
+        doWhileNonZero {
+            dec()
+            pop3()
+            CS()
+        }
+        pop()
+        // result lines inputlen pos midNum
+        roll(5, -1); add();
+        // lines inputlen pos midNum+result
+        roll(4, 1);
+        // result lines inputlen pos
+    }
+    // result lines inputlen pos
+    permute("result lines inputlen pos", "inputlen pos result lines")
+    // inputlen pos result lines
+}
+
 
 fun day5(processLine: ComplexBlock.() -> Unit) = buildComplexFunction {
     pushManyBottom(0, WIDTH * HEIGHT)
@@ -163,6 +197,22 @@ fun day5(processLine: ComplexBlock.() -> Unit) = buildComplexFunction {
         // inputlen pos result lines+1
         dec()
         // inputlen pos result lines
+        permute("inputlen pos result lines", "result lines inputlen pos")
+        // result lines inputlen pos
+        dup()
+        push('\n'.code)
+        findUnsafe()
+        // result lines inputlen pos eol
+        dupSecond()
+        // result lines inputlen pos eol pos
+        subabs()
+        // result lines inputlen pos eol-pos
+        add(1)
+        div(3)
+        // result lines inputlen pos (eol-pos+1)/3
+        // result lines inputlen pos nums           -- numbers on the line starting with pos
+        parseRow()
+        // result lines inputlen pos [numbers] nums
         processLine()
         // inputlen pos result lines
         CS()
@@ -174,8 +224,8 @@ fun day5(processLine: ComplexBlock.() -> Unit) = buildComplexFunction {
 fun ComplexBlock.countInversions() = complexFunction("countInversions") {
     // [numbers] nums
     dup()
-    // [numbers] nums nums 0
     push(0)
+    // [numbers] nums nums 0
     swap2()
     // [numbers] nums 0          nums
     // [numbers] nums inversions first_i
@@ -222,6 +272,72 @@ fun ComplexBlock.countInversions() = complexFunction("countInversions") {
     pop()
     // [numbers] nums inversions
 }
+
+fun ComplexBlock.fixInversions() = complexFunction("fixInversions") {
+    // [numbers] nums
+    dup()
+    // [numbers] nums nums
+    // [numbers] nums first_i
+
+    doWhileNonZero { // over first_i
+        // [numbers] nums first_i+1
+        dec()
+        // [numbers] nums first_i
+        dup()
+        // [numbers] nums first_i first_i
+        // [numbers] nums first_i second_i
+
+        ifZero { // this is such a lovely `while` loop, maybe I should finally make one
+        } otherwise {
+            doWhileNonZero { // over second_i
+                // [numbers] nums first_i second_i+1
+                dec()
+                // [numbers] nums first_i second_i
+                dup(); add(4)
+                // [numbers] nums first_i second_i second_i+4
+                dupNth()
+                // [numbers] nums first_i second_i numbers[second_i]
+                dupThird(); add(5)
+                // [numbers] nums first_i second_i numbers[second_i] first_i+5
+                dupNth()
+                // [numbers] nums first_i second_i numbers[second_i] numbers[first_i]
+                dupAb()
+                getXY()
+                // [numbers] nums first_i second_i numbers[second_i] numbers[first_i] is_inversion
+                ifZero {
+                    pop()
+                    pop()
+                    pop()
+                    // [numbers] nums first_i second_i
+                } otherwise {
+                    pop()
+                    // [numbers] nums first_i second_i numbers[second_i] numbers[first_i]
+                    dupThird()
+                    // [numbers] nums first_i second_i numbers[second_i] numbers[first_i] second_i
+                    add(5); swap2()
+                    // [numbers] nums first_i second_i numbers[second_i] second_i+5 numbers[first_i]
+                    setNth()
+                    // [numbers] nums first_i second_i numbers[second_i]
+                    dupThird()
+                    add(4); swap2()
+                    // [numbers] nums first_i second_i first_i+4 numbers[second_i]
+                    setNth()
+                    // [numbers] nums first_i second_i
+                }
+                // [numbers] nums first_i second_i
+                dup()
+            }
+        }
+        // [numbers] nums first_i <=0
+        pop()
+        // [numbers] nums first_i
+        CS()
+    }
+    // [numbers] nums 0
+    pop()
+    // [numbers] nums
+}
+
 
 
 /** ```pos nums -> newPos [numbers] nums``` */

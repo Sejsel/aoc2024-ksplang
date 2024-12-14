@@ -245,6 +245,38 @@ fun Block.moveNthToTop() = function("moveNthToTop") {
     // nth
 }
 
+/**
+ * Sets the *n*-th element from the top of the stack to a new value.
+ * 1-indexed, not counting *n*. **Requires *n* to be 1 or bigger.**
+ *
+ * Example: `1 2 3 4 2 42 -> 1 2 42 4` (*n* was 2)
+ *
+ * Signature: `n x -> ` and `s[stacklen-1-n] = x`
+ */
+fun Block.setNth() = function("setNth") {
+    // n x
+    swap2()
+    // x n
+    dup()
+    // x n n
+    push(-1)
+    // x n n -1
+    swap2()
+    // x n -1 n
+    inc(); inc()
+    // x n -1 n+2
+    lroll()
+    // x n replaced
+    pop()
+    // x n
+    push(1)
+    // x n 1
+    swap2()
+    // x 1 n
+    lroll()
+    //
+}
+
 // Adaptation of the following code:
 // https://stackoverflow.com/questions/53749357/idiomatic-way-to-create-n-ary-cartesian-product-combinations-of-several-sets-of/53763936#53763936
 private fun cartesianProduct(sets: List<Set<*>>): Set<List<*>> {

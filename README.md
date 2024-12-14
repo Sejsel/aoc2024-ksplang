@@ -16,17 +16,18 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 
 ## Progress
 
-| Day | Instructions                                                                                    | Input mode | Runtime  | Executed instructions |
-|-----|-------------------------------------------------------------------------------------------------|------------|----------|-----------------------|
-| 1-1 | [6554](/ksplang/1-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 21.388s  | 1533825452            |
-| 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 15.973s  | 1176145375            |
-| 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 1.702s   | 144668637             |
-| 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 521.645s | 47360521764           |
-| 3-1 | [64550](/ksplang/3-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 0.773s   | 71764648              |
-| 3-2 | [82426](/ksplang/3-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 1.239s   | 119309701             |
-| 4-1 | [46162](/ksplang/4-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt)) | text       | 3.345s   | 290696045             |
-| 4-2 | [28003](/ksplang/4-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt)) | text       | 2.24s    | 176488689             |
-| 5-1 | [20021](/ksplang/5-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt)) | text       | 1.856s   | 132478368             |
+| Day | Instructions                                                                                     | Input mode | Runtime  | Executed instructions |
+|-----|--------------------------------------------------------------------------------------------------|------------|----------|-----------------------|
+| 1-1 | [6554](/ksplang/1-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))   | numeric    | 21.388s  | 1533825452            |
+| 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))   | numeric    | 15.973s  | 1176145375            |
+| 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt))  | text       | 1.702s   | 144668637             |
+| 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt))  | text       | 521.645s | 47360521764           |
+| 3-1 | [64550](/ksplang/3-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt))  | text       | 0.773s   | 71764648              |
+| 3-2 | [82426](/ksplang/3-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt))  | text       | 1.239s   | 119309701             |
+| 4-1 | [46162](/ksplang/4-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt))  | text       | 3.345s   | 290696045             |
+| 4-2 | [28003](/ksplang/4-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt))  | text       | 2.24s    | 176488689             |
+| 5-1 | [20021](/ksplang/5-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt))  | text       | 1.856s   | 132478368             |
+| 5-2 | [25165](/ksplang/5-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt))  | text       | 2.393s   | 172774543             |
 
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
