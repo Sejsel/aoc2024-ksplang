@@ -245,7 +245,35 @@ class SetNthTests : FunSpec({
     }
 })
 
+class SetKthTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
 
+    test("setKth 1") {
+        val program = builder.build(buildFunction { setKth(1) })
+        runner.run(program, listOf(1, 2, 3, 4, 5, 42)) shouldContainExactly listOf<Long>(1, 2, 3, 4, 42)
+    }
+
+    test("setKth 2") {
+        val program = builder.build(buildFunction { setKth(2) })
+        runner.run(program, listOf(1, 2, 3, 4, 5, 42)) shouldContainExactly listOf<Long>(1, 2, 3, 42, 5)
+    }
+
+    test("setKth 3") {
+        val program = builder.build(buildFunction { setKth(3) })
+        runner.run(program, listOf(1, 2, 3, 4, 5, 42)) shouldContainExactly listOf<Long>(1, 2, 42, 4, 5)
+    }
+
+    test("setKth 4") {
+        val program = builder.build(buildFunction { setKth(4) })
+        runner.run(program, listOf(1, 2, 3, 4, 5, 42)) shouldContainExactly listOf<Long>(1, 42, 3, 4, 5)
+    }
+
+    test("setKth 5") {
+        val program = builder.build(buildFunction { setKth(5) })
+        runner.run(program, listOf(1, 2, 3, 4, 5, 42)) shouldContainExactly listOf<Long>(42, 2, 3, 4, 5)
+    }
+})
 
 class PermuteTests : FunSpec({
     val runner = KsplangRunner()

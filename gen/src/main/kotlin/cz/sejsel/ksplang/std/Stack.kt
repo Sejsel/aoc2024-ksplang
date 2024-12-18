@@ -277,6 +277,31 @@ fun Block.setNth() = function("setNth") {
     //
 }
 
+/**
+ * Sets the *k*-th element from the top of the stack to a new value.
+ * 1-indexed, not counting the top value. **Requires *x* to be 1 or bigger.**
+ *
+ * Example: `1 2 3 4 42 -> 1 2 42 4` (*k* was 2)
+ *
+ * Signature: `x -> ` and `s[stacklen-1-n] = x`
+ */
+fun Block.setKth(k: Int) = setKth(k.toLong())
+
+/**
+ * Sets the *k*-th element from the top of the stack to a new value.
+ * 1-indexed, not counting the top value. **Requires *x* to be 1 or bigger.**
+ *
+ * Example: `1 2 3 4 42 -> 1 2 42 4` (*k* was 2)
+ *
+ * Signature: `x -> ` and `s[stacklen-1-n] = x`
+ */
+fun Block.setKth(k: Long) = function("setKth($k)") {
+    require(k >= 1) { "k must be at least 1" }
+    roll(k + 1, -1)
+    pop()
+    roll(k, 1)
+}
+
 // Adaptation of the following code:
 // https://stackoverflow.com/questions/53749357/idiomatic-way-to-create-n-ary-cartesian-product-combinations-of-several-sets-of/53763936#53763936
 private fun cartesianProduct(sets: List<Set<*>>): Set<List<*>> {

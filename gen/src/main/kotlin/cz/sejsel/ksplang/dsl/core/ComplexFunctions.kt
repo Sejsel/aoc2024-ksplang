@@ -11,71 +11,71 @@ import cz.sejsel.ksplang.std.zeroNotPositive
 
 @KsplangMarker
 sealed interface Block {
-    fun add(block: SimpleBlock)
+    fun addChild(block: SimpleBlock)
 
     // These are functions and not extension functions very much on purpose.
     // They do not have to be imported, and they end up colored differently from (extension) functions.
     fun function(name: String? = null, init: SimpleFunction.() -> Unit): SimpleFunction {
         val f = SimpleFunction(name)
         f.init()
-        add(f)
+        addChild(f)
         return f
     }
 
     fun CS() {
-        add(CS)
+        addChild(CS)
     }
 
     fun inc() {
-        add(inc)
+        addChild(inc)
     }
 
     fun pop() {
-        add(pop)
+        addChild(pop)
     }
 
     fun pop2() {
-        add(pop2)
+        addChild(pop2)
     }
 
     fun swap() {
-        add(swap)
+        addChild(swap)
     }
 
     fun tetr() {
-        add(tetr)
+        addChild(tetr)
     }
 
     fun tetr2() {
-        add(tetr2)
+        addChild(tetr2)
     }
 
     fun funkcia() {
-        add(funkcia)
+        addChild(funkcia)
     }
 
     fun lswap() {
-        add(lswap)
+        addChild(lswap)
     }
 
     fun modulo() {
-        add(modulo)
+        addChild(modulo)
     }
 
     fun lensum() {
-        add(lensum)
+        addChild(lensum)
     }
 
     fun REM() {
-        add(REM)
+        addChild(REM)
     }
 
     fun bitshift() {
-        add(bitshift)
+        addChild(bitshift)
     }
 
     fun qeq() {
-        add(qeq)
+        addChild(qeq)
     }
 
     /**
@@ -84,79 +84,79 @@ sealed interface Block {
      * Signature: `dist len ->`, also moves top len elements right (circularly).
      */
     fun lroll() {
-        add(lroll)
+        addChild(lroll)
     }
 
     fun u() {
-        add(u)
+        addChild(u)
     }
 
     fun gcd() {
-        add(gcd)
+        addChild(gcd)
     }
 
     fun d() {
-        add(d)
+        addChild(d)
     }
 
     fun bitand() {
-        add(bitand)
+        addChild(bitand)
     }
 
     fun praise() {
-        add(praise)
+        addChild(praise)
     }
 
     fun m() {
-        add(m)
+        addChild(m)
     }
 
     fun brz() {
-        add(brz)
+        addChild(brz)
     }
 
     fun j() {
-        add(j)
+        addChild(j)
     }
 
     fun call() {
-        add(call)
+        addChild(call)
     }
 
     fun goto() {
-        add(goto)
+        addChild(goto)
     }
 
     fun bulkxor() {
-        add(bulkxor)
+        addChild(bulkxor)
     }
 
     fun max2() {
-        add(max2)
+        addChild(max2)
     }
 
     fun sumall() {
-        add(sumall)
+        addChild(sumall)
     }
 
     fun ff() {
-        add(ff)
+        addChild(ff)
     }
 
     fun kpi() {
-        add(kpi)
+        addChild(kpi)
     }
 
     fun rev() {
-        add(rev)
+        addChild(rev)
     }
 
     fun deez() {
-        add(deez)
+        addChild(deez)
     }
 
     fun spanek() {
-        add(spanek)
+        addChild(spanek)
     }
 }
 
@@ -181,7 +181,7 @@ sealed interface ComplexBlock : Block {
 data class ComplexFunction(val name: String? = null, override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
     constructor(name: String? = null, vararg children: Block) : this(name, children.toMutableList())
 
-    override fun add(block: SimpleBlock) {
+    override fun addChild(block: SimpleBlock) {
         children.add(block)
     }
 }
@@ -195,7 +195,7 @@ fun ComplexBlock.ifZero(init: IfZero.() -> Unit): IfZero {
 
 @KsplangMarker
 data class IfZero(override var children: MutableList<Block> = mutableListOf(), var orElse: ComplexFunction? = null, var popChecked: Boolean = false) : ComplexBlock {
-    override fun add(block: SimpleBlock) {
+    override fun addChild(block: SimpleBlock) {
         children.add(block)
     }
 }
@@ -208,7 +208,7 @@ infix fun IfZero.otherwise(init: ComplexFunction.() -> Unit) {
 
 @KsplangMarker
 data class DoWhileZero(override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
-    override fun add(block: SimpleBlock) {
+    override fun addChild(block: SimpleBlock) {
         children.add(block)
     }
 }

@@ -18,7 +18,7 @@ data class SimpleFunction(val name: String? = null, var children: MutableList<Si
         this@SimpleFunction.children.add(this@unaryPlus)
     }
 
-    override fun add(block: SimpleBlock) {
+    override fun addChild(block: SimpleBlock) {
         children.add(block)
     }
 }
@@ -27,7 +27,7 @@ data class SimpleFunction(val name: String? = null, var children: MutableList<Si
 @KsplangMarker
 sealed class Instruction(val text: String) : SimpleBlock {
     override fun getInstructions(): List<Instruction> = listOf(this)
-    override fun add(block: SimpleBlock) {
+    override fun addChild(block: SimpleBlock) {
         // This is quite ugly API-wise, but not having Instructions
         // implement ComplexOrSimpleBlock ends up even worse.
         throw UnsupportedOperationException("Instructions cannot contain other blocks.")

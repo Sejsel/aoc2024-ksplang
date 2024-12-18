@@ -1,7 +1,6 @@
 package cz.sejsel.ksplang.std
 
 import cz.sejsel.ksplang.dsl.core.Block
-import cz.sejsel.ksplang.dsl.core.ComplexBlock
 
 /**
  * Duplicates the top value on the stack.
@@ -68,20 +67,30 @@ fun Block.dupAb() = function("dup_ab") {
 }
 
 /**
- * Duplicates the *n*-th element on the stack, indexed from zero.
+ * Duplicates the *k*-th element on the stack, indexed from zero.
  *
- * dupNthZeroIndexed(0) = a -> a a
- * dupNthZeroIndexed(1) = a b -> a b a
- * dupNthZeroIndexed(2) = a b c -> a b c a
+ * dupKthZeroIndexed(0) = a -> a a
+ * dupKthZeroIndexed(1) = a b -> a b a
+ * dupKthZeroIndexed(2) = a b c -> a b c a
  */
-fun Block.dupNthZeroIndexed(n: Long) = function("dup_nth_zero_indexed($n)") {
-    assert(n >= 0)
+fun Block.dupKthZeroIndexed(k: Int) = dupKthZeroIndexed(k.toLong())
+
+/**
+ *
+ * Duplicates the *k*-th element on the stack, indexed from zero.
+ *
+ * dupKthZeroIndexed(0) = a -> a a
+ * dupKthZeroIndexed(1) = a b -> a b a
+ * dupKthZeroIndexed(2) = a b c -> a b c a
+ */
+fun Block.dupKthZeroIndexed(k: Long) = function("dup_kth_zero_indexed($k)") {
+    assert(k >= 0)
     // a [...]
-    roll(n + 1, n)
+    roll(k + 1, k)
     // [...] a
     dup()
     // [...] a a
-    roll(n + 2, 1)
+    roll(k + 2, 1)
     // a [...] a
 }
 
@@ -90,63 +99,63 @@ fun Block.dupNthZeroIndexed(n: Long) = function("dup_nth_zero_indexed($n)") {
  *
  * Signature: `a b -> a b a`
  */
-fun Block.dupSecond() = dupNthZeroIndexed(1)
+fun Block.dupSecond() = dupKthZeroIndexed(1)
 
 /**
  * Duplicates the third element on the stack.
  *
  * Signature: `a b c -> a b c a`
  */
-fun Block.dupThird() = dupNthZeroIndexed(2)
+fun Block.dupThird() = dupKthZeroIndexed(2)
 
 /**
  * Duplicates the fourth element on the stack.
  *
  * Signature: `a b c d -> a b c d a`
  */
-fun Block.dupFourth() = dupNthZeroIndexed(3)
+fun Block.dupFourth() = dupKthZeroIndexed(3)
 
 /**
  * Duplicates the fifth element on the stack.
  *
  * Signature: `a b c d e -> a b c d e a`
  */
-fun Block.dupFifth() = dupNthZeroIndexed(4)
+fun Block.dupFifth() = dupKthZeroIndexed(4)
 
 /**
  * Duplicates the sixth element on the stack.
  *
  * Signature: `a b c d e f -> a b c d e f a`
  */
-fun Block.dupSixth() = dupNthZeroIndexed(5)
+fun Block.dupSixth() = dupKthZeroIndexed(5)
 
 /**
  * Duplicates the seventh element on the stack.
  *
  * Signature: `a b c d e f g  -> a b c d e f g a`
  */
-fun Block.dupSeventh() = dupNthZeroIndexed(6)
+fun Block.dupSeventh() = dupKthZeroIndexed(6)
 
 /**
  * Duplicates the eighth element on the stack.
  *
  * Signature: `a b c d e f g h -> a b c d e f g h a`
  */
-fun Block.dupEighth() = dupNthZeroIndexed(7)
+fun Block.dupEighth() = dupKthZeroIndexed(7)
 
 /**
  * Duplicates the ninth element on the stack.
  *
  * Signature: `a b c d e f g h i -> a b c d e f g h i a`
  */
-fun Block.dupNinth() = dupNthZeroIndexed(8)
+fun Block.dupNinth() = dupKthZeroIndexed(8)
 
 /**
  * Duplicates the tenth element on the stack.
  *
  * Signature: `a b c d e f g h i j -> a b c d e f g h i j a`
  */
-fun Block.dupTenth() = dupNthZeroIndexed(9)
+fun Block.dupTenth() = dupKthZeroIndexed(9)
 
 /**
  * Duplicates the *n*-th element on the stack, **indexed from one** and **n is not counted**.

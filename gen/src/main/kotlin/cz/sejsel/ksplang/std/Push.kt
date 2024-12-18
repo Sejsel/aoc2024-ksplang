@@ -47,7 +47,7 @@ fun Block.push(n: Long): SimpleFunction {
     return function("push($n)") {
         ShortPushes.sequencesByNumber[n]?.let {
             for (instruction in it) {
-                add(instruction)
+                addChild(instruction)
             }
             return@function
         }
@@ -109,7 +109,7 @@ fun Block.push(n: Long): SimpleFunction {
 fun Block.pushOn(stackTop: Long, n: Long): SimpleFunction = function("pushOn($stackTop, $n)") {
     ShortPushes.pushOnSequencesByNumbers[stackTop to n]?.let {
         for (instruction in it) {
-            add(instruction)
+            addChild(instruction)
         }
         return@function
     }
