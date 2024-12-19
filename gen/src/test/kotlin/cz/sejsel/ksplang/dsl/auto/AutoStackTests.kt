@@ -29,6 +29,23 @@ class AutoStackTests : FunSpec({
         runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 50)
     }
 
+    test("add constant") {
+        val f = buildComplexFunction {
+            push(4)
+            push(8)
+            push(16)
+            auto("first", "second") { first, second ->
+                var third = variable("third", 42)
+                add(const(32), third) { setTo(second) }
+
+                keepOnly(second)
+            }
+        }
+
+        var program = builder.build(f)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 32 + 42)
+    }
+
     test("do while loop") {
         val f = buildComplexFunction {
             push(4)

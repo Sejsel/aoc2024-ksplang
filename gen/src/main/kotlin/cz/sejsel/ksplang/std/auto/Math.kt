@@ -1,6 +1,7 @@
 package cz.sejsel.ksplang.std.auto
 
 import cz.sejsel.ksplang.dsl.auto.CallResult1
+import cz.sejsel.ksplang.dsl.auto.Parameter
 import cz.sejsel.ksplang.dsl.auto.RestrictedAutoBlock
 import cz.sejsel.ksplang.dsl.auto.Variable
 import cz.sejsel.ksplang.dsl.auto.runFun
@@ -9,7 +10,7 @@ import cz.sejsel.ksplang.std.*
 /**
  * Adds two values (a + b). Crashes in case of overflow.
  */
-fun RestrictedAutoBlock.add(a: Variable, b: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.add(a: Parameter, b: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(a, b, useResult) {
         add()
     }
@@ -17,7 +18,7 @@ fun RestrictedAutoBlock.add(a: Variable, b: Variable, useResult: CallResult1.() 
 /**
  * Subtracts two values and returns the absolute value of the differencee: |a-b|.
  */
-fun RestrictedAutoBlock.subabs(a: Variable, b: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.subabs(a: Parameter, b: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(a, b, useResult) {
         subabs()
     }
@@ -25,7 +26,7 @@ fun RestrictedAutoBlock.subabs(a: Variable, b: Variable, useResult: CallResult1.
 /**
  * Multiplies the two values (a * b). Crashes in case of overflow.
  */
-fun RestrictedAutoBlock.mul(a: Variable, b: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.mul(a: Parameter, b: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(a, b, useResult) {
         mul()
     }
@@ -35,7 +36,7 @@ fun RestrictedAutoBlock.mul(a: Variable, b: Variable, useResult: CallResult1.() 
  *
  * `a % b == 0 ? a // b : a % b`
  */
-fun RestrictedAutoBlock.cursedDiv(a: Variable, b: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.cursedDiv(a: Parameter, b: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(b, a, useResult) { // note the a, b swap
         cursedDiv()
     }
@@ -43,7 +44,7 @@ fun RestrictedAutoBlock.cursedDiv(a: Variable, b: Variable, useResult: CallResul
 /**
  * Divides the values (a // b). Crashes with division by zero.
  */
-fun RestrictedAutoBlock.div(a: Variable, b: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.div(a: Parameter, b: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(b, a, useResult) { // note the a, b swap
         div()
     }
@@ -52,7 +53,7 @@ fun RestrictedAutoBlock.div(a: Variable, b: Variable, useResult: CallResult1.() 
 /**
  * Returns the minimum of the two values.
  */
-fun RestrictedAutoBlock.min2(a: Variable, b: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.min2(a: Parameter, b: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(a, b, useResult) {
         min2()
     }
@@ -60,7 +61,7 @@ fun RestrictedAutoBlock.min2(a: Variable, b: Variable, useResult: CallResult1.()
 /**
  * Returns the maximum of the two values.
  */
-fun RestrictedAutoBlock.max2(a: Variable, b: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.max2(a: Parameter, b: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(a, b, useResult) {
         max2()
     }
@@ -68,7 +69,7 @@ fun RestrictedAutoBlock.max2(a: Variable, b: Variable, useResult: CallResult1.()
 /**
  * Returns the negation of the value.
  */
-fun RestrictedAutoBlock.negate(a: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.negate(a: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(a, useResult) {
         negate()
     }
@@ -85,7 +86,7 @@ fun Variable.negate() {
 /**
  * Adds a constant to the value.
  */
-fun RestrictedAutoBlock.add(a: Variable, const: Long, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.add(a: Parameter, const: Long, useResult: CallResult1.() -> Unit) =
     runFun(a, useResult) {
         add(const)
     }
@@ -102,7 +103,7 @@ fun Variable.add(const: Long) {
 /**
  * Multiplies the value by a constant.
  */
-fun RestrictedAutoBlock.mul(a: Variable, const: Long, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.mul(a: Parameter, const: Long, useResult: CallResult1.() -> Unit) =
     runFun(a, useResult) {
         mul(const)
     }
@@ -119,7 +120,7 @@ fun Variable.mul(const: Long) {
 /**
  * Divides the value by a constant.
  */
-fun RestrictedAutoBlock.div(a: Variable, const: Long, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.div(a: Parameter, const: Long, useResult: CallResult1.() -> Unit) =
     runFun(a, useResult) {
         div(const)
     }
@@ -137,7 +138,7 @@ fun Variable.div(const: Long) {
 /**
  * Returns the sign of the value.
  */
-fun RestrictedAutoBlock.sgn(a: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.sgn(a: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(a, useResult) {
         sgn()
     }
@@ -154,7 +155,7 @@ fun Variable.sgn() {
 /**
  * Returns the absolute value of the value.
  */
-fun RestrictedAutoBlock.abs(a: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.abs(a: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(a, useResult) {
         abs()
     }
@@ -171,7 +172,7 @@ fun Variable.abs() {
 /**
  * Returns 1 if the value is zero, 0 otherwise. A negation of "zeroity".
  */
-fun RestrictedAutoBlock.zeroNot(a: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.zeroNot(a: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(a, useResult) {
         zeroNot()
     }
@@ -188,7 +189,7 @@ fun Variable.zeroNot() {
 /**
  * Increments the value.
  */
-fun RestrictedAutoBlock.inc(a: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.inc(a: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(a, useResult) {
         inc()
     }
@@ -205,7 +206,7 @@ fun Variable.inc() {
 /**
  * Decrements the value.
  */
-fun RestrictedAutoBlock.dec(a: Variable, useResult: CallResult1.() -> Unit) =
+fun RestrictedAutoBlock.dec(a: Parameter, useResult: CallResult1.() -> Unit) =
     runFun(a, useResult) {
         dec()
     }

@@ -1,6 +1,5 @@
 package cz.sejsel.ksplang.dsl.auto
 
-import cz.sejsel.ksplang.dsl.auto.AutoBlock
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.KsplangMarker
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
@@ -10,7 +9,14 @@ import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.setKth
 
 
-data class Variable(val name: String, val parentAutoBlock: AutoBlock)
+sealed interface Parameter
+
+data class Variable(val name: String, val parentAutoBlock: AutoBlock) : Parameter
+data class Constant(val value: Long) : Parameter
+
+fun const(value: Int): Constant = const(value.toLong())
+fun const(value: Long): Constant = Constant(value)
+
 
 class CallResultProcessor(val auto: AutoBlock, val resultCount: Int) {
     fun setTo(v: Variable, resultIndex: Long) {
@@ -32,9 +38,9 @@ class CallResultProcessor(val auto: AutoBlock, val resultCount: Int) {
 }
 
 interface RestrictedAutoBlock {
-    fun call1(var1: Variable, call: ComplexBlock.() -> Unit): CallResult1
-    fun call1(var1: Variable, var2: Variable, call: ComplexBlock.() -> Unit): CallResult1
-    fun call1(var1: Variable, var2: Variable, var3: Variable, call: ComplexBlock.() -> Unit): CallResult1
+    fun call1(var1: Parameter, call: ComplexBlock.() -> Unit): CallResult1
+    fun call1(var1: Parameter, var2: Parameter, call: ComplexBlock.() -> Unit): CallResult1
+    fun call1(var1: Parameter, var2: Parameter, var3: Parameter, call: ComplexBlock.() -> Unit): CallResult1
 
     fun doWhileNonZero(checkedVariable: Variable, inner: RestrictedAutoBlock.() -> Unit)
 }
@@ -59,15 +65,24 @@ class AutoBlock(initVariableNames: List<String>, internal var block: ComplexBloc
         return variable
     }
 
-    private fun dupVars(vars: List<Variable>) {
+    private fun prepareParams(vars: List<Parameter>) {
         // [stack]
-        vars.forEachIndexed { i, variable ->
-            val index = variables.indexOf(variable)
-            if (index == -1) {
-                throw IllegalArgumentException("Variable $variable not found")
+        vars.forEachIndexed { i, parameter ->
+            when (parameter) {
+                is Constant -> {
+                    block.push(parameter.value)
+                    // [stack] ... constant
+                }
+
+                is Variable -> {
+                    val index = variables.indexOf(parameter)
+                    if (index == -1) {
+                        throw IllegalArgumentException("Variable $parameter not found")
+                    }
+                    block.dupKthZeroIndexed(variables.size - index - 1 + i)
+                    // [stack] ... variable
+                }
             }
-            block.dupKthZeroIndexed(variables.size - index - 1 + i)
-            // [stack] ... variable
         }
         // [stack] [vars]
     }
@@ -86,29 +101,20 @@ class AutoBlock(initVariableNames: List<String>, internal var block: ComplexBloc
         }
     }
 
-    override fun call1(var1: Variable, call: ComplexBlock.() -> Unit): CallResult1 {
-        require(var1 in variables) { "Variable $var1 not found" }
-
-        dupVars(listOf(var1))
+    override fun call1(param1: Parameter, call: ComplexBlock.() -> Unit): CallResult1 {
+        prepareParams(listOf(param1))
         call(block)
         return CallResult1(CallResultProcessor(this, 1))
     }
 
-    override fun call1(var1: Variable, var2: Variable, call: ComplexBlock.() -> Unit): CallResult1 {
-        require(var1 in variables) { "Variable $var1 not found" }
-        require(var2 in variables) { "Variable $var2 not found" }
-
-        dupVars(listOf(var1, var2))
+    override fun call1(param1: Parameter, param2: Parameter, call: ComplexBlock.() -> Unit): CallResult1 {
+        prepareParams(listOf(param1, param2))
         call(block)
         return CallResult1(CallResultProcessor(this, 1))
     }
 
-    override fun call1(var1: Variable, var2: Variable, var3: Variable, call: ComplexBlock.() -> Unit): CallResult1 {
-        require(var1 in variables) { "Variable $var1 not found" }
-        require(var2 in variables) { "Variable $var2 not found" }
-        require(var3 in variables) { "Variable $var3 not found" }
-
-        dupVars(listOf(var1, var2, var3))
+    override fun call1(param1: Parameter, param2: Parameter, var3: Parameter, call: ComplexBlock.() -> Unit): CallResult1 {
+        prepareParams(listOf(param1, param2, var3))
         call(block)
         return CallResult1(CallResultProcessor(this, 1))
     }
@@ -126,7 +132,7 @@ class AutoBlock(initVariableNames: List<String>, internal var block: ComplexBloc
         block.doWhileNonZero {
             this@AutoBlock.withBlock(this) {
                 inner()
-                dupVars(listOf(checkedVariable))
+                prepareParams(listOf(checkedVariable))
             }
         }
     }
@@ -212,19 +218,35 @@ fun ComplexBlock.auto(
         autoBlock.variables[4],
     )
 }
-fun RestrictedAutoBlock.runFun(num1: Variable, num2: Variable, num3: Variable, useResult: CallResult1.() -> Unit, functionCode: ComplexBlock.() -> Unit) {
+
+fun RestrictedAutoBlock.runFun(
+    num1: Parameter,
+    num2: Parameter,
+    num3: Parameter,
+    useResult: CallResult1.() -> Unit,
+    functionCode: ComplexBlock.() -> Unit
+) {
     val result = call1(num1, num2, num3, functionCode)
     useResult(result)
     result.clear()
 }
 
-fun RestrictedAutoBlock.runFun(num1: Variable, num2: Variable, useResult: CallResult1.() -> Unit, functionCode: ComplexBlock.() -> Unit) {
+fun RestrictedAutoBlock.runFun(
+    num1: Parameter,
+    num2: Parameter,
+    useResult: CallResult1.() -> Unit,
+    functionCode: ComplexBlock.() -> Unit
+) {
     val result = call1(num1, num2, functionCode)
     useResult(result)
     result.clear()
 }
 
-fun RestrictedAutoBlock.runFun(num1: Variable, useResult: CallResult1.() -> Unit, functionCode: ComplexBlock.() -> Unit) {
+fun RestrictedAutoBlock.runFun(
+    num1: Parameter,
+    useResult: CallResult1.() -> Unit,
+    functionCode: ComplexBlock.() -> Unit
+) {
     val result = call1(num1, functionCode)
     useResult(result)
     result.clear()
