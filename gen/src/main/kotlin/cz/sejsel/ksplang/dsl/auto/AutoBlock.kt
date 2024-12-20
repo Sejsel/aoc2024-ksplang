@@ -38,6 +38,10 @@ class CallResultProcessor(val auto: AutoBlock, val resultCount: Int) {
 }
 
 interface RestrictedAutoBlock {
+    fun call0(call: ComplexBlock.() -> Unit)
+    fun call0(var1: Parameter, call: ComplexBlock.() -> Unit)
+    fun call0(var1: Parameter, var2: Parameter, call: ComplexBlock.() -> Unit)
+    fun call1(call: ComplexBlock.() -> Unit): CallResult1
     fun call1(var1: Parameter, call: ComplexBlock.() -> Unit): CallResult1
     fun call1(var1: Parameter, var2: Parameter, call: ComplexBlock.() -> Unit): CallResult1
     fun call1(var1: Parameter, var2: Parameter, var3: Parameter, call: ComplexBlock.() -> Unit): CallResult1
@@ -76,9 +80,7 @@ class AutoBlock(initVariableNames: List<String>, internal var block: ComplexBloc
 
                 is Variable -> {
                     val index = variables.indexOf(parameter)
-                    if (index == -1) {
-                        throw IllegalArgumentException("Variable $parameter not found")
-                    }
+                    require(index != -1) { "Variable $parameter not found" }
                     block.dupKthZeroIndexed(variables.size - index - 1 + i)
                     // [stack] ... variable
                 }
@@ -99,6 +101,25 @@ class AutoBlock(initVariableNames: List<String>, internal var block: ComplexBloc
                 variables.removeAt(i)
             }
         }
+    }
+
+    override fun call0(call: ComplexBlock.() -> Unit) {
+        call(block)
+    }
+
+    override fun call0(param1: Parameter, call: ComplexBlock.() -> Unit) {
+        prepareParams(listOf(param1))
+        call(block)
+    }
+
+    override fun call0(param1: Parameter, param2: Parameter, call: ComplexBlock.() -> Unit) {
+        prepareParams(listOf(param1, param2))
+        call(block)
+    }
+
+    override fun call1(call: ComplexBlock.() -> Unit): CallResult1 {
+        call(block)
+        return CallResult1(CallResultProcessor(this, 1))
     }
 
     override fun call1(param1: Parameter, call: ComplexBlock.() -> Unit): CallResult1 {
@@ -250,4 +271,34 @@ fun RestrictedAutoBlock.runFun(
     val result = call1(num1, functionCode)
     useResult(result)
     result.clear()
+}
+
+fun RestrictedAutoBlock.runFun(
+    useResult: CallResult1.() -> Unit,
+    functionCode: ComplexBlock.() -> Unit
+) {
+    val result = call1(functionCode)
+    useResult(result)
+    result.clear()
+}
+
+fun RestrictedAutoBlock.runFun(
+    functionCode: ComplexBlock.() -> Unit
+) {
+    call0(functionCode)
+}
+
+fun RestrictedAutoBlock.runFun(
+    num1: Parameter,
+    functionCode: ComplexBlock.() -> Unit
+) {
+    call0(num1, functionCode)
+}
+
+fun RestrictedAutoBlock.runFun(
+    num1: Parameter,
+    num2: Parameter,
+    functionCode: ComplexBlock.() -> Unit
+) {
+    call0(num1, num2, functionCode)
 }
