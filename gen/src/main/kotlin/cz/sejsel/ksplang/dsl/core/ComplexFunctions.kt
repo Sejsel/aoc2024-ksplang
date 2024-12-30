@@ -58,6 +58,7 @@ sealed interface Block {
         addChild(lswap)
     }
 
+    /** a b -> b % a */
     fun modulo() {
         addChild(modulo)
     }

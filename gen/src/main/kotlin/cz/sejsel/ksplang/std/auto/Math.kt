@@ -49,6 +49,14 @@ fun RestrictedAutoBlock.div(a: Parameter, b: Parameter, useResult: CallResult1.(
         div()
     }
 
+/**
+ * Calculates the euclidean modulo of the values (a % b). Crashes with division by zero.
+ */
+fun RestrictedAutoBlock.mod(a: Parameter, b: Parameter, useResult: CallResult1.() -> Unit) =
+    runFun(b, a, useResult) { // note the a, b swap
+        modulo()
+    }
+
 
 /**
  * Returns the minimum of the two values.

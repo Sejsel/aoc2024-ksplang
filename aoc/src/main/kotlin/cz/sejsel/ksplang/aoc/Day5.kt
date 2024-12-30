@@ -9,8 +9,8 @@ import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.std.*
 import java.io.File
 
-// Day 4
-// https://adventofcode.com/2024/day/4
+// Day 5
+// https://adventofcode.com/2024/day/5
 fun main() {
     val builder = KsplangBuilder()
     val program = builder.build(day5Part1())

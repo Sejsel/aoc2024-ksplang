@@ -45,6 +45,12 @@ interface RestrictedAutoBlock {
     fun call1(var1: Parameter, call: ComplexBlock.() -> Unit): CallResult1
     fun call1(var1: Parameter, var2: Parameter, call: ComplexBlock.() -> Unit): CallResult1
     fun call1(var1: Parameter, var2: Parameter, var3: Parameter, call: ComplexBlock.() -> Unit): CallResult1
+    fun call1(var1: Parameter, var2: Parameter, var3: Parameter, var4: Parameter, call: ComplexBlock.() -> Unit): CallResult1
+    fun call2(call: ComplexBlock.() -> Unit): CallResult2
+    fun call2(var1: Parameter, call: ComplexBlock.() -> Unit): CallResult2
+    fun call2(var1: Parameter, var2: Parameter, call: ComplexBlock.() -> Unit): CallResult2
+    fun call2(var1: Parameter, var2: Parameter, var3: Parameter, call: ComplexBlock.() -> Unit): CallResult2
+    fun call2(var1: Parameter, var2: Parameter, var3: Parameter, var4: Parameter, call: ComplexBlock.() -> Unit): CallResult2
 
     fun doWhileNonZero(checkedVariable: Variable, inner: RestrictedAutoBlock.() -> Unit)
 }
@@ -134,10 +140,45 @@ class AutoBlock(initVariableNames: List<String>, internal var block: ComplexBloc
         return CallResult1(CallResultProcessor(this, 1))
     }
 
-    override fun call1(param1: Parameter, param2: Parameter, var3: Parameter, call: ComplexBlock.() -> Unit): CallResult1 {
-        prepareParams(listOf(param1, param2, var3))
+    override fun call1(param1: Parameter, param2: Parameter, param3: Parameter, call: ComplexBlock.() -> Unit): CallResult1 {
+        prepareParams(listOf(param1, param2, param3))
         call(block)
         return CallResult1(CallResultProcessor(this, 1))
+    }
+
+    override fun call1(param1: Parameter, param2: Parameter, param3: Parameter, param4: Parameter, call: ComplexBlock.() -> Unit): CallResult1 {
+        prepareParams(listOf(param1, param2, param3, param4))
+        call(block)
+        return CallResult1(CallResultProcessor(this, 1))
+    }
+
+    override fun call2(call: ComplexBlock.() -> Unit): CallResult2 {
+        call(block)
+        return CallResult2(CallResultProcessor(this, 2))
+    }
+
+    override fun call2(param1: Parameter, call: ComplexBlock.() -> Unit): CallResult2 {
+        prepareParams(listOf(param1))
+        call(block)
+        return CallResult2(CallResultProcessor(this, 2))
+    }
+
+    override fun call2(param1: Parameter, param2: Parameter, call: ComplexBlock.() -> Unit): CallResult2 {
+        prepareParams(listOf(param1, param2))
+        call(block)
+        return CallResult2(CallResultProcessor(this, 2))
+    }
+
+    override fun call2(param1: Parameter, param2: Parameter, param3: Parameter, call: ComplexBlock.() -> Unit): CallResult2 {
+        prepareParams(listOf(param1, param2, param3))
+        call(block)
+        return CallResult2(CallResultProcessor(this, 2))
+    }
+
+    override fun call2(param1: Parameter, param2: Parameter, param3: Parameter, param4: Parameter, call: ComplexBlock.() -> Unit): CallResult2 {
+        prepareParams(listOf(param1, param2, param3, param4))
+        call(block)
+        return CallResult2(CallResultProcessor(this, 2))
     }
 
     private fun withBlock(innerBlock: ComplexBlock, inner: AutoBlock.() -> Unit) {
@@ -240,6 +281,52 @@ fun ComplexBlock.auto(
     )
 }
 
+@JvmName("runFun2")
+fun RestrictedAutoBlock.runFun(
+    num1: Parameter,
+    num2: Parameter,
+    num3: Parameter,
+    useResult: CallResult2.() -> Unit,
+    functionCode: ComplexBlock.() -> Unit
+) {
+    val result = call2(num1, num2, num3, functionCode)
+    useResult(result)
+    result.clear()
+}
+
+@JvmName("runFun2")
+fun RestrictedAutoBlock.runFun(
+    num1: Parameter,
+    num2: Parameter,
+    useResult: CallResult2.() -> Unit,
+    functionCode: ComplexBlock.() -> Unit
+) {
+    val result = call2(num1, num2, functionCode)
+    useResult(result)
+    result.clear()
+}
+
+@JvmName("runFun2")
+fun RestrictedAutoBlock.runFun(
+    num1: Parameter,
+    useResult: CallResult2.() -> Unit,
+    functionCode: ComplexBlock.() -> Unit
+) {
+    val result = call2(num1, functionCode)
+    useResult(result)
+    result.clear()
+}
+
+@JvmName("runFun2")
+fun RestrictedAutoBlock.runFun(
+    useResult: CallResult2.() -> Unit,
+    functionCode: ComplexBlock.() -> Unit
+) {
+    val result = call2(functionCode)
+    useResult(result)
+    result.clear()
+}
+
 fun RestrictedAutoBlock.runFun(
     num1: Parameter,
     num2: Parameter,
@@ -248,6 +335,19 @@ fun RestrictedAutoBlock.runFun(
     functionCode: ComplexBlock.() -> Unit
 ) {
     val result = call1(num1, num2, num3, functionCode)
+    useResult(result)
+    result.clear()
+}
+
+fun RestrictedAutoBlock.runFun(
+    num1: Parameter,
+    num2: Parameter,
+    num3: Parameter,
+    num4: Parameter,
+    useResult: CallResult1.() -> Unit,
+    functionCode: ComplexBlock.() -> Unit
+) {
+    val result = call1(num1, num2, num3, num4, functionCode)
     useResult(result)
     result.clear()
 }

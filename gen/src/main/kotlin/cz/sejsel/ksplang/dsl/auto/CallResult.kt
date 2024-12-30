@@ -31,6 +31,14 @@ class CallResult2(private val callProcessor: CallResultProcessor) : CallResult {
         callProcessor.setTo(var2, 1)
     }
 
+    fun setFirstTo(variable: Variable) {
+        callProcessor.setTo(variable, 0)
+    }
+
+    fun setSecondTo(variable: Variable) {
+        callProcessor.setTo(variable, 1)
+    }
+
     override fun clear() {
         callProcessor.clearResults()
     }
