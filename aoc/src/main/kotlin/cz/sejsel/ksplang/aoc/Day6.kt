@@ -1,14 +1,14 @@
 package cz.sejsel.ksplang.aoc
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
-import cz.sejsel.ksplang.dsl.auto.CallResult1
-import cz.sejsel.ksplang.dsl.auto.CallResult2
+import cz.sejsel.ksplang.dsl.auto.Constant
 import cz.sejsel.ksplang.dsl.auto.Parameter
-import cz.sejsel.ksplang.dsl.auto.RestrictedAutoBlock
+import cz.sejsel.ksplang.dsl.auto.Scope
 import cz.sejsel.ksplang.dsl.auto.auto
 import cz.sejsel.ksplang.dsl.auto.const
-import cz.sejsel.ksplang.dsl.auto.runFun
-import cz.sejsel.ksplang.dsl.core.Block
+import cz.sejsel.ksplang.dsl.auto.runFun1
+import cz.sejsel.ksplang.dsl.auto.runFun2
+import cz.sejsel.ksplang.dsl.auto.set
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.std.auto.*
 import cz.sejsel.ksplang.std.*
@@ -28,10 +28,10 @@ fun main() {
     //println("Generated program for day 6 part 2, $instructionCount2 instructions")
 }
 
-const val UP: Long = 0
-const val RIGHT: Long = 1
-const val DOWN: Long = 2
-const val LEFT: Long = 3
+val UP = const(0)
+val RIGHT = const(1)
+val DOWN = const(2)
+val LEFT = const(3)
 
 
 fun day6Part1() = buildComplexFunction("day6part1") {
@@ -39,60 +39,104 @@ fun day6Part1() = buildComplexFunction("day6part1") {
     stacklen()
     // [input] stacklen
     auto("stacklen") { stacklen ->
-        val width = variable("width")
-        val height = variable("height")
-        findUnsafe(const(0), const('\n'.code)) { setTo(width) }
-        countOccurrences(const('\n'.code), Slice(const(0), stacklen)) { setTo(height) }
+        val newline = const('\n'.code)
+        val input = Slice(const(0), stacklen)
 
-        val initialPos = variable("pos")
-        findUnsafe(const(0), const('^'.code)) { setTo(initialPos) }
+        val width = findUnsafe(const(0), newline)
+        val height = countOccurrences(newline, input)
 
-        val x = variable("x")
-        val y = variable("y")
+        val initialPos = findUnsafe(const(0), const('^'.code))
 
-        toXY(initialPos, width, height) { setTo(x, y) }
+        val (x, y) = toXY(initialPos, width, height)
 
-        val direction = variable("direction", UP)
+        val direction = variable(UP)
 
-        val isDone = variable("isDone", 1)
-        doWhileNonZero(isDone) {
+        doWhileNonZero({ isValid(x, y, width, height) }) {
+            yeet(toPos(x, y, width), const('X'.code))
+
+            val oldX = copy(x)
+            val oldY = copy(y)
+
+            ifBool({ eq(direction, UP) }) {
+                set(y) to add(y, -1)
+            }
+            ifBool({ eq(direction, RIGHT) }) {
+                set(x) to add(x, 1)
+            }
+            ifBool({ eq(direction, DOWN) }) {
+                set(y) to add(y, 1)
+            }
+            ifBool({ eq(direction, LEFT) }) {
+                set(x) to add(x, -1)
+            }
+
+            val blockAhead = variable(0)
+            ifBool({ isValid(x, y, width, height) }) {
+                val nextPos = toPos(x, y, width)
+                ifBool({ eq(yoink(nextPos), '#'.code) }) {
+                    set(blockAhead) to 1
+                }
+            }
+
+            ifBool({ blockAhead }) {
+                set(direction) to turnRight(direction)
+                set(x) to oldX
+                set(y) to oldY
+            }
         }
+
+        val visited = countOccurrences(const('X'.code), input)
+        keepOnly(visited)
+    }
+    // At this point, you can look at the text output and see the painted path
+    leaveTop()
+}
+
+fun Scope.turnRight(direction: Parameter) = runFun1(direction) {
+    // pos
+    inc()
+    push(4)
+    swap2()
+    // 4 pos+1
+    modulo()
+    // (pos+1)%4
+}
+
+fun Scope.toPos(x: Parameter, y: Parameter, width: Parameter) = runFun1(x, y, width) {
+    auto("x", "y", "width") { x, y, width ->
+        // There is a newline at the end of each line
+        set(width) to add(width, 1)
+
+        // pos = y * width + x
+        val pos = add(mul(y, width), x)
+
+        keepOnly(pos)
     }
 }
 
-fun RestrictedAutoBlock.turnRight(direction: Parameter, useResult: CallResult1.() -> Unit) =
-    runFun(direction, useResult) {
-        // pos
-        inc()
-        push(4)
-        swap2()
-        // 4 pos+1
-        modulo()
-        // (pos+1)%4
+fun Scope.toXY(pos: Parameter, width: Parameter, height: Parameter) = runFun2(width, height, pos) {
+    // width height pos
+    auto("width", "height", "pos") { width, height, pos ->
+        // There is a newline at the end of each line
+        set(width) to add(width, 1)
+
+        // x = pos % width
+        val x = mod(pos, width)
+        // y = pos / width
+        val y = div(pos, width)
+
+        keepOnly(x, y)
     }
+}
 
-fun RestrictedAutoBlock.toXY(pos: Parameter, width: Parameter, height: Parameter, useResult: CallResult2.() -> Unit) =
-    runFun(width, height, pos, useResult) {
-        // width height pos
-        auto("width", "height", "pos") { width, height, pos ->
-            // There is a newline at the end of each line
-            width.inc()
+fun Scope.isValid(x: Parameter, y: Parameter, width: Parameter, height: Parameter) = runFun1(width, height, x, y) {
+    // width height pos
+    auto("width", "height", "x", "y") { width, height, x, y ->
+        // x >= 0 && x < width && y >= 0 && y < height
+        val xValid = isInRange(x, const(0), add(width, -1))
+        val yValid = isInRange(y, const(0), add(height, -1))
+        val valid = and(xValid, yValid)
 
-            // x = pos % width
-            var x = variable("x")
-            mod(pos, width) { setTo(x) }
-            // y = pos / width
-            var y = variable("y")
-            div(pos, width) { setTo(y) }
-
-            keepOnly(x, y)
-        }
+        keepOnly(valid)
     }
-
-fun RestrictedAutoBlock.isValid(x: Parameter, y: Parameter, width: Parameter, height: Parameter, useResult: CallResult1.() -> Unit) =
-    runFun(width, height, x, y, useResult) {
-        // width height pos
-        auto("width", "height", "x", "y") { width, height, x, y ->
-            // There is a newline at the end of each line
-        }
-    }
+}

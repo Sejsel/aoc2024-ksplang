@@ -19,14 +19,49 @@ class AutoStackTests : FunSpec({
             push(16)
             auto("first", "second") { first, second ->
                 var third = variable("third", 42)
-                add(first, third) { setTo(second) }
+                val result = add(first, third)
 
-                keepOnly(second)
+                keepOnly(result)
             }
         }
 
         var program = builder.build(f)
         runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 50)
+    }
+
+    test("set var to const") {
+        val f = buildComplexFunction {
+            push(4)
+            push(8)
+            push(16)
+            auto("first", "second") { first, second ->
+                var third = variable("third", 42)
+                set(third) to const(50)
+
+                keepOnly(third)
+            }
+        }
+
+        var program = builder.build(f)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 50)
+    }
+
+    test("set var to var") {
+        val f = buildComplexFunction {
+            push(4)
+            push(8)
+            push(16)
+            auto("first", "second") { first, second ->
+                var third = variable("third", 42)
+                var fourth = variable("fourth", 14)
+                set(third) to fourth
+
+                keepOnly(third)
+            }
+        }
+
+        var program = builder.build(f)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 14)
     }
 
     test("add constant") {
@@ -36,7 +71,7 @@ class AutoStackTests : FunSpec({
             push(16)
             auto("first", "second") { first, second ->
                 var third = variable("third", 42)
-                add(const(32), third) { setTo(second) }
+                set(second) to add(const(32), third)
 
                 keepOnly(second)
             }
@@ -55,9 +90,9 @@ class AutoStackTests : FunSpec({
                 var third = variable("third", 42)
                 var minusOne = variable("minusOne", -1)
 
-                doWhileNonZero(third) {
-                    add(third, minusOne) { setTo(third) }
-                    add(first, second) { setTo(first) }
+                doWhileNonZero({ third }) {
+                    set(third) to add(third, minusOne)
+                    set(first) to add(first, second)
                 }
 
                 keepOnly(first)
@@ -69,5 +104,109 @@ class AutoStackTests : FunSpec({
         var program = builder.build(f)
         println(program)
         runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 8 + 5*42)
+    }
+
+    test("ifBool otherwise true") {
+        val f = buildComplexFunction {
+            push(4)
+            push(8)
+            push(5)
+            auto("first", "second") { first, second ->
+                var one = variable(1)
+
+                val result = variable()
+
+                ifBool({ one }) {
+                    set(result) to const(42)
+                } otherwise {
+                    set(result) to const(43)
+                }
+
+                keepOnly(result)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 42)
+    }
+
+    test("ifBool otherwise false") {
+        val f = buildComplexFunction {
+            push(4)
+            push(8)
+            push(5)
+            auto("first", "second") { first, second ->
+                var zero = variable(0)
+
+                val result = variable()
+
+                ifBool({ zero }) {
+                    set(result) to const(42)
+                } otherwise {
+                    set(result) to const(43)
+                }
+
+                keepOnly(result)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 43)
+    }
+
+    test("ifBool true") {
+        val f = buildComplexFunction {
+            push(4)
+            push(8)
+            push(5)
+            auto("first", "second") { first, second ->
+                var one = variable(1)
+
+                val result = variable(43)
+
+                ifBool({ one }) {
+                    set(result) to const(42)
+                }
+
+                keepOnly(result)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 42)
+    }
+
+    test("ifBool false") {
+        val f = buildComplexFunction {
+            push(4)
+            push(8)
+            push(5)
+            auto("first", "second") { first, second ->
+                var zero = variable(0)
+
+                val result = variable(43)
+
+                ifBool({ zero }) {
+                    set(result) to const(42)
+                }
+
+                keepOnly(result)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 43)
     }
 })

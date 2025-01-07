@@ -1,10 +1,9 @@
 package cz.sejsel.ksplang.std.auto
 
-import cz.sejsel.ksplang.dsl.auto.CallResult1
 import cz.sejsel.ksplang.dsl.auto.Constant
 import cz.sejsel.ksplang.dsl.auto.Parameter
-import cz.sejsel.ksplang.dsl.auto.RestrictedAutoBlock
-import cz.sejsel.ksplang.dsl.auto.runFun
+import cz.sejsel.ksplang.dsl.auto.Scope
+import cz.sejsel.ksplang.dsl.auto.runFun2
 import cz.sejsel.ksplang.std.*
 
 /**
@@ -13,8 +12,10 @@ import cz.sejsel.ksplang.std.*
  * For example parseNegativeNum(' '.code) will parse a number that is followed by a space.
  *
  * Signature: i -> number index_of_terminator
+ *
+ * Value 1: number
+ * Value 2: index_of_terminator
  */
-fun RestrictedAutoBlock.parseNonNegativeNum(indexFrom: Parameter, terminator: Constant, useResult: CallResult1.() -> Unit) =
-    runFun(indexFrom, useResult) {
-        parseNonNegativeNum(terminator.value, base = 10)
-    }
+fun Scope.parseNonNegativeNum(indexFrom: Parameter, terminator: Constant, base: Int = 10) = runFun2(indexFrom) {
+    parseNonNegativeNum(terminator.value, base = 10)
+}

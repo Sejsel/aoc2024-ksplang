@@ -1,9 +1,8 @@
 package cz.sejsel.ksplang.std.auto
 
-import cz.sejsel.ksplang.dsl.auto.CallResult1
 import cz.sejsel.ksplang.dsl.auto.Parameter
-import cz.sejsel.ksplang.dsl.auto.RestrictedAutoBlock
-import cz.sejsel.ksplang.dsl.auto.runFun
+import cz.sejsel.ksplang.dsl.auto.Scope
+import cz.sejsel.ksplang.dsl.auto.runFun1
 import cz.sejsel.ksplang.std.countOccurrences
 
 data class Slice(
@@ -14,7 +13,6 @@ data class Slice(
 /**
  * Given a slice, count the number of occurrences of a number.
  */
-fun RestrictedAutoBlock.countOccurrences(value: Parameter, slice: Slice, useResult: CallResult1.() -> Unit) =
-    runFun(value, slice.from, slice.len, useResult) {
-        countOccurrences()
-    }
+fun Scope.countOccurrences(value: Parameter, slice: Slice) = runFun1(value, slice.from, slice.len) {
+    countOccurrences()
+}

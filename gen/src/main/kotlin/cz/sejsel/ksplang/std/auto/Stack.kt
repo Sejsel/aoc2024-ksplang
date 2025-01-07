@@ -1,30 +1,27 @@
 package cz.sejsel.ksplang.std.auto
 
-import cz.sejsel.ksplang.dsl.auto.CallResult1
 import cz.sejsel.ksplang.dsl.auto.Parameter
-import cz.sejsel.ksplang.dsl.auto.RestrictedAutoBlock
-import cz.sejsel.ksplang.dsl.auto.runFun
+import cz.sejsel.ksplang.dsl.auto.Scope
+import cz.sejsel.ksplang.dsl.auto.runFun0
+import cz.sejsel.ksplang.dsl.auto.runFun1
 import cz.sejsel.ksplang.std.*
 
 /**
- * Sorts k values on the bottom of the stack.
- *
- * Uses a state-of-the-art sorting algorithm ICan'tBelieveItCanSort, for further reference see paper: https://arxiv.org/abs/2110.01111
+ * Counts how many values are on the stack.
+ * Works with any int64 values on the stack.
  */
-fun RestrictedAutoBlock.stacklen(useResult: CallResult1.() -> Unit) =
-    runFun(useResult) {
-        stacklen()
-    }
+fun Scope.stacklen() = runFun1 {
+    stacklen()
+}
 
 /**
  * Yoinks a value from the specified index in the stack (inverse of [yeet]). Does not destroy the value.
  *
  * Fairly expensive, if the value can be destroyed, use [yoinkDestructive] instead
  */
-fun RestrictedAutoBlock.yoink(index: Parameter, useResult: CallResult1.() -> Unit) =
-    runFun(index, useResult) {
-        yoink()
-    }
+fun Scope.yoink(index: Parameter) = runFun1(index) {
+    yoink()
+}
 
 /**
  * Yoinks a value from the specified index in the stack (inverse of [yeet]). Destroys the value
@@ -33,26 +30,23 @@ fun RestrictedAutoBlock.yoink(index: Parameter, useResult: CallResult1.() -> Uni
  * Cheaper than [yoink] if the value can be destroyed.
  *
  */
-fun RestrictedAutoBlock.yoinkDestructive(index: Parameter, useResult: CallResult1.() -> Unit) =
-    runFun(index, useResult) {
-        yoinkDestructive()
-    }
+fun Scope.yoinkDestructive(index: Parameter) = runFun1(index) {
+    yoinkDestructive()
+}
 
 /**
- * Yeets a value from to a specific index of the stack (inverse of [yoink]).
+ * Yeets a value to a specific index of the stack (inverse of [yoink]).
  */
-fun RestrictedAutoBlock.yeet(index: Parameter, value: Parameter) =
-    runFun(value, index) {
-        yeet()
-    }
+fun Scope.yeet(index: Parameter, value: Parameter) = runFun0(value, index) {
+    yeet()
+}
 
 /**
- * Finds the first instance of a value from a given index (inclusive).
+ * Finds the first instance of a value from a given index (inclusive) and returns the index.
  * If the [value] does not exist, this will behave unpredictably (crash or wrong results).
  * If [indexFrom] is outside of the stack, this will crash.
  */
-fun RestrictedAutoBlock.findUnsafe(indexFrom: Parameter, value: Parameter, useResult: CallResult1.() -> Unit) =
-    runFun(indexFrom, value, useResult) {
-        findUnsafe()
-    }
+fun Scope.findUnsafe(indexFrom: Parameter, value: Parameter) = runFun1(indexFrom, value) {
+    findUnsafe()
+}
 

@@ -16,18 +16,19 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 
 ## Progress
 
-| Day | Instructions                                                                                     | Input mode | Runtime  | Executed instructions |
-|-----|--------------------------------------------------------------------------------------------------|------------|----------|-----------------------|
-| 1-1 | [6554](/ksplang/1-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))   | numeric    | 21.388s  | 1533825452            |
-| 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))   | numeric    | 15.973s  | 1176145375            |
-| 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt))  | text       | 1.702s   | 144668637             |
-| 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt))  | text       | 521.645s | 47360521764           |
-| 3-1 | [64550](/ksplang/3-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt))  | text       | 0.773s   | 71764648              |
-| 3-2 | [82426](/ksplang/3-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt))  | text       | 1.239s   | 119309701             |
-| 4-1 | [46162](/ksplang/4-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt))  | text       | 3.345s   | 290696045             |
-| 4-2 | [28003](/ksplang/4-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt))  | text       | 2.24s    | 176488689             |
-| 5-1 | [20021](/ksplang/5-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt))  | text       | 1.856s   | 132478368             |
-| 5-2 | [25165](/ksplang/5-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt))  | text       | 2.393s   | 172774543             |
+| Day | Instructions                                                                                    | Input mode | Runtime  | Executed instructions |
+|-----|-------------------------------------------------------------------------------------------------|------------|----------|-----------------------|
+| 1-1 | [6554](/ksplang/1-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 21.388s  | 1533825452            |
+| 1-2 | [4490](/ksplang/1-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day1.kt))  | numeric    | 15.973s  | 1176145375            |
+| 2-1 | [14909](/ksplang/2-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 1.702s   | 144668637             |
+| 2-2 | [20918](/ksplang/2-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day2.kt)) | text       | 521.645s | 47360521764           |
+| 3-1 | [64550](/ksplang/3-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 0.773s   | 71764648              |
+| 3-2 | [82426](/ksplang/3-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day3.kt)) | text       | 1.239s   | 119309701             |
+| 4-1 | [46162](/ksplang/4-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt)) | text       | 3.345s   | 290696045             |
+| 4-2 | [28003](/ksplang/4-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day4.kt)) | text       | 2.24s    | 176488689             |
+| 5-1 | [20021](/ksplang/5-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt)) | text       | 1.856s   | 132478368             |
+| 5-2 | [25165](/ksplang/5-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt)) | text       | 2.393s   | 172774543             |
+| 6-1 | [35216](/ksplang/6-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt)) | text       | 2.145s   | 192576888             |
 
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
@@ -101,3 +102,32 @@ Stay tuned. I will definitely find time to implement it soon.
 
 Also, this task was quite a pain due to an ugly off-by-one error in loop bounds. Maybe it is time to build some other
 loop than a "do while".
+
+### [Day 6](https://adventofcode.com/2024/day/6) (2025-01-07)
+
+So, after seeing that AoC tasks are indeed solvable in ksplang, I had an idea on how to make it easier to solve
+the remaining tasks. It took me a while to find the energy to implement it (hello, 2025!), but it has made it
+significantly easier to write more complex programs.
+
+The idea was simple: it would be fairly easy to keep track of the top of the stack automatically. I could
+call them *variables* (what a wild concept!) and call functions with these variables, which could create new variables.
+This *auto* stack tracking is the basis of the *auto* ksplang DSL.
+
+Using the lovely Kotlin DSLs, we even get scopes almost for free. We just need to search in parent scopes to find
+variables in there and calculate the correct distance of the variable from the stack top.
+
+I ended up implementing the easiest approach, which is to instantly generate all code. The upside is that it is
+easy to reason about and implement. The downside is that all intermediate variables live until the end of the scope,
+as there is no way to know when is the last time a variable is used. In the future, I could save all of the function calls,
+automatically track the lifetime of a variable and when it is used for the last time, move it to the top to be consumed
+instead of duplicating it. That would make all generated programs quite a bit faster.
+
+This *auto* approach is not a full reimplementation, it is just a layer on top of the current DSL.
+This means that we can both temporarily opt-in to this auto stack tracking and temporarily opt-out
+(as long as we don't break the stack layout, for example by forgetting an extra variable on top of the stack).
+It's just an extra tool in the arsenal, albeit a powerful one.
+
+You can see what this looks like on the ([Day 6](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt)) task solution.
+There are a few lambdas in places you might not expect (conditions) and we need to avoid Kotlin keywords, but overall
+it works quite well. It has definitely saved a lot of time on implementing the task. And since this is still all build
+on top of a Kotlin DSL, there is no need to parse this, it's all just function calls.

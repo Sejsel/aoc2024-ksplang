@@ -20,6 +20,9 @@ fun ComplexBlock.parseNonNegativeNum(terminator: Int, base: Int = 10) = parseNon
  * Signature: i -> number index_of_terminator
  */
 fun ComplexBlock.parseNonNegativeNum(terminator: Long, base: Int = 10) = complexFunction("parseNum($terminator, $base)") {
+    require(base >= 2)
+    require(base <= 10) { "Base must be at most 10 because only 0-9 are consecutive in ASCII" }
+
     // start
     dup()
     // start start

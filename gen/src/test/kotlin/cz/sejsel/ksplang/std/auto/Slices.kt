@@ -4,6 +4,7 @@ import cz.sejsel.ksplang.KsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.auto.auto
 import cz.sejsel.ksplang.dsl.auto.const
+import cz.sejsel.ksplang.dsl.auto.set
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
@@ -21,7 +22,7 @@ class SliceTests : FunSpec({
                 val from = variable("from", 3)
                 val slice = Slice(from, const(6))
 
-                countOccurrences(const(4), slice) { setTo(from) }
+                set(from) to countOccurrences(const(4), slice)
 
                 keepOnly(from)
             }
