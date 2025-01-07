@@ -110,13 +110,13 @@ the remaining tasks. It took me a while to find the energy to implement it (hell
 significantly easier to write more complex programs.
 
 The idea was simple: it would be fairly easy to keep track of the top of the stack automatically. I could
-call them *variables* (what a wild concept!) and call functions with these variables, which could create new variables.
-This *auto* stack tracking is the basis of the *auto* ksplang DSL.
+call values on top of the stack *variables* and call functions with these variables, which could create new variables
+(what a wild concept!). This *auto* stack tracking is the basis of the *auto* ksplang DSL.
 
 Using the lovely Kotlin DSLs, we even get scopes almost for free. We just need to search in parent scopes to find
 variables in there and calculate the correct distance of the variable from the stack top.
 
-I ended up implementing the easiest approach, which is to instantly generate all code. The upside is that it is
+For now, I ended up implementing the easiest approach, which is to instantly generate all code. The upside is that it is
 easy to reason about and implement. The downside is that all intermediate variables live until the end of the scope,
 as there is no way to know when is the last time a variable is used. In the future, I could save all of the function calls,
 automatically track the lifetime of a variable and when it is used for the last time, move it to the top to be consumed
@@ -127,7 +127,18 @@ This means that we can both temporarily opt-in to this auto stack tracking and t
 (as long as we don't break the stack layout, for example by forgetting an extra variable on top of the stack).
 It's just an extra tool in the arsenal, albeit a powerful one.
 
-You can see what this looks like on the ([Day 6](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt)) task solution.
+You can see what this looks like on the [Day 6](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt) task solution.
 There are a few lambdas in places you might not expect (conditions) and we need to avoid Kotlin keywords, but overall
 it works quite well. It has definitely saved a lot of time on implementing the task. And since this is still all build
 on top of a Kotlin DSL, there is no need to parse this, it's all just function calls.
+
+There are a few footguns here that need to be kept in mind. We cannot override the assignment operator, so instead of
+writing `val x = variable(5); x = 20`, we need to use something like `set(x) to 20`. Additionally, when we are calling
+functions on Variables, we do not have a reference to the current scope which further reduces the API options. Unfortunately,
+that means we cannot override operators or use custom infix operators. So we couldn't do `x assignTo 20` (not that I
+would like that name). Now, tracking the current scope may be somehow possible, but I am pretty sure it would cause
+some issues in the future, there is fairly heavy use of lambdas and potential laziness we may want to exploit in the future.
+Anyway, as long as `val` is used with variables, all will be fine. Oh, and for the love of god, do not assign the result
+of `set(x)` (a `VarSetter` that exposes the `to` infix function) to a variable and attempt to use it later, in a different scope.
+
+Might be time to add some custom lints, using something like [detekt](https://detekt.dev).
