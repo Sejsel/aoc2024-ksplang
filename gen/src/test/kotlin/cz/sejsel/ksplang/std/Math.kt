@@ -232,3 +232,33 @@ class DecTests : FunSpec({
         }
     }
 })
+
+class Bitor32Tests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    val program = builder.build(buildFunction { bitor32() })
+    println(program)
+
+    test("bitor32 all combinations") {
+        runner.run(program, listOf(0b1100, 0b1010)) shouldContainExactly listOf(0b1110)
+    }
+    test("bitor32 removes extra bits") {
+        runner.run(program, listOf(0xFF_FF_FF_FF, 0x7F_FF_FF_FF_FF_FF_FF_FF)) shouldContainExactly listOf(0xFF_FF_FF_FF)
+    }
+})
+
+class Bitnot32Tests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    val program = builder.build(buildFunction { bitnot32() })
+
+    test("bitnot32 - basic") {
+        runner.run(program, listOf(0b1010)) shouldContainExactly listOf(0b11111111_11111111_11111111_11110101)
+    }
+    test("bitnot32 removes extra bits") {
+        runner.run(program, listOf(0x7F_FF_FF_FF_FF_FF_FF_FF)) shouldContainExactly listOf(0)
+        runner.run(program, listOf(0xFF_FF_FF_FF)) shouldContainExactly listOf(0)
+    }
+})

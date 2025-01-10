@@ -14,3 +14,20 @@ import cz.sejsel.ksplang.dsl.core.bitand
 fun Scope.and(a: Parameter, b: Parameter) = runFun1(a, b) {
     and()
 }
+
+/** Logical OR on two "boolean" values. Handles any values, unlike [bitand].
+ *
+ * Booleans: 0 is false, anything else is true.
+ * */
+fun Scope.or(a: Parameter, b: Parameter) = runFun1(a, b) {
+    or()
+}
+
+/**
+ * Logical NOT on a "boolean" value.
+ *
+ * Booleans: 0 is false, anything else is true.
+ */
+fun Scope.not(a: Parameter) = runFun1(a) {
+    not()
+}

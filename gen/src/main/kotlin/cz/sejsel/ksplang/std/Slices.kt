@@ -100,6 +100,54 @@ fun ComplexBlock.yoinkSlice() = complexFunction("yoinkSlice") {
 }
 
 /**
+ * Copy from a slice to another slice (of the same len).
+ * Goes from left to right (lowest index to higher index), which is relevant when the slices overlap.
+ *
+ * Signature: `fromIndex toIndex len ->`
+ */
+fun ComplexBlock.copySlice() = complexFunction("copySlice") {
+    // from to len
+    ifZero {
+        // from to len
+    } otherwise {
+        // from to len
+        swap2()
+        dec()
+        swap2()
+        // from to-1 len
+        permute("from to len", "to len from")
+        // to-1 len from
+        dec()
+        // to-1 len from-1
+        permute("to len from", "from to len")
+        // from-1 to-1 len
+        doWhileNonZero {
+            // from to i+1
+            dec()
+            // from to i
+            permute("from to i", "i from to")
+            inc()
+            // i from to+1
+            swap2()
+            inc()
+            // i to+1 from+1
+            dup()
+            yoink()
+            // i to+1 from+1 s[from+1]
+            dupThird()
+            // i to+1 from+1 s[from+1] to+1
+            yeet()
+            // i to+1 from+1
+            permute("i to from", "from to i")
+            CS()
+            // from to i i
+        }
+        // from to 0
+    }
+    pop(); pop(); pop()
+}
+
+/**
  * Yoinks a slice nondestructively, skipping one element.
  * That is, performs a copy of a slice onto the top of the stack, except for the *gap*-th element (from the bottom).
  * The length is kept at the top (otherwise this would be unusable in most cases).

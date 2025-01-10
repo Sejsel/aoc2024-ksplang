@@ -74,6 +74,9 @@ class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, p
 
     /** Create a new stack variable */
     fun variable(defaultValue: Constant) = variable(null, defaultValue.value)
+
+    /** Create a new stack variable. False is 0, true is 1. */
+    fun variable(defaultValue: Boolean) = variable(null, defaultValue = if (defaultValue) 1 else 0)
     /**
      * Adopt non-tracked values on top of the stack as variables (while the stack layout invariant is broken).
      * Mainly used to capture results of function calls and similar.
@@ -298,6 +301,50 @@ fun ComplexBlock.auto(
     )
 }
 
+fun ComplexBlock.auto(
+    name1: String,
+    name2: String,
+    name3: String,
+    name4: String,
+    name5: String,
+    name6: String,
+    block: Scope.(Variable, Variable, Variable, Variable, Variable, Variable) -> Unit
+) {
+    val vars = listOf(name1, name2, name3, name4, name5, name6)
+    val autoBlock = Scope(vars, this, parent = null)
+    autoBlock.block(
+        autoBlock.variables[0],
+        autoBlock.variables[1],
+        autoBlock.variables[2],
+        autoBlock.variables[3],
+        autoBlock.variables[4],
+        autoBlock.variables[5],
+    )
+}
+
+fun ComplexBlock.auto(
+    name1: String,
+    name2: String,
+    name3: String,
+    name4: String,
+    name5: String,
+    name6: String,
+    name7: String,
+    block: Scope.(Variable, Variable, Variable, Variable, Variable, Variable, Variable) -> Unit
+) {
+    val vars = listOf(name1, name2, name3, name4, name5, name6, name7)
+    val autoBlock = Scope(vars, this, parent = null)
+    autoBlock.block(
+        autoBlock.variables[0],
+        autoBlock.variables[1],
+        autoBlock.variables[2],
+        autoBlock.variables[3],
+        autoBlock.variables[4],
+        autoBlock.variables[5],
+        autoBlock.variables[6],
+    )
+}
+
 
 data class VarSetter(val scope: Scope, val variable: Variable) {
     infix fun to(parameter: Parameter) {
@@ -316,6 +363,10 @@ data class VarSetter(val scope: Scope, val variable: Variable) {
 
     infix fun to(const: Int) {
         to(const(const))
+    }
+
+    infix fun to(const: Boolean) {
+        to(const(if (const) 1 else 0))
     }
 }
 

@@ -29,6 +29,7 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 | 5-1 | [20021](/ksplang/5-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt)) | text       | 1.856s   | 132478368             |
 | 5-2 | [25165](/ksplang/5-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt)) | text       | 2.393s   | 172774543             |
 | 6-1 | [35216](/ksplang/6-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt)) | text       | 2.145s   | 192576888             |
+| 6-2 | [98210](/ksplang/6-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt)) | text       | 6184.82s | 552616919215          |
 
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
@@ -142,3 +143,10 @@ Anyway, as long as `val` is used with variables, all will be fine. Oh, and for t
 of `set(x)` (a `VarSetter` that exposes the `to` infix function) to a variable and attempt to use it later, in a different scope.
 
 Might be time to add some custom lints, using something like [detekt](https://detekt.dev).
+
+#### Part 2
+
+Took the most straightforward approach, which is very slow, especially considering how poorly optimized
+my bitwise operations are, and I used them to mark visited places.
+
+Writing more complex data structures would take way more time than just letting the program run in the background.

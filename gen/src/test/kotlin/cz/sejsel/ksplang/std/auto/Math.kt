@@ -109,7 +109,7 @@ class MathTests : FunSpec({
         val program = builder.build(buildComplexFunction {
             auto {
                 val a = variable("a", 1)
-                set(a) to negated(a)
+                set(a) to negate(a)
             }
         })
         runner.run(program, prefix) shouldContainExactly prefix + listOf(-1)

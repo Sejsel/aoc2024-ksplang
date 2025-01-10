@@ -92,3 +92,25 @@ class YoinkSliceWithGapTests : FunSpec({
         runner.run(program, listOf(1, 2, 3, 4, 5, 6, 2, 1, 0)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6, 0)
     }
 })
+
+class CopySliceTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+    val program = builder.build(buildComplexFunction { copySlice() })
+
+    test("copySlice slice from 0 to 3, len 3") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 0, 3, 3)) shouldContainExactly listOf(1, 2, 3, 1, 2, 3)
+    }
+
+    test("copySlice aliased slice from 1 to 3 len 3") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 1, 3, 3)) shouldContainExactly listOf(1, 2, 3, 2, 3, 2)
+    }
+
+    test("copySlice slice from 2 to 3, len 1") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 2, 3, 1)) shouldContainExactly listOf(1, 2, 3, 3, 5, 6)
+    }
+
+    test("copySlice slice from 1 to 3, len 0") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 1, 3, 0)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6)
+    }
+})

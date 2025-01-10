@@ -223,3 +223,41 @@ fun Block.min2() = function("min2") {
     j()
     pop(); inc(); m(); pop2(); pop2(); pop2(); CS(); pop(); pop2(); pop2()
 }
+
+
+/**
+ * Does a 32-bit bitwise OR on two values, discarding the upper bits.
+ *
+ * Signature: `a b -> (a&0xFF_FF_FF_FF)|(b&0xFF_FF_FF_FF)`
+ */
+fun Block.bitor32() = function("bitor32") {
+    // a b
+    bitnot32()
+    // a ~b&0xFFFFFFFF
+    swap2()
+    // ~b&0xFFFFFFFF a
+    bitnot32()
+    // ~b&0xFFFFFFFF ~a&0xFFFFFFFF
+    bitand()
+    // ~b&0xFFFFFFFF&~a&0xFFFFFFFF
+    bitnot32()
+    // (b&0xFFFFFFFF)|(a&0xFFFFFFFF)
+}
+
+/**
+ * Does a 32-bit bitwise NOT on a value, discarding the upper bits.
+ *
+ * Signature: `a -> ~(a&0xFF_FF_FF_FF)
+ */
+fun Block.bitnot32() = function("bitnot32") {
+    // a
+    push(0xFF_FF_FF_FF)
+    bitand()
+    // a&0xFFFFFFFF
+    inc()
+    negate()
+    // -(a + 1)
+    push(0xFF_FF_FF_FF)
+    bitand()
+    // remove the MSB sign
+}

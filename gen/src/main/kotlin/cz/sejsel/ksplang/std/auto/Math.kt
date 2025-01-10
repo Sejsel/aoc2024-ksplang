@@ -66,13 +66,6 @@ fun Scope.max2(a: Parameter, b: Parameter) = runFun1(a, b) {
 }
 
 /**
- * Returns the negation of the value.
- */
-fun Scope.negated(a: Parameter): Variable = runFun1(a) {
-    negate()
-}
-
-/**
  * Adds a constant to the value.
  */
 fun Scope.add(a: Parameter, const: Long) = runFun1(a) {
@@ -108,6 +101,12 @@ fun Scope.abs(a: Parameter) = runFun1(a) {
     abs()
 }
 
+/**
+ * Negates the value (a -> -a). Crashes for -2^63.
+ */
+fun Scope.negate(a: Parameter) = runFun1(a) {
+    negate()
+}
 
 /**
  * Returns 1 if the value is zero, 0 otherwise. A negation of "zeroity".
@@ -130,4 +129,19 @@ fun Scope.inc(a: Parameter) = runFun1(a) {
  */
 fun Scope.dec(a: Parameter) = runFun1(a) {
     dec()
+}
+
+
+/**
+ * Does a bitwise AND on the two values.
+ */
+fun Scope.bitand(a: Parameter, b: Parameter) = runFun1(a, b) {
+    bitand()
+}
+
+/**
+ * Does a 32-bit bitwise OR on two values, discarding the upper bits.
+ */
+fun Scope.bitor32(a: Parameter, b: Parameter) = runFun1(a, b) {
+    bitor32()
 }
