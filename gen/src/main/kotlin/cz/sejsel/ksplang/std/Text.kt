@@ -20,15 +20,46 @@ fun ComplexBlock.parseNonNegativeNum(terminator: Int, base: Int = 10) = parseNon
  * Signature: i -> number index_of_terminator
  */
 fun ComplexBlock.parseNonNegativeNum(terminator: Long, base: Int = 10) = complexFunction("parseNum($terminator, $base)") {
-    require(base >= 2)
-    require(base <= 10) { "Base must be at most 10 because only 0-9 are consecutive in ASCII" }
-
     // start
     dup()
     // start start
     push(terminator)
     // start start $terminator
     findUnsafe()
+    // start index_of_terminator
+    parseNonNegativeNumInRange(base)
+    // res index_of_terminator
+}
+
+/**
+ * Parse a text number starting on index i and ending before terminator. If the terminator is not found,
+ * undefined behavior occurs. If there is no valid number, undefined behavior occurs.
+ * For example parse_number(' ') will parse a number that is followed by a space.
+ *
+ * Signature: i terminator -> number index_of_terminator
+ */
+fun ComplexBlock.parseNonNegativeNum(base: Int = 10) = complexFunction("parseNum($base)") {
+    // start terminator
+    dupSecond()
+    // start terminator start
+    swap2()
+    // start start terminator
+    findUnsafe()
+    // start index_of_terminator
+    parseNonNegativeNumInRange(base)
+    // res index_of_terminator
+}
+
+/**
+ * Parse a text number starting on index i and ending before terminator.
+ * If there is no valid number, undefined behavior occurs.
+ *
+ * Signature: from index_of_terminator -> number index_of_terminator
+ */
+fun ComplexBlock.parseNonNegativeNumInRange(base: Int = 10) = complexFunction("parseNonNegativeNumInRange($base)") {
+    require(base >= 2)
+    require(base <= 10) { "Base must be at most 10 because only 0-9 are consecutive in ASCII" }
+
     // start index_of_terminator
     dup()
     // start index_of_terminator i

@@ -145,3 +145,10 @@ fun Scope.bitand(a: Parameter, b: Parameter) = runFun1(a, b) {
 fun Scope.bitor32(a: Parameter, b: Parameter) = runFun1(a, b) {
     bitor32()
 }
+
+/**
+ * a << b
+ */
+fun Scope.bitshift(a: Parameter, b: Parameter) = runFun1(a, b) {
+    bitshift()
+}

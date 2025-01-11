@@ -208,6 +208,42 @@ infix fun IfZero.otherwise(init: ComplexFunction.() -> Unit) {
 }
 
 @KsplangMarker
+data class WhileNonZero(override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
+    override fun addChild(block: SimpleBlock) {
+        children.add(block)
+    }
+}
+
+/**
+ * Given x on the stack, executes the inner loop until the top value is zero at the end of the loop.
+ * Does not pop the x value after checking. Does pop the value at the end.
+ *
+ * Example which will run x times:
+ * ```
+ * // x
+ * whileNonZero {
+ *   // x
+ *   dec()
+ *   // x-1
+ * }
+ * // nothing
+ * ```
+ *
+ * Example which will remove all zeros from the end of the stack:
+ * ```
+ * whileNonZero {
+ *   pop()
+ * }
+ * ```
+ */
+fun ComplexBlock.whileNonZero(init: WhileNonZero.() -> Unit): WhileNonZero {
+    val f = WhileNonZero()
+    f.init()
+    children.add(f)
+    return f
+}
+
+@KsplangMarker
 data class DoWhileZero(override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
     override fun addChild(block: SimpleBlock) {
         children.add(block)

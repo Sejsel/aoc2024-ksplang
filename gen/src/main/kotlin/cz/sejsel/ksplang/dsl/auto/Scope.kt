@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTypeInference::class)
-
 package cz.sejsel.ksplang.dsl.auto
 
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
@@ -9,13 +7,17 @@ import cz.sejsel.ksplang.dsl.core.KsplangMarker
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.ifZero
+import cz.sejsel.ksplang.dsl.core.whileNonZero
+import cz.sejsel.ksplang.std.auto.copy
+import cz.sejsel.ksplang.std.auto.dec
+import cz.sejsel.ksplang.std.auto.max2
+import cz.sejsel.ksplang.std.auto.sgn
+import cz.sejsel.ksplang.std.auto.subabs
 import cz.sejsel.ksplang.std.dupKthZeroIndexed
 import cz.sejsel.ksplang.std.popKth
 import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.roll
-import cz.sejsel.ksplang.std.setKth
 import cz.sejsel.ksplang.std.zeroNot
-import kotlin.experimental.ExperimentalTypeInference
 
 
 sealed interface Parameter
@@ -26,25 +28,6 @@ data class Constant(val value: Long) : Parameter
 fun const(value: Int): Constant = const(value.toLong())
 fun const(value: Long): Constant = Constant(value)
 
-
-class CallResultProcessor(val auto: Scope, val resultCount: Int) {
-    fun setTo(v: Variable, resultIndex: Long) {
-        require(resultIndex >= 0)
-        require(resultIndex < resultCount)
-        // [stack] [vars] [results]
-        auto.block.dupKthZeroIndexed(resultCount - resultIndex - 1)
-        // [stack] [vars] [results] result[i]
-        val targetVarIndex = auto.variables.indexOf(v)
-        auto.block.setKth(auto.variables.size - targetVarIndex + resultCount)
-        // [stack] [vars] [results]
-    }
-
-    fun clearResults() {
-        repeat(resultCount) {
-            auto.block.pop()
-        }
-    }
-}
 
 @KsplangMarker
 class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, private val parent: Scope?) {
@@ -157,7 +140,7 @@ class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, p
         }
     }
 
-    @OverloadResolutionByLambdaReturnType
+    /** Do while the checked variable is non-zero (or true, for bools) */
     fun doWhileNonZero(checkedVariable: Scope.() -> Variable, inner: Scope.() -> Unit) {
         block.doWhileNonZero {
             val innerScope = Scope(emptyList(), block = this, parent = this@Scope)
@@ -176,7 +159,6 @@ class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, p
     }
 
     /** If checked variable is non-zero, execute the inner block */
-    @OverloadResolutionByLambdaReturnType
     fun ifBool(checkedVariable: Scope.() -> Variable, inner: Scope.() -> Unit): IfBool {
         val checkScope = Scope(emptyList(), block = block, parent = this@Scope)
         val checkedVar = checkScope.checkedVariable()
@@ -199,6 +181,82 @@ class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, p
         ifZero.orElse = buildComplexFunction { pop() }
 
         return IfBool(this, ifZero)
+    }
+
+    /** If checked variable is non-zero, execute the inner block */
+    fun ifBool(checkedVariable: Variable, inner: Scope.() -> Unit): IfBool {
+        prepareParams(listOf(checkedVariable))
+        block.zeroNot()
+        val ifZero = block.ifZero {
+            pop() // Pop the checked variable
+
+            val innerScope = Scope(emptyList(), block = this, parent = this@Scope)
+            innerScope.inner()
+            innerScope.removeAllVariables()
+        }
+
+        // Default for else branch is just a pop of the checked variable.
+        ifZero.orElse = buildComplexFunction { pop() }
+
+        return IfBool(this, ifZero)
+    }
+
+    /**
+     * Runs the inner block while the checked variable is non-zero (or true, for bools).
+     */
+    fun whileNonZero(checkedVariable: Scope.() -> Variable, inner: Scope.() -> Unit) {
+        fun emitCheckedVariable(block: ComplexBlock) {
+            val checkScope = Scope(emptyList(), block = block, parent = this@Scope)
+            val checkedVar = checkScope.checkedVariable()
+            if (checkedVar.ownerScope == checkScope) {
+                checkScope.keepOnly(checkedVar)
+            } else {
+                checkScope.removeAllVariables()
+                checkScope.prepareParams(listOf(checkedVar))
+            }
+        }
+
+        emitCheckedVariable(block = block)
+
+        block.whileNonZero {
+            // remove the checked variable
+            pop()
+
+            val innerScope = Scope(emptyList(), block = this, parent = this@Scope)
+            innerScope.inner()
+            innerScope.removeAllVariables()
+
+            emitCheckedVariable(block = this)
+        }
+    }
+
+    // private because this is easy to use wrong - if called with a function call,
+    // it would not get rerun every iteration. The lambda overload will do that.
+    private fun whileNonZero(checkedVariable: Variable, inner: Scope.() -> Unit) {
+        prepareParams(listOf(checkedVariable))
+
+        block.whileNonZero {
+            // remove the checked variable
+            pop()
+
+            val innerScope = Scope(emptyList(), block = this, parent = this@Scope)
+            innerScope.inner()
+            innerScope.removeAllVariables()
+
+            innerScope.prepareParams(listOf(checkedVariable))
+        }
+    }
+
+    /**
+     * Runs the inner block n times, not changing the value of n. If n is zero, the inner block is not run at all.
+     */
+    fun doNTimes(n: Variable, inner: Scope.(i: Variable) -> Unit) {
+        val count = max2(n, const(0))
+        whileNonZero(count) {
+            set(count) to dec(count)
+            val i = dec(subabs(n, count))
+            inner(i)
+        }
     }
 }
 

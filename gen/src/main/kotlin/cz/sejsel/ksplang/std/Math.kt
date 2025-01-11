@@ -18,9 +18,26 @@ fun Block.add() = function("add") {
  * Signature: `a -> a+n`
  */
 fun Block.add(n: Long) = function("add($n)") {
-    if (n != 0L) {
-        push(n)
-        add()
+    when (n) {
+        0L -> {
+            // NOP
+        }
+        1L -> {
+            inc()
+        }
+        2L -> {
+            inc(); inc()
+        }
+        3L -> {
+            inc(); inc(); inc()
+        }
+        4L -> {
+            inc(); inc(); inc(); inc()
+        }
+        else -> {
+            push(n)
+            add()
+        }
     }
 }
 

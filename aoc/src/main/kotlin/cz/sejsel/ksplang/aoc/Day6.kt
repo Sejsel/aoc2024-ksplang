@@ -27,15 +27,15 @@ fun main() {
     println("Generated program for day 6 part 2, $instructionCount2 instructions")
 }
 
-val UP = const(0)
-val RIGHT = const(1)
-val DOWN = const(2)
-val LEFT = const(3)
+private val UP = const(0)
+private val RIGHT = const(1)
+private val DOWN = const(2)
+private val LEFT = const(3)
 
-val RIGHT_BIT = const(0b0001_00000000)
-val UP_BIT = const(0b0010_00000000)
-val LEFT_BIT = const(0b0100_00000000)
-val DOWN_BIT = const(0b1000_00000000)
+private val RIGHT_BIT = const(0b0001_00000000)
+private val UP_BIT = const(0b0010_00000000)
+private val LEFT_BIT = const(0b0100_00000000)
+private val DOWN_BIT = const(0b1000_00000000)
 
 fun day6Part1() = buildComplexFunction("day6part1") {
     // [input]

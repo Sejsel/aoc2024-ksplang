@@ -209,4 +209,157 @@ class AutoStackTests : FunSpec({
         println(program)
         runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 43)
     }
+
+    test("whileNonZero lambda counter") {
+        val f = buildComplexFunction {
+            push(4)
+            auto {
+                val i = variable(42)
+                val iterations = variable(0)
+
+                whileNonZero({ i }) {
+                    set(i) to dec(i)
+                    set(iterations) to add(iterations, 2)
+                }
+
+                keepOnly(iterations)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 42*2)
+    }
+
+    test("whileNonZero lambda no run") {
+        val f = buildComplexFunction {
+            push(4)
+            auto {
+                val i = variable(false)
+                val didRun = variable(false)
+
+                whileNonZero({ i }) {
+                    set(didRun) to true
+                }
+
+                keepOnly(didRun)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 0)
+    }
+
+    test("doNTimes counter") {
+        val f = buildComplexFunction {
+            push(4)
+            auto {
+                val i = variable(42)
+                val iterations = variable(0)
+
+                doNTimes(i) {
+                    set(iterations) to add(iterations, 2)
+                }
+
+                // i is kept, not changed
+                keepOnly(i, iterations)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 42, 42*2)
+    }
+
+    test("doNTimes(1) i is 0") {
+        val f = buildComplexFunction {
+            push(4)
+            auto {
+                val lastIValue = variable(0)
+
+                doNTimes(variable(1)) { i ->
+                    set(lastIValue) to i
+                }
+
+                keepOnly(lastIValue)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 0)
+    }
+
+    test("doNTimes(2) last i is 1") {
+        val f = buildComplexFunction {
+            push(4)
+            auto {
+                val lastIValue = variable(0)
+
+                doNTimes(variable(2)) { i ->
+                    set(lastIValue) to i
+                }
+
+                keepOnly(lastIValue)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 1)
+    }
+
+    test("doNTimes(8) last i is 7") {
+        val f = buildComplexFunction {
+            push(4)
+            auto {
+                val lastIValue = variable(0)
+
+                doNTimes(variable(8)) { i ->
+                    set(lastIValue) to i
+                }
+
+                keepOnly(lastIValue)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 7)
+    }
+
+    test("doNTimes(0) does not run") {
+        val f = buildComplexFunction {
+            push(4)
+            auto {
+                val i = variable(0)
+                val didRun = variable(false)
+
+                doNTimes(i) {
+                    set(didRun) to true
+                }
+
+                keepOnly(didRun)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 0)
+    }
 })

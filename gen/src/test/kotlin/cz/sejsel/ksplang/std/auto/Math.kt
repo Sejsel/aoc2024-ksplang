@@ -3,6 +3,7 @@ package cz.sejsel.ksplang.std.auto
 import cz.sejsel.ksplang.KsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.auto.auto
+import cz.sejsel.ksplang.dsl.auto.const
 import cz.sejsel.ksplang.dsl.auto.set
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
@@ -125,6 +126,16 @@ class MathTests : FunSpec({
             }
         })
         runner.run(program, prefix) shouldContainExactly prefix + listOf(1)
+    }
+
+    test("bitshift") {
+        val program = builder.build(buildComplexFunction {
+            auto {
+                val result = bitshift(const(1), const(8))
+                keepOnly(result)
+            }
+        })
+        runner.run(program, prefix) shouldContainExactly prefix + listOf(256)
     }
 })
 

@@ -646,7 +646,26 @@ class KsplangBuilder(
                             e(extract { push(redoIndex) })
                             e(extract { roll(2, 1) })
                             e(brz)
+                            e(pop)
+                            e(pop)
+                        }
+
+                        is WhileNonZero -> {
+                            // x
+                            e(CS)
+                            val redoIndex = state.index
+                            e(pop)
+                            val endPush = preparePaddedPush()
+                            e(extract { roll(2, 1) })
+                            e(brz)
                             e(pop2)
+                            for (b in block.children) {
+                                e(b)
+                            }
+                            e(extract { push(redoIndex) })
+                            e(goto)
+                            endPush.set(state.index)
+                            e(pop)
                             e(pop)
                         }
                     }
