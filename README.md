@@ -31,7 +31,7 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 | 6-1 | [35216](/ksplang/6-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt)) | text       | 2.145s     | 192576888             |
 | 6-2 | [98210](/ksplang/6-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt)) | text       | 6184.82s   | 552616919215          |
 | 7-1 | [22598](/ksplang/7-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day7.kt)) | text       | 88.277s    | 6921562949            |
-| 7-1 | [35233](/ksplang/7-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day7.kt)) | text       | 16500.261s | 1453249659806         |
+| 7-2 | [35233](/ksplang/7-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day7.kt)) | text       | 16500.261s | 1453249659806         |
 
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
