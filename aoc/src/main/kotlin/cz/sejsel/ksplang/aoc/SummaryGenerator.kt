@@ -52,7 +52,7 @@ val DAYS = listOf(
     Day(
         name = "7",
         gen1 = { day7Part1() },
-        gen2 = null,
+        gen2 = { day7Part2() },
         textInput = true
     ),
 )
