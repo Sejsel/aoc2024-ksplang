@@ -5,3 +5,5 @@ plugins {
 rootProject.name = "ksplang"
 include("gen")
 include("aoc")
+include("bruteforce")
+include("interpreter")

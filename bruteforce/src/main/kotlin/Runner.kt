@@ -1,4 +1,4 @@
-package cz.sejsel.ksplang.aoc.summary
+package cz.sejsel
 
 import java.nio.file.Path
 import java.time.Duration

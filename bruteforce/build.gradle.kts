@@ -7,6 +7,8 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":interpreter"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 }
 
 kotlin {

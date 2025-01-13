@@ -13,6 +13,13 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 > It can then be expanded into building better and better tooling for yourself
 > to write more complex programs, like I have done here.
 
+## Contents
+- [aoc](/aoc) - the programs which generate ksplang programs for Advent of Code tasks
+- [ksplang](/ksplang) - the ksplang programs for Advent of Code tasks
+- [gen](/gen) - the ksplang preprocessor (Kotlin DSL to generate ksplang code)
+- [interpreter](/interpreter) - a Kotlin interpreter of ksplang (for testing, mainly)
+- [bruteforce](/bruteforce) - tools for finding shorter/optimal ksplang sequences (pushes of constants...)
+- [verification](/verification) - a Rust tool for verifying results of bruteforcing
 
 ## Progress
 
