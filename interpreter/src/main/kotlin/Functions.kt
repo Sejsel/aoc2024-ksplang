@@ -12,7 +12,7 @@ import kotlin.math.sqrt
  * For example, for the numbers 100 = 2^2 * 5^2 and 54 = 3^3 * 2 the prime factor 2 is removed because it appears
  * in the decompositions of both numbers. This leaves 5^2*3^3, which equals 675.
  * Mod 1_000_000_007 does not change the result for such small numbers.
-*/
+ */
 const val FUNKCIA_MOD: Long = 1_000_000_007
 
 fun funkcia(a: Long, b: Long): Long {
@@ -20,24 +20,29 @@ fun funkcia(a: Long, b: Long): Long {
         return 0L
     }
 
-    val aFactors = factorize(a)
-    val bFactors = factorize(b)
+    // We only need to factorize one of the numbers. We hope the smaller one is the easier one.
+    val (smaller, bigger) = if (a < b) {
+        a to b
+    } else {
+        b to a
+    }
 
-    var result = 1L
-    fun applyFactors(factors: Map<Long, Int>, otherFactors: Map<Long, Int>) {
-        factors.forEach { factor, count ->
-            if (factor in otherFactors) {
-                return@forEach
-            }
+    var result = bigger
 
+    factorize(smaller).forEach { (factor, count) ->
+        var occursInBigger = false
+        while (result % factor == 0L) {
+            result /= factor
+            occursInBigger = true
+        }
+
+        if (!occursInBigger) {
             repeat(count) {
                 result = (result * (factor % FUNKCIA_MOD)) % FUNKCIA_MOD
             }
         }
     }
-
-    applyFactors(aFactors, bFactors)
-    applyFactors(bFactors, aFactors)
+    result %= FUNKCIA_MOD
 
     if (result == 1L) {
         return 0L

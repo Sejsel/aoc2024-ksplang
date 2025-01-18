@@ -28,7 +28,7 @@ enum class PraiseCombinatorType {
     MUL,
     CURSEDDIV,
     FUNKCIA,
-    MOD,
+    REM,
     GCD,
     BITAND,
     BITSHIFT,
@@ -136,7 +136,7 @@ fun main() {
                 listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225, 109, 1)
                     to (solutions[2]!! + listOf(Op.Praise, Op.DigitSum, Op.GcdN)),
                 listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 1)
-                    to (solutions[2]!! + listOf(Op.Praise, Op.DigitSum, Op.Pop, Op.DigitSum, Op.GcdN)),
+                    to (solutions[2]!! + listOf(Op.Praise, Op.Pop, Op.DigitSum, Op.GcdN)),
                 listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225)
                     to solutions[2]!! + listOf(Op.Praise, Op.Qeq, Op.Qeq, Op.Qeq),
                 listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80)
@@ -162,8 +162,10 @@ fun main() {
                         }
                     }
 
-                    (2..min(5, praiseOutput.size - 1)).forEach { opCount ->
+                    // TODO: Use sequences instead of lists to avoid copying
+                    (2..min(4, praiseOutput.size - 1)).forEach { opCount ->
                         trackImprovements("$opCount op combinations") {
+
                             val options = PraiseCombinatorType.entries.flatMap { type ->
                                 listOf(PraiseCombinator(type, false), PraiseCombinator(type, true))
                             }
@@ -252,7 +254,7 @@ fun main() {
                                                 resultValue = cursedDiv(resultValue, value)
                                             }
 
-                                            PraiseCombinatorType.MOD -> {
+                                            PraiseCombinatorType.REM -> {
                                                 if (value == 0L) {
                                                     // Division by zero
                                                     return@combinationsWithReplacement
@@ -283,8 +285,11 @@ fun main() {
                                                     // Invalid bitshift param
                                                     return@combinationsWithReplacement
                                                 }
+                                                if (resultValue > 63) {
+                                                    resultValue = 0
+                                                }
 
-                                                resultValue = value shl min(resultValue, Int.MAX_VALUE.toLong()).toInt()
+                                                resultValue = value shl resultValue.toInt()
                                             }
                                         }
                                     }
@@ -311,6 +316,10 @@ fun main() {
 
                                             if (op.preIncrement) {
                                                 resultValue += 1
+                                                program.add(Op.Increment)
+                                                if (program.size > bestKnownSolutionSize) {
+                                                    return@combinationsWithReplacement
+                                                }
                                             }
 
                                             when (op.type) {
@@ -389,8 +398,8 @@ fun main() {
                                                     resultValue = funkciaCache.get(resultValue, value)
                                                 }
 
-                                                PraiseCombinatorType.MOD -> {
-                                                    program.add(Op.Modulo)
+                                                PraiseCombinatorType.REM -> {
+                                                    program.add(Op.Remainder)
                                                     resultValue %= value
                                                 }
 
@@ -406,6 +415,10 @@ fun main() {
 
                                                 PraiseCombinatorType.BITSHIFT -> {
                                                     program.add(Op.Bitshift)
+                                                    if (resultValue > 63) {
+                                                        resultValue = 0
+                                                    }
+
                                                     resultValue = value shl resultValue.toInt()
                                                 }
                                             }
@@ -541,7 +554,9 @@ fun main() {
         val program = solution.joinToString(" ")
         "$result $program"
     }.joinToString("\n")
+    print("Writing to file...")
     File("lastoptimization.txt").writeText(input)
+    println("done")
 
     val checker = VerificationSolutionChecker()
     checker.checkSolutions(solutions)
