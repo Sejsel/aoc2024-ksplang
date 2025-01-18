@@ -45,6 +45,25 @@ fun funkcia(a: Long, b: Long): Long {
     return result
 }
 
+fun gcd(a: Long, b: Long): Long {
+    var x = a
+    var y = b
+    while (y != 0L) {
+        val temp = y
+        y = x % y
+        x = temp
+    }
+    return x
+}
+
+fun cursedDiv(upper: Long, lower: Long): Long {
+    return if (upper % lower == 0L) {
+        upper / lower
+    } else {
+        upper % lower
+    }
+}
+
 private fun factorize(a: Long): Map<Long, Int> {
     var num = a
     val factors = mutableMapOf<Long, Int>()

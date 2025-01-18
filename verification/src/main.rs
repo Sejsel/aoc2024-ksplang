@@ -21,7 +21,6 @@ fn main() -> Result<(), ()>{
         for (num, program) in chunk {
             let ops = ksplang::parser::parse_program(program).expect("Failed to parse program");
             for digit_sum in VALUES_PER_DIGIT_SUM {
-
                 let result = ksplang::vm::run(&ops, VMOptions::new(
                     &[digit_sum],
                     1000,
