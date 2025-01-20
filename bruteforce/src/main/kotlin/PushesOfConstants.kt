@@ -5,23 +5,10 @@ import java.io.File
 import java.time.Duration
 import java.time.Instant.now
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
-// TODO: Extract to interpreter
-fun digitSum(n: Long): Long {
-    if (n == Long.MIN_VALUE) {
-        return 89
-    }
-
-    var num = abs(n)
-    var result = 0L
-    while (num != 0L) {
-        result += num % 10
-        num /= 10
-    }
-    return result
-}
-
+// TODO: Add mod and lensum
 enum class PraiseCombinatorType {
     ADD,
     ABSSUB,
@@ -38,6 +25,14 @@ data class PraiseCombinator(
     val type: PraiseCombinatorType,
     val preIncrement: Boolean,
 )
+
+//val binaryOps = listOf(Op.LenSum, Op.Funkcia, Op.Remainder, Op.Modulo, Op.Gcd2, Op.And, Op.Bitshift)
+val binaryOps = listOf(Op.LenSum, Op.Funkcia, Op.Remainder, Op.Modulo, Op.Gcd2, Op.And, Op.Bitshift)
+
+sealed interface Initializer
+
+data object CsInitializer : Initializer
+data class CsIncrementCsBinaryOpInitializer(val op: Op, val increments: Int) : Initializer
 
 data class TrackImprovementsResult(
     val foundImprovements: Int,
@@ -85,8 +80,8 @@ fun main() {
     val powersOfTwo = (0..62).map { 1L shl it }
     val negativePowersOfTwo = (0..63).map { (-1L shl it) }
     val positivePowersOfTwoMinusOne = ((0..62).map { (1L shl it) - 1 } + Long.MAX_VALUE)
-    //val potentialAddresses = 0..1_048_576L
-    val potentialAddresses = 0..10000L // TODO: Adjust to bigger range
+    val potentialAddresses = 0..1_048_576L
+    //val potentialAddresses = 0..10000L // TODO: Adjust to bigger range
     val smallNegativeNumbers = -1024..-1L
 
     val targetValues: Set<Long> =
@@ -435,13 +430,23 @@ fun main() {
                             }
                         }
                     }
-
-                    // TODO: Implement the other thingy
                 }
             }
         }
 
-        // TODO: Try negate
+        trackImprovements("negate") {
+            targetValues.forEach { n ->
+                solutions[-n]?.let { negated ->
+                    // TODO: There are definitely other CS values that could be used to make better push(1) push(0) qeq
+                    if (digitSum(-n) == 1L) {
+                        trySolution(n, negated + listOf(Op.DigitSum, Op.DigitSum, Op.DigitSum, Op.Modulo, Op.Qeq))
+                    } else {
+                        trySolution(n, negated + solutions[1]!! + listOf(Op.DigitSum, Op.DigitSum, Op.Modulo, Op.Qeq))
+                    }
+
+                }
+            }
+        }
 
         // try previous number and ++
         trackImprovements("increments") {
@@ -468,69 +473,163 @@ fun main() {
             }
         }
 
-        // Number, CS, some amount of ++, funkcia
-        trackImprovements("cs [++] funkcia") {
-            targetValues.forEach { n ->
-                val nSolution = solutions[n] ?: return@forEach
+        // TODO: Do more generic "intermediates", then finishers
 
-                val copy = digitSum(n)
-                (0..7).forEach { increments ->
-                    val result = funkciaCache.get(n, copy + increments)
-
-                    if (result in targetValues) {
-                        val incOps = List(increments) { Op.Increment }
-                        val solution = buildList {
-                            addAll(nSolution)
-                            add(Op.DigitSum)
-                            addAll(incOps)
-                            add(Op.Funkcia)
-                        }
-                        trySolution(result, solution)
-                    }
-                }
+        val initializers = listOf(CsInitializer) + binaryOps.flatMap { op ->
+            (0..7).map { increments ->
+                CsIncrementCsBinaryOpInitializer(op, increments)
             }
         }
 
-        // Number, CS, some amount of ++, bitshift
-        trackImprovements("cs [++] bitshift") {
-            targetValues.forEach { n ->
-                val nSolution = solutions[n] ?: return@forEach
-
-                val copy = digitSum(n).toInt() // guaranteed to be a small number
-                (copy..<63).forEach { k ->
-                    val result = n shl k
-                    if (result in targetValues) {
-                        val increments = k - copy
-                        val solution = buildList {
-                            addAll(nSolution)
-                            add(Op.DigitSum)
-                            repeat(increments) { add(Op.Increment) }
-                            add(Op.Bitshift)
-                        }
-                        trySolution(result, solution)
+        initializers.forEach { initializer ->
+            trackImprovements("combos, initializer $initializer") {
+                // TODO: We are only considering building on top of other target values.
+                targetValues.forEach target@{ startN ->
+                    if (startN !in solutions) {
+                        return@target
                     }
-                }
-            }
-        }
 
-        // CS, CS, bitshift, bitshift (needed for the optimal 512)
-        trackImprovements("cs cs bitshift bitshift") {
-            targetValues.forEach { n ->
-                val nSolution = solutions[n] ?: return@forEach
+                    val bottom = startN
 
-                val cs = digitSum(n)
-                val cs2 = digitSum(cs).toInt()
-                if (cs2 < 64 && cs shl cs2 < 64) {
-                    val result = n shl (cs shl cs2).toInt()
-                    if (result in targetValues) {
-                        val solution = buildList {
-                            addAll(nSolution)
-                            add(Op.DigitSum)
-                            add(Op.DigitSum)
-                            add(Op.Bitshift)
-                            add(Op.Bitshift)
+                    // Initializers
+                    // CS
+                    // CS [++] CS <binary_op>
+
+                    val (top, initializerOps) = when (initializer) {
+                        CsInitializer -> {
+                            digitSum(startN) to listOf(Op.DigitSum)
                         }
-                        trySolution(result, solution)
+
+                        is CsIncrementCsBinaryOpInitializer -> {
+                            // stack grows right ->
+                            val left = digitSum(startN) + initializer.increments
+                            val right = digitSum(left)
+
+                            val result = when (initializer.op) {
+                                Op.Max -> max(left, right)
+                                Op.Remainder -> {
+                                    if (left == 0L) {
+                                        return@target
+                                    }
+                                    right % left
+                                }
+
+                                Op.Modulo -> {
+                                    if (left == 0L) {
+                                        return@target
+                                    }
+                                    right.mod(abs(left))
+                                }
+
+                                Op.TetrationNumIters -> TODO()
+                                Op.TetrationItersNum -> TODO()
+                                Op.LenSum -> {
+                                    lensum(left, right)
+                                }
+
+                                Op.Bitshift -> {
+                                    if (right < 0) {
+                                        return@target
+                                    }
+                                    if (right > 63) {
+                                        0
+                                    } else {
+                                        left shl right.toInt()
+                                    }
+                                }
+
+                                Op.And -> {
+                                    left and right
+                                }
+
+                                Op.Gcd2 -> {
+                                    abs(gcd(left, right))
+                                }
+
+                                Op.Funkcia -> {
+                                    funkciaCache.get(left, right)
+                                }
+
+                                else -> error("Unsupported op")
+                            }
+
+                            result to buildList {
+                                add(Op.DigitSum)
+                                repeat(initializer.increments) { add(Op.Increment) }
+                                add(Op.DigitSum)
+                                add(initializer.op)
+                            }
+                        }
+                    }
+
+                    // increment section [++]
+                    (0..7).forEach inc@{ increments ->
+                        val newTop = if (top < Long.MAX_VALUE - increments) {
+                            top + increments
+                        } else {
+                            return@inc
+                        }
+
+                        // finish with a binary op
+                        binaryOps.forEach { op ->
+                            val result = when (op) {
+                                Op.Max -> max(bottom, newTop)
+                                Op.Remainder -> {
+                                    if (bottom == 0L) {
+                                        return@inc
+                                    }
+                                    newTop % bottom
+                                }
+
+                                Op.Modulo -> {
+                                    if (bottom == 0L) {
+                                        return@inc
+                                    }
+                                    newTop.mod(abs(bottom))
+                                }
+
+                                Op.TetrationNumIters -> TODO()
+                                Op.TetrationItersNum -> TODO()
+                                Op.LenSum -> {
+                                    lensum(bottom, newTop)
+                                }
+
+                                Op.Bitshift -> {
+                                    if (newTop < 0) {
+                                        return@inc
+                                    }
+                                    if (newTop > 63) {
+                                        0
+                                    } else {
+                                        bottom shl newTop.toInt()
+                                    }
+                                }
+
+                                Op.And -> {
+                                    bottom and newTop
+                                }
+
+                                Op.Gcd2 -> {
+                                    abs(gcd(bottom, newTop))
+                                }
+
+                                Op.Funkcia -> {
+                                    funkciaCache.get(bottom, newTop)
+                                }
+
+                                else -> error("Unsupported op")
+                            }
+                            if (result in targetValues) {
+                                val program = buildList {
+                                    addAll(solutions[startN]!!)
+                                    addAll(initializerOps)
+                                    repeat(increments) { add(Op.Increment) }
+                                    add(op)
+                                }
+
+                                trySolution(result, program)
+                            }
+                        }
                     }
                 }
             }
@@ -550,7 +649,7 @@ fun main() {
     } while (foundImprovements != 0)
 
 
-    val input = solutions.map { (result, solution) ->
+    val input = solutions.toSortedMap().map { (result, solution) ->
         val program = solution.joinToString(" ")
         "$result $program"
     }.joinToString("\n")

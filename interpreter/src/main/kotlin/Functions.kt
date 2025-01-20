@@ -1,5 +1,8 @@
 package cz.sejsel
 
+import com.google.common.math.LongMath
+import java.math.RoundingMode
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.sqrt
 
@@ -15,6 +18,20 @@ import kotlin.math.sqrt
  */
 const val FUNKCIA_MOD: Long = 1_000_000_007
 
+fun digitSum(n: Long): Long {
+    if (n == Long.MIN_VALUE) {
+        return 89
+    }
+
+    var num = abs(n)
+    var result = 0L
+    while (num != 0L) {
+        result += num % 10
+        num /= 10
+    }
+    return result
+}
+
 fun funkcia(a: Long, b: Long): Long {
     if (a == b || (a < 2 && b < 2)) {
         return 0L
@@ -29,17 +46,21 @@ fun funkcia(a: Long, b: Long): Long {
 
     var result = bigger
 
-    factorize(smaller).forEach { (factor, count) ->
+    val factors = factorize(smaller)
+
+    val remainingFactors = factors.filter { (factor, count) ->
         var occursInBigger = false
         while (result % factor == 0L) {
             result /= factor
             occursInBigger = true
         }
 
-        if (!occursInBigger) {
-            repeat(count) {
-                result = (result * (factor % FUNKCIA_MOD)) % FUNKCIA_MOD
-            }
+        !occursInBigger
+    }
+
+    remainingFactors.forEach { (factor, count) ->
+        repeat(count) {
+            result = (result * (factor % FUNKCIA_MOD)) % FUNKCIA_MOD
         }
     }
     result %= FUNKCIA_MOD
@@ -59,6 +80,23 @@ fun gcd(a: Long, b: Long): Long {
         x = temp
     }
     return x
+}
+
+fun lensum(a: Long, b: Long): Long {
+    fun len(num: Long): Long {
+        if (num == Long.MIN_VALUE) {
+            // We cannot use abs
+            return 19L
+        }
+
+        if (num == 0L) {
+            return 0L
+        }
+
+        return LongMath.log10(abs(num), RoundingMode.DOWN) + 1L
+    }
+
+    return len(a) + len(b)
 }
 
 fun cursedDiv(upper: Long, lower: Long): Long {

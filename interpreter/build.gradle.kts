@@ -8,6 +8,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("reflect"))
+    implementation(libs.guava)
 
     testImplementation(libs.kotest.runner)
     testImplementation(libs.kotest.framework.datatest)

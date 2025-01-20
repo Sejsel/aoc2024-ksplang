@@ -18,9 +18,11 @@ class FunkciaTests : FunSpec({
         Triple(0, Long.MAX_VALUE, Long.MAX_VALUE % mod),
         Triple(0, mod, 0),
         Triple(0, mod - 1, mod - 1),
+        Triple(77, 521145595, 128210535),
+        Triple(100, 468151435265, 521145594),
     )
 
-    context("is in range") {
+    context("funkcia(a, b) = c") {
         withData(nameFn = { it.toString() }, tests) { (a, b, result) ->
             funkcia(a, b) shouldBeEqual result
         }
