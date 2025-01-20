@@ -93,7 +93,7 @@ fun main() {
         require(result in targetValues)
         val existingSolution = solutions[result]
         if (existingSolution == null || existingSolution.size > solution.size) {
-            solutions[result] = solution
+            solutions[result] = solution.toList()
             foundImprovements += 1
         }
     }
@@ -473,8 +473,6 @@ fun main() {
             }
         }
 
-        // TODO: Do more generic "intermediates", then finishers
-
         val initializers = listOf(CsInitializer) + binaryOps.flatMap { op ->
             (0..7).map { increments ->
                 CsIncrementCsBinaryOpInitializer(op, increments)
@@ -483,11 +481,14 @@ fun main() {
 
         initializers.forEach { initializer ->
             trackImprovements("combos, initializer $initializer") {
-                // TODO: We are only considering building on top of other target values.
+                val program = mutableListOf<Op>()
                 targetValues.forEach target@{ startN ->
                     if (startN !in solutions) {
                         return@target
                     }
+
+                    program.clear()
+                    program.addAll(solutions[startN]!!)
 
                     val bottom = startN
 
@@ -495,9 +496,10 @@ fun main() {
                     // CS
                     // CS [++] CS <binary_op>
 
-                    val (top, initializerOps) = when (initializer) {
+                    val top = when (initializer) {
                         CsInitializer -> {
-                            digitSum(startN) to listOf(Op.DigitSum)
+                            program.add(Op.DigitSum)
+                            digitSum(startN)
                         }
 
                         is CsIncrementCsBinaryOpInitializer -> {
@@ -553,12 +555,12 @@ fun main() {
                                 else -> error("Unsupported op")
                             }
 
-                            result to buildList {
-                                add(Op.DigitSum)
-                                repeat(initializer.increments) { add(Op.Increment) }
-                                add(Op.DigitSum)
-                                add(initializer.op)
-                            }
+                            program.add(Op.DigitSum)
+                            repeat(initializer.increments) { program.add(Op.Increment) }
+                            program.add(Op.DigitSum)
+                            program.add(initializer.op)
+
+                            result
                         }
                     }
 
@@ -620,14 +622,13 @@ fun main() {
                                 else -> error("Unsupported op")
                             }
                             if (result in targetValues) {
-                                val program = buildList {
-                                    addAll(solutions[startN]!!)
-                                    addAll(initializerOps)
-                                    repeat(increments) { add(Op.Increment) }
-                                    add(op)
-                                }
+                                repeat(increments) { program.add(Op.Increment) }
+                                program.add(op)
 
                                 trySolution(result, program)
+                                repeat(increments + 1) {
+                                    program.removeLast()
+                                }
                             }
                         }
                     }
