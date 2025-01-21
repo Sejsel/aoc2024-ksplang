@@ -43,8 +43,12 @@ data class TrackImprovementsResult(
     }
 }
 
-class FunkciaCache {
-    private val cache = mutableMapOf<Pair<Long, Long>, Long>()
+class FunkciaCache(val maxSize: Int = 20_000_000) {
+    private val cache = object : LinkedHashMap<Pair<Long, Long>, Long>() {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Pair<Long, Long>, Long>?): Boolean {
+            return size > maxSize
+        }
+    }
 
     fun get(a: Long, b: Long): Long = cache.getOrPut(a to b) { funkcia(a, b) }
 }
@@ -113,6 +117,8 @@ fun main() {
         }
     }
 
+    // Used to avoid reruning the same "combos" unless prefix length changed (maps solution -> last length)
+    val lastRanComboLength = mutableMapOf<Long, Int>()
 
     var loopIndex = 0
     do {
@@ -486,6 +492,12 @@ fun main() {
                     if (startN !in solutions) {
                         return@target
                     }
+
+                    // TODO: This does not work, we would have to swap targetValues and initializers
+                    // This will always produce the same results for the same startN, no need to rerun unless prefix has improved.
+                    //if (lastRanComboLength[startN] == solutions[startN]!!.size) {
+                    //    return@target
+                    //}
 
                     program.clear()
                     program.addAll(solutions[startN]!!)

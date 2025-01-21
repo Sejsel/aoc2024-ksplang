@@ -7,52 +7,52 @@ import java.io.File
 
 data class Day(
     val name: String,
-    val gen1: (() -> Block)?,
-    val gen2: (() -> Block)?,
+    val gen1: (() -> Block)? = null,
+    val gen2: (() -> Block)? = null,
     val textInput: Boolean
 )
 
 val DAYS = listOf(
-    //Day(
-    //    name = "1",
-    //    gen1 = { day1Part1() },
-    //    gen2 = { day1Part2() },
-    //    textInput = false
-    //),
-    //Day(
-    //    name = "2",
-    //    gen1 = { day2Part1() },
-    //    gen2 = { day2Part2() },
-    //    textInput = true
-    //),
-    //Day(
-    //    name = "3",
-    //    gen1 = { day3Part1() },
-    //    gen2 = { day3Part2() },
-    //    textInput = true
-    //),
-    //Day(
-    //    name = "4",
-    //    gen1 = { day4Part1() },
-    //    gen2 = { day4Part2() },
-    //    textInput = true
-    //),
-    //Day(
-    //    name = "5",
-    //    gen1 = { day5Part1() },
-    //    gen2 = { day5Part2() },
-    //    textInput = true
-    //),
-    //Day(
-    //    name = "6",
-    //    gen1 = { day6Part1() },
-    //    gen2 = { day6Part2() },
-    //    textInput = true
-    //),
+    Day(
+        name = "1",
+        gen1 = { day1Part1() },
+        gen2 = { day1Part2() },
+        textInput = false
+    ),
+    Day(
+        name = "2",
+        gen1 = { day2Part1() },
+        //gen2 = { day2Part2() },
+        textInput = true
+    ),
+    Day(
+        name = "3",
+        gen1 = { day3Part1() },
+        gen2 = { day3Part2() },
+        textInput = true
+    ),
+    Day(
+        name = "4",
+        gen1 = { day4Part1() },
+        gen2 = { day4Part2() },
+        textInput = true
+    ),
+    Day(
+        name = "5",
+        gen1 = { day5Part1() },
+        gen2 = { day5Part2() },
+        textInput = true
+    ),
+    Day(
+        name = "6",
+        gen1 = { day6Part1() },
+        //gen2 = { day6Part2() },
+        textInput = true
+    ),
     Day(
         name = "7",
         gen1 = { day7Part1() },
-        gen2 = { day7Part2() },
+        //gen2 = { day7Part2() },
         textInput = true
     ),
 )

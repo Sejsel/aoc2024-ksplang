@@ -62,7 +62,7 @@ Writing the solution to the first part didn't take too long.
 Made a little summary generator to generate that table above. Somehow it's too enjoyable
 to try to get the instruction count down.
 
-I also reintroduced my catalogue of [short ways to push a constant](gen/src/main/resources/short_pushes.txt).
+I also reintroduced my catalogue of [short ways to push a constant](gen/src/main/resources/short_pushes.txt.gz).
 There are still a few more optimizations that I need to reintroduce from my Python tooling, but this one
 was somehow the most fun back then and it makes a decent difference (~16% speedup in day 1-1).
 

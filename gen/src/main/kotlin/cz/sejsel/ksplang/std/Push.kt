@@ -6,10 +6,11 @@ import cz.sejsel.ksplang.dsl.core.Instruction
 import cz.sejsel.ksplang.dsl.core.SimpleFunction
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.extract
+import java.util.zip.GZIPInputStream
 import kotlin.math.abs
 
 object ShortPushes {
-    val sequencesByNumber: Map<Long, List<Instruction>> = this::class.java.getResourceAsStream("/short_pushes.txt")?.bufferedReader()!!
+    val sequencesByNumber: Map<Long, List<Instruction>> = GZIPInputStream(this::class.java.getResourceAsStream("/short_pushes.txt.gz")).bufferedReader()
         .readText()
         .lines()
         .map { it.trim() }
