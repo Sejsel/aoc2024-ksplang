@@ -21,7 +21,7 @@ import cz.sejsel.ksplang.std.*
 fun Scope.parseNonNegativeNum(indexFrom: Parameter, terminator: Parameter, base: Int = 10) =
     when (terminator) {
         is Constant -> runFun2(indexFrom) { parseNonNegativeNum(terminator.value, base = base) }
-        is Variable -> runFun2(indexFrom, terminator) { parseNonNegativeNum(base = base) }
+        is Variable -> runFun2(indexFrom, terminator) { parseNonNegativeNum2(base = base) }
     }
 
 /**

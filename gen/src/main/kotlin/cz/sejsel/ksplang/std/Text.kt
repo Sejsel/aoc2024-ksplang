@@ -38,7 +38,7 @@ fun ComplexBlock.parseNonNegativeNum(terminator: Long, base: Int = 10) = complex
  *
  * Signature: i terminator -> number index_of_terminator
  */
-fun ComplexBlock.parseNonNegativeNum(base: Int = 10) = complexFunction("parseNum($base)") {
+fun ComplexBlock.parseNonNegativeNum2(base: Int = 10) = complexFunction("parseNum($base)") {
     // start terminator
     dupSecond()
     // start terminator start
