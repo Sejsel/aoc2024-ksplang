@@ -53,7 +53,10 @@ fun day8() = buildComplexFunction {
             // This may be a newline char
             ifBool(isValid(x, y, width, height)) {
                 val isAntinode = variable(false)
-                doNTimes(stacklen) { pos2 ->
+                val pos2 = copy(stacklen)
+                whileNonZero({ and(pos2, not(isAntinode)) }) {
+                    set(pos2) to dec(pos2)
+
                     val (antennaX, antennaY) = toXY(pos2, width, height)
 
                     // This may be a newline char
