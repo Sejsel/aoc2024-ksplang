@@ -249,6 +249,8 @@ class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, p
 
     /**
      * Runs the inner block n times, not changing the value of n. If n is zero, the inner block is not run at all.
+     *
+     * Passes a variable i to the inner block, which **starts at n-1 and goes down to 0**, last iteration has i = 0.
      */
     fun doNTimes(n: Variable, inner: Scope.(i: Variable) -> Unit) {
         val count = max2(n, const(0))

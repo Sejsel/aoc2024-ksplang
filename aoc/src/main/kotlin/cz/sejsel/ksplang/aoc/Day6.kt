@@ -282,7 +282,7 @@ fun Scope.turnRight(direction: Parameter) = runFun1(direction) {
     // (pos+1)%4
 }
 
-fun Scope.toPos(x: Parameter, y: Parameter, width: Parameter) = runFun1(x, y, width) {
+private fun Scope.toPos(x: Parameter, y: Parameter, width: Parameter) = runFun1(x, y, width) {
     auto("x", "y", "width") { x, y, width ->
         // There is a newline at the end of each line
         set(width) to add(width, 1)
@@ -294,7 +294,7 @@ fun Scope.toPos(x: Parameter, y: Parameter, width: Parameter) = runFun1(x, y, wi
     }
 }
 
-fun Scope.toXY(pos: Parameter, width: Parameter, height: Parameter) = runFun2(width, height, pos) {
+private fun Scope.toXY(pos: Parameter, width: Parameter, height: Parameter) = runFun2(width, height, pos) {
     // width height pos
     auto("width", "height", "pos") { width, height, pos ->
         // There is a newline at the end of each line
@@ -309,8 +309,7 @@ fun Scope.toXY(pos: Parameter, width: Parameter, height: Parameter) = runFun2(wi
     }
 }
 
-fun Scope.isValid(x: Parameter, y: Parameter, width: Parameter, height: Parameter) = runFun1(width, height, x, y) {
-    // width height pos
+private fun Scope.isValid(x: Parameter, y: Parameter, width: Parameter, height: Parameter) = runFun1(width, height, x, y) {
     auto("width", "height", "x", "y") { width, height, x, y ->
         // x >= 0 && x < width && y >= 0 && y < height
         val xValid = isInRange(x, const(0), add(width, -1))

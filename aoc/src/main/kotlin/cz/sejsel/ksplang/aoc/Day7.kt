@@ -27,8 +27,8 @@ fun main() {
     println("Generated program for day 7 part 2, $instructionCount2 instructions")
 }
 
-val NEWLINE = const('\n'.code)
-val SPACE = const(' '.code)
+private val NEWLINE = const('\n'.code)
+private val SPACE = const(' '.code)
 
 fun day7Part1() = day7(isSolvableCheck = Scope::tryAddAndMul)
 fun day7Part2() = day7(isSolvableCheck = Scope::tryAddMulAndConcat)
@@ -144,7 +144,7 @@ private fun Scope.tryAddMulAndConcat(
     return isSolvable
 }
 
-fun Scope.concat(a: Parameter, b: Parameter) = runFun1(a, b) {
+private fun Scope.concat(a: Parameter, b: Parameter) = runFun1(a, b) {
     // a b
     dup()
     // a b b
