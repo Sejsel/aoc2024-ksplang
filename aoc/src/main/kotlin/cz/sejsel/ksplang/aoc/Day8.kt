@@ -51,37 +51,22 @@ fun day8() = buildComplexFunction {
             val (x, y) = toXY(pos, width, height)
 
             // This may be a newline char
-            val valid = isValid(x, y, width, height)
-            ifBool(valid) {
+            ifBool(isValid(x, y, width, height)) {
                 val isAntinode = variable(false)
-                // TODO: Break on isAntinode true
-                doNTimes(width) { antennaX ->
-                    val distance = subabs(antennaX, x)
-                    ifBool(distance) {
-                        val frequency = yoink(toPos(antennaX, y, width))
-                        ifBool(not(eq(frequency, '.'.code))) {
-                            // other antenna may be at y = -2x, 2x, -1/2x, 1/2x
+                doNTimes(stacklen) { pos2 ->
+                    val (antennaX, antennaY) = toXY(pos2, width, height)
 
-                            val doubleDistance = mul(distance, 2)
-                            ifBool(isAntenna(x, add(y, doubleDistance), width, height, frequency)) {
+                    // This may be a newline char
+                    ifBool(isValid(antennaX, antennaY, width, height)) {
+                        val xDistance = subabs(antennaX, x)
+                        val yDistance = subabs(antennaY, y)
+
+                        val notSame = or(xDistance, yDistance)
+                        val frequency = yoink(toPos(antennaX, antennaY, width))
+                        val hasFrequency = not(eq(frequency, '.'.code))
+                        ifBool(and(notSame, hasFrequency)) {
+                            ifBool(isAntenna(add(antennaX, xDistance), add(antennaY, yDistance), width, height, frequency)) {
                                 set(isAntinode) to true
-                            }
-
-                            ifBool(isAntenna(x, add(y, negate(doubleDistance)), width, height, frequency)) {
-                                set(isAntinode) to true
-                            }
-
-
-                            ifBool(mod(antennaX, const(2))) {
-                                val halfDistance = div(distance, 2)
-                                // we can also try div
-                                ifBool(isAntenna(x, add(y, halfDistance), width, height, frequency)) {
-                                    set(isAntinode) to true
-                                }
-
-                                ifBool(isAntenna(x, add(y, negate(halfDistance)), width, height, frequency)) {
-                                    set(isAntinode) to true
-                                }
                             }
                         }
                     }
