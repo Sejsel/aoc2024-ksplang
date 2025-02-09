@@ -61,7 +61,6 @@ fun day8() = buildComplexFunction {
 
                     // This may be a newline char
                     ifBool(isValid(antennaX, antennaY, width, height)) {
-                        // TODO: Maybe not subabs?
                         val xDistance = add(antennaX, negate(x))
                         val yDistance = add(antennaY, negate(y))
 
