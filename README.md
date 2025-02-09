@@ -39,6 +39,7 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 | 6-2 | [98210](/ksplang/6-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt)) | text       | 6184.82s   | 552616919215          |
 | 7-1 | [22598](/ksplang/7-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day7.kt)) | text       | 88.277s    | 6921562949            |
 | 7-2 | [35233](/ksplang/7-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day7.kt)) | text       | 16500.261s | 1453249659806         |
+| 8-1 | [24291](/ksplang/8-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day8.kt)) | text       | 639.033s   | 46258522186           |
 
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
@@ -172,3 +173,8 @@ I thought this would run a bit slower than part 1, around an hour, did not imple
 (early stopping) and went to sleep. Woke up to a new runtime record of 4.5 hours. Neat!
 Would be fairly easy to make significantly faster. Not having a simple `break` for loops makes it more likely
 that something like this will happen again, though.
+
+### [Day 8](https://adventofcode.com/2024/day/8) (2025-02-09)
+
+It would be really nice to have some data structures. Like, any at all; would have to somehow manually allocate for them.
+Or maybe it's time to add an allocator?
