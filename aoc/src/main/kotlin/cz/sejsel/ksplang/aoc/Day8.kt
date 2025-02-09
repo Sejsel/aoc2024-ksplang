@@ -61,8 +61,9 @@ fun day8() = buildComplexFunction {
 
                     // This may be a newline char
                     ifBool(isValid(antennaX, antennaY, width, height)) {
-                        val xDistance = subabs(antennaX, x)
-                        val yDistance = subabs(antennaY, y)
+                        // TODO: Maybe not subabs?
+                        val xDistance = add(antennaX, negate(x))
+                        val yDistance = add(antennaY, negate(y))
 
                         val notSame = or(xDistance, yDistance)
                         val frequency = yoink(toPos(antennaX, antennaY, width))
