@@ -30,6 +30,7 @@ fun main() {
 }
 
 private val NEWLINE = const('\n'.code)
+private val DOT = const('.'.code)
 private val SPACE = const(' '.code)
 
 fun day8Part1() = day8()
@@ -38,31 +39,32 @@ fun day8Part1() = day8()
 fun day8() = buildComplexFunction {
     // [input]
     stacklen()
-    // [input] stacklen
+    push(0)
+    swap2()
+    // [input] 0 stacklen
+    yoinkSlice()
+    // [input] [input] stacklen
     auto("stacklen") { stacklen ->
         val input = Slice(const(0), stacklen)
+        val output = Slice(stacklen, stacklen)
 
         val height = countOccurrences(NEWLINE, input)
         val width = div(stacklen, add(height, 1))
 
-        val totalAntinodes = variable(0)
-
         doNTimes(stacklen) { pos ->
-            val (x, y) = toXY(pos, width, height)
+            val (antennaX, antennaY) = toXY(pos, width, height)
 
-            // This may be a newline char
-            ifBool(isValid(x, y, width, height)) {
-                val isAntinode = variable(false)
-                val pos2 = copy(stacklen)
-                whileNonZero({ and(pos2, not(isAntinode)) }) {
-                    set(pos2) to dec(pos2)
+            val frequency = yoink(toPos(antennaX, antennaY, width))
+            val isAntenna = and(not(eq(frequency, NEWLINE)), not(eq(frequency, DOT)))
 
-                    val (antennaX, antennaY) = toXY(pos2, width, height)
+            ifBool(isAntenna) {
+                doNTimes(stacklen) { pos2 ->
+                    val (otherX, otherY) = toXY(pos2, width, height)
 
                     // This may be a newline char
                     ifBool(isValid(antennaX, antennaY, width, height)) {
-                        val xDistance = add(antennaX, negate(x))
-                        val yDistance = add(antennaY, negate(y))
+                        val xDistance = add(antennaX, negate(otherX))
+                        val yDistance = add(antennaY, negate(otherY))
 
                         val notSame = or(xDistance, yDistance)
                         val frequency = yoink(toPos(antennaX, antennaY, width))

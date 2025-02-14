@@ -41,6 +41,20 @@ fun Block.add(n: Long) = function("add($n)") {
     }
 }
 
+
+/**
+ * Subtracts the top two values and returns the difference.
+ *
+ * Signature: `a b -> a-b`
+ */
+fun Block.sub() = function("sub") {
+    // a b
+    negate()
+    // a -b
+    add()
+    // a-b
+}
+
 /**
  * Subtracts the top two values and returns the absolute value of the difference.
  *

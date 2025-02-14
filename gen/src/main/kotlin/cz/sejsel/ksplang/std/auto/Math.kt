@@ -14,6 +14,13 @@ fun Scope.add(a: Parameter, b: Parameter) = runFun1(a, b) {
 }
 
 /**
+ * Subtracts two values (a - b). Crashes in case of overflow.
+ */
+fun Scope.sub(a: Parameter, b: Parameter) = runFun1(a, b) {
+    sub()
+}
+
+/**
  * Subtracts two values and returns the absolute value of the differencee: |a-b|.
  */
 fun Scope.subabs(a: Parameter, b: Parameter) = runFun1(a, b) {
