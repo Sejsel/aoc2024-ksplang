@@ -9,7 +9,6 @@ import cz.sejsel.ksplang.dsl.auto.const
 import cz.sejsel.ksplang.dsl.auto.runFun1
 import cz.sejsel.ksplang.dsl.auto.runFun2
 import cz.sejsel.ksplang.dsl.auto.set
-import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.std.auto.*
 import cz.sejsel.ksplang.std.*
@@ -23,20 +22,19 @@ fun main() {
     val instructionCount = program.trim().split("\\s+".toRegex()).count()
     File("ksplang/8-1.ksplang").writeText(program)
     println("Generated program for day 8 part 1, $instructionCount instructions")
-    //val program2 = builder.build(day8Part2())
-    //val instructionCount2 = program2.trim().split("\\s+".toRegex()).count()
-    //File("ksplang/8-2.ksplang").writeText(program2)
-    //println("Generated program for day 8 part 2, $instructionCount2 instructions")
+    val program2 = builder.build(day8Part2())
+    val instructionCount2 = program2.trim().split("\\s+".toRegex()).count()
+    File("ksplang/8-2.ksplang").writeText(program2)
+    println("Generated program for day 8 part 2, $instructionCount2 instructions")
 }
 
 private val NEWLINE = const('\n'.code)
 private val DOT = const('.'.code)
-private val SPACE = const(' '.code)
 
-fun day8Part1() = day8()
-//fun day8Part2() = day8()
+fun day8Part1() = day8(1)
+fun day8Part2() = day8(null)
 
-fun day8() = buildComplexFunction {
+fun day8(requiredMultiplier: Int?) = buildComplexFunction {
     // [input]
     stacklen()
     push(0)
@@ -60,30 +58,40 @@ fun day8() = buildComplexFunction {
             ifBool(isAntenna) {
                 doNTimes(stacklen) { pos2 ->
                     val (otherX, otherY) = toXY(pos2, width, height)
+                    val otherFrequency = yoink(toPos(otherX, otherY, width))
+                    val isSameFrequency = eq(frequency, otherFrequency)
+                    val xDistance = sub(antennaX, otherX)
+                    val yDistance = sub(antennaY, otherY)
+                    val notSame = or(xDistance, yDistance)
 
-                    // This may be a newline char
-                    ifBool(isValid(antennaX, antennaY, width, height)) {
-                        val xDistance = add(antennaX, negate(otherX))
-                        val yDistance = add(antennaY, negate(otherY))
+                    ifBool(and(isSameFrequency, notSame)) {
+                        val distanceMultiplier = requiredMultiplier?.let { variable(it) } ?: variable(0)
 
-                        val notSame = or(xDistance, yDistance)
-                        val frequency = yoink(toPos(antennaX, antennaY, width))
-                        val hasFrequency = not(eq(frequency, '.'.code))
-                        ifBool(and(notSame, hasFrequency)) {
-                            ifBool(isAntenna(add(antennaX, xDistance), add(antennaY, yDistance), width, height, frequency)) {
-                                set(isAntinode) to true
+                        val continueLoop = variable(true)
+                        doWhileNonZero({ continueLoop }) {
+                            val resultX = add(antennaX, mul(xDistance, distanceMultiplier))
+                            val resultY = add(antennaY, mul(yDistance, distanceMultiplier))
+                            val isValid = isValid(resultX, resultY, width, height)
+                            ifBool(isValid) {
+                                val pos = toPos(resultX, resultY, width)
+                                yeet(add(output.from, pos), '#'.code.const)
+                            } otherwise {
+                                set(continueLoop) to false
+                            }
+                            set(distanceMultiplier) to inc(distanceMultiplier)
+
+                            if (requiredMultiplier != null) {
+                                set(continueLoop) to false
                             }
                         }
                     }
                 }
-
-                ifBool(isAntinode) {
-                    set(totalAntinodes) to add(totalAntinodes, 1)
-                }
             }
         }
 
-        keepOnly(totalAntinodes)
+        val antinodes = countOccurrences('#'.code.const, output)
+
+        keepOnly(antinodes)
     }
     leaveTop()
 }

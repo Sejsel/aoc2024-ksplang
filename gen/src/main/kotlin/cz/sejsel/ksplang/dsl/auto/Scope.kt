@@ -28,6 +28,9 @@ data class Constant(val value: Long) : Parameter
 fun const(value: Int): Constant = const(value.toLong())
 fun const(value: Long): Constant = Constant(value)
 
+val Int.const: Constant get() = const(this)
+val Long.const: Constant get() = const(this)
+
 
 @KsplangMarker
 class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, private val parent: Scope?) {
@@ -51,6 +54,9 @@ class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, p
 
         return variable
     }
+
+    /** Create a new stack variable */
+    fun variable(defaultValue: Int) = variable(null, defaultValue.toLong())
 
     /** Create a new stack variable */
     fun variable(defaultValue: Long = 0) = variable(null, defaultValue)

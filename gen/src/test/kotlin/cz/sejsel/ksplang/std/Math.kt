@@ -36,6 +36,32 @@ class AddTests : FunSpec({
     }
 })
 
+class SubTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    context("Sub zero does not change value") {
+        withData(VALUES_PER_DIGIT_SUM.map { it to 0L }) { (a, b) ->
+            val program = builder.build(buildFunction { sub() })
+            runner.run(program, listOf(a, b)) shouldContainExactly listOf(a - b)
+        }
+    }
+
+    context("Sub 1 subtracts 1") {
+        withData(VALUES_PER_DIGIT_SUM.map { it to 1L }) { (a, b) ->
+            val program = builder.build(buildFunction { sub() })
+            runner.run(program, listOf(a, b)) shouldContainExactly listOf(a - b)
+        }
+    }
+
+    context("Sub -1 adds 1") {
+        withData(VALUES_PER_DIGIT_SUM.map { it to -1L }) { (a, b) ->
+            val program = builder.build(buildFunction { sub() })
+            runner.run(program, listOf(a, b)) shouldContainExactly listOf(a - b)
+        }
+    }
+})
+
 class MulTests : FunSpec({
     val runner = KsplangRunner()
     val builder = KsplangBuilder()
