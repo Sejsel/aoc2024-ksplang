@@ -6,6 +6,7 @@ import cz.sejsel.ksplang.dsl.core.Instruction
 import cz.sejsel.ksplang.dsl.core.SimpleFunction
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.extract
+import cz.sejsel.ksplang.dsl.core.whileNonZero
 import java.util.zip.GZIPInputStream
 import kotlin.math.abs
 
@@ -170,14 +171,11 @@ fun ComplexBlock.pushManyBottom(n: Long, count: Long) = complexFunction("pushBot
  *
  * Does so using a loop, not *count* push instructions. This keeps the instruction count down which means that
  * later parts of the program will needed lower constants for branching.
+ *
+ * Signature: count -> [count * n]
  */
-fun ComplexBlock.pushMany(n: Long, count: Long) = complexFunction("pushMany($n, $count)") {
-    check(count >= 0) { "count must be non-negative" }
-
-    if (count == 0L) return@complexFunction
-
+fun ComplexBlock.pushMany(n: Long) = complexFunction("pushMany($n)") {
     // count
-    push(count)
     doWhileNonZero {
         // count
         push(n)
@@ -190,6 +188,45 @@ fun ComplexBlock.pushMany(n: Long, count: Long) = complexFunction("pushMany($n, 
     }
     // [count * n] 0
     pop()
+}
+
+/**
+ * Pushes `count` times `n` to the top of the stack. Also keeps the count on top of the stack.
+ *
+ * Signature: count -> [count * n] count
+ */
+fun ComplexBlock.pushManyAndKeepLen(n: Long) = complexFunction("pushManyAndKeepLen($n)") {
+    // count
+    dup()
+    // count count
+    // count i
+    whileNonZero {
+        // count i
+        push(n)
+        // count i n
+        roll(3, 1)
+        // n count i
+        dec()
+        // n count i-1
+    }
+    // [count * n] count
+}
+
+
+/**
+ * Pushes `count` times `n` to the top of the stack.
+ *
+ * Does so using a loop, not *count* push instructions. This keeps the instruction count down which means that
+ * later parts of the program will needed lower constants for branching.
+ */
+fun ComplexBlock.pushMany(n: Long, count: Long) = complexFunction("pushMany($n, $count)") {
+    check(count >= 0) { "count must be non-negative" }
+
+    if (count == 0L) return@complexFunction
+
+    push(count)
+    // count
+    pushMany(n)
 }
 
 class PaddingFailureException(opCount: Int, minOpCount: Int) :

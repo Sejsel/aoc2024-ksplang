@@ -4,6 +4,7 @@ import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
+import cz.sejsel.ksplang.dsl.core.whileNonZero
 
 /**
  * Given a slice, count the number of occurrences of a number
@@ -196,4 +197,35 @@ fun ComplexBlock.yoinkSliceWithGap() = complexFunction("yoinkSliceWithGap") {
     // s[from:from+gap) s[from+gap+1:from+len) len-gap-1 gap
     add()
     // s[from:from+gap) s[from+gap+1:from+len) len-1
+}
+
+/**
+ * Sets all elements of a slice to a given value.
+ *
+ * Signature: `from len val ->`
+ */
+fun ComplexBlock.setSlice() = complexFunction("setSliceTo") {
+    // from len val
+    swap2()
+    // from val len
+    // from val i
+    whileNonZero {
+        // from val i
+        dec()
+        // from val i-1
+        dupThird()
+        // from val i-1 from
+        dupSecond()
+        // from val i-1 from i-1
+        add()
+        // from val i-1 from+i-1
+        dupThird()
+        // from val i-1 from+i-1 val
+        swap2()
+        // from val i-1 val from+i-1
+        yeet()
+        // from val i-1
+    }
+    // from val
+    pop(); pop()
 }

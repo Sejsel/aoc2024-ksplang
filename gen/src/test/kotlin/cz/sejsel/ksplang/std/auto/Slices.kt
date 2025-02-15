@@ -30,5 +30,20 @@ class SliceTests : FunSpec({
         runner.run(program, prefix + input) shouldContainExactly prefix + input + listOf(3L)
     }
 
+
+    test("set slice to zero") {
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6, 7, 8, 9)
+        val program = builder.build(buildComplexFunction {
+            auto {
+                val from = variable("from", 3)
+                val slice = Slice(from, 3.const)
+
+                setSliceTo(slice, 0.const)
+
+                keepOnly()
+            }
+        })
+        runner.run(program, input) shouldContainExactly listOf(1, 2, 3, 0, 0, 0, 7, 8, 9)
+    }
 })
 

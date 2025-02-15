@@ -3,7 +3,6 @@ package cz.sejsel.ksplang.std
 import cz.sejsel.ksplang.KsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
-import cz.sejsel.ksplang.dsl.core.buildFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
@@ -112,5 +111,27 @@ class CopySliceTests : FunSpec({
 
     test("copySlice slice from 1 to 3, len 0") {
         runner.run(program, listOf(1, 2, 3, 4, 5, 6, 1, 3, 0)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6)
+    }
+})
+
+class SetSliceTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+    val program = builder.build(buildComplexFunction { setSlice() })
+
+    test("set slice from 0, len 3") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 0, 3, 42)) shouldContainExactly listOf(42, 42, 42, 4, 5, 6)
+    }
+
+    test("set slice from 1, len 3") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 1, 3, 42)) shouldContainExactly listOf(1, 42, 42, 42, 5, 6)
+    }
+
+    test("set slice from 2, len 1") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 2, 1, 42)) shouldContainExactly listOf(1, 2, 42, 4, 5, 6)
+    }
+
+    test("set slice from 1, len 0") {
+        runner.run(program, listOf(1, 2, 3, 4, 5, 6, 1, 0, 42)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6)
     }
 })

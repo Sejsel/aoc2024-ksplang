@@ -7,6 +7,7 @@ import cz.sejsel.ksplang.dsl.auto.runFun0
 import cz.sejsel.ksplang.dsl.auto.runFun1
 import cz.sejsel.ksplang.std.countOccurrences
 import cz.sejsel.ksplang.std.copySlice
+import cz.sejsel.ksplang.std.setSlice
 
 data class Slice(
     val from: Parameter,
@@ -38,4 +39,11 @@ fun Scope.countOccurrences(value: Parameter, slice: Slice) = runFun1(value, slic
  */
 fun Scope.copySlice(slice: Slice, destinationIndex: Parameter) = runFun0(slice.from, destinationIndex, slice.len) {
     copySlice()
+}
+
+/**
+ * Sets all elements of a slice to the same value.
+ */
+fun Scope.setSliceTo(slice: Slice, value: Parameter) = runFun0(slice.from, slice.len, value) {
+    setSlice()
 }

@@ -113,6 +113,21 @@ class PushManyTests : FunSpec({
     }
 })
 
+class PushManyLenTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+    val program = builder.build(buildComplexFunction {
+        pushManyAndKeepLen(4)
+    })
+
+    test("pushManyLen(4) 7") {
+        runner.run(program, listOf(42, 7)) shouldContainExactly listOf(42, 4, 4, 4, 4, 4, 4, 4, 7)
+    }
+    test("pushManyLen(4) 0") {
+        runner.run(program, listOf(42, 0)) shouldContainExactly listOf(42, 0)
+    }
+})
+
 class PushManyBottomTests : FunSpec({
     val runner = KsplangRunner()
     val builder = KsplangBuilder()

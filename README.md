@@ -179,3 +179,9 @@ that something like this will happen again, though.
 
 It would be really nice to have some data structures. Like, any at all; would have to somehow manually allocate for them.
 Or maybe it's time to add an allocator?
+
+### [Day 9](https://adventofcode.com/2024/day/8) (2025-02-14)
+
+What a perfect day to write some ksplang.
+
+[Allocation](/gen/src/main/kotlin/cz/sejsel/ksplang/std/Alloc.kt) is a go.
