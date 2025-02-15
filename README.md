@@ -41,6 +41,7 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 | 7-2 | [35233](/ksplang/7-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day7.kt)) | text       | 16500.261s | 1453249659806         |
 | 8-1 | [19867](/ksplang/8-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day8.kt)) | text       | 31.51s     | 2236694272            |
 | 8-2 | [19837](/ksplang/8-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day8.kt)) | text       | 31.75s     | 2246499101            |
+| 9-1 | [14585](/ksplang/9-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day9.kt)) | text       | 8.526s     | 613203435             |
 
 *Note: Some instruction count optimizations are not enabled. You can place some functions at the start of the file and use
 the `call` instruction to use them; for example each `dup` goes down from 38 to 11 instructions needed to trigger the `call`.
@@ -141,7 +142,7 @@ It's just an extra tool in the arsenal, albeit a powerful one.
 
 You can see what this looks like on the [Day 6](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt) task solution.
 There are a few lambdas in places you might not expect (conditions) and we need to avoid Kotlin keywords, but overall
-it works quite well. It has definitely saved a lot of time on implementing the task. And since this is still all build
+it works quite well. It has definitely saved a lot of time on implementing the task. And since this is still all built
 on top of a Kotlin DSL, there is no need to parse this, it's all just function calls.
 
 There are a few footguns here that need to be kept in mind. We cannot override the assignment operator, so instead of
@@ -185,3 +186,15 @@ Or maybe it's time to add an allocator?
 What a perfect day to write some ksplang.
 
 [Allocation](/gen/src/main/kotlin/cz/sejsel/ksplang/std/Alloc.kt) is a go.
+
+It would be nice to distinguish between mutable and immutable variables in the `auto` scopes. I added a `sliceForEach`,
+which executes a block of code for each value in the slice. It provides the value as a variable, but it's a copy
+(it had to be retrieved from the stack), so if you write the following it does not do what you would expect:
+
+```kotlin
+val slice = Slice(0.const, 3.const) 
+sliceForEach(slice) {
+    set(it) to 42
+}
+
+```

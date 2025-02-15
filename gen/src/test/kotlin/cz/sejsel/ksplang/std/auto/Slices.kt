@@ -45,5 +45,55 @@ class SliceTests : FunSpec({
         })
         runner.run(program, input) shouldContainExactly listOf(1, 2, 3, 0, 0, 0, 7, 8, 9)
     }
+
+    test("sliceForEach") {
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6, 7, 8, 9)
+        val program = builder.build(buildComplexFunction {
+            auto {
+                val from = variable(3)
+                val slice = Slice(from, 3.const)
+
+                val sum = variable(0)
+                sliceForEach(slice) {
+                    set(sum) to add(sum, it)
+                }
+
+                keepOnly(sum)
+            }
+        })
+        runner.run(program, input) shouldContainExactly input + listOf(15L)
+    }
+
+    test("set(slice[1])") {
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6, 7, 8, 9)
+        val program = builder.build(buildComplexFunction {
+            auto {
+                val from = variable(3)
+                val slice = Slice(from, 3.const)
+
+                set(slice[1]) to 42
+
+                keepOnly()
+            }
+        })
+        runner.run(program, input) shouldContainExactly listOf(1, 2, 3, 4, 42, 6, 7, 8, 9)
+    }
+
+    test("set(slice[var])") {
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6, 7, 8, 9)
+        val program = builder.build(buildComplexFunction {
+            auto {
+                val from = variable(3)
+                val slice = Slice(from, 3.const)
+
+                val index = variable(1)
+
+                set(slice[index]) to 42
+
+                keepOnly()
+            }
+        })
+        runner.run(program, input) shouldContainExactly listOf(1, 2, 3, 4, 42, 6, 7, 8, 9)
+    }
 })
 

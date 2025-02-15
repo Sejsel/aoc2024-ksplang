@@ -75,3 +75,60 @@ fun ComplexBlock.isInRange() = complexFunction("isInRange") {
     zeroNotPositive()
     // 0 if x is out of range, 1 otherwise
 }
+
+/**
+ * Checks whether a >= b.
+ *
+ * Signature: `a b -> 1 if a >= b, 0 otherwise`
+ */
+fun ComplexBlock.geq() = complexFunction("geq") {
+    // a b
+    cmp()
+    // sgn(a-b)
+    inc()
+    // sgn(a-b)+1
+    sgn()
+}
+
+/**
+ * Checks whether a > b.
+ *
+ * Signature: `a b -> 1 if a > b, 0 otherwise`
+ */
+fun ComplexBlock.gt() = complexFunction("gt") {
+    // a b
+    cmp()
+    // sgn(a-b)
+    zeroNotPositive()
+    zeroNotPositive()
+}
+
+
+/**
+ * Checks whether a <= b.
+ *
+ * Signature: `a b -> 1 if a <= b, 0 otherwise`
+ */
+fun ComplexBlock.leq() = complexFunction("leq") {
+    // a b
+    cmp()
+    // sgn(a-b)
+    negate()
+    // -sgn(a-b)
+    inc()
+    // -sgn(a-b)+1
+    sgn()
+}
+
+/**
+ * Checks whether a < b.
+ *
+ * Signature: `a b -> 1 if a < b, 0 otherwise`
+ */
+fun ComplexBlock.lt() = complexFunction("lt") {
+    // a b
+    cmp()
+    // sgn(a-b)
+    inc()
+    zeroNotPositive()
+}

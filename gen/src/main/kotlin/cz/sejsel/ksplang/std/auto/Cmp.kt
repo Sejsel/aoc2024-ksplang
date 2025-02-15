@@ -45,3 +45,31 @@ fun Scope.eq(a: Parameter, b: Long) = eq(a, const(b))
  * Returns 1 if the two values are equal, 0 otherwise.
  */
 fun Scope.eq(a: Parameter, b: Int) = eq(a, const(b))
+
+/**
+ * Returns 1 if a >= b, 0 otherwise.
+ */
+fun Scope.geq(a: Parameter, b: Parameter) = runFun1(a, b) {
+    geq()
+}
+
+/**
+ * Returns 1 if a <= b, 0 otherwise.
+ */
+fun Scope.leq(a: Parameter, b: Parameter) = runFun1(a, b) {
+    leq()
+}
+
+/**
+ * Returns 1 if a > b, 0 otherwise.
+ */
+fun Scope.gt(a: Parameter, b: Parameter) = runFun1(a, b) {
+    gt()
+}
+
+/**
+ * Returns 1 if a < b, 0 otherwise.
+ */
+fun Scope.lt(a: Parameter, b: Parameter) = runFun1(a, b) {
+    lt()
+}

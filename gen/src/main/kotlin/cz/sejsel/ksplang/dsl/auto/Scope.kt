@@ -412,7 +412,7 @@ fun ComplexBlock.auto(
 }
 
 
-data class VarSetter(val scope: Scope, val variable: Variable) {
+data class VarSetter(val scope: Scope, val variable: Variable, val executeAfter: Scope.() -> Unit = {}) {
     infix fun to(parameter: Parameter) {
         var toIndex = scope.findIndexFromTop(variable)
         scope.prepareParams(listOf(parameter))
@@ -421,6 +421,8 @@ data class VarSetter(val scope: Scope, val variable: Variable) {
         scope.block.roll(toIndex + 2L, 1)
         // val to [vars]
         scope.block.popKth(toIndex + 1L)
+
+        executeAfter(scope)
     }
 
     infix fun to(const: Long) {

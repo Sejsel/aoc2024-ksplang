@@ -65,3 +65,103 @@ class IsInRangeTests : FunSpec({
         }
     }
 })
+
+class GeqTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    val pairs = listOf(
+        0L to 0L,
+        1L to -1L,
+        -1L to 0L,
+        0L to 1L,
+        42L to 15L,
+        Long.MAX_VALUE to Long.MAX_VALUE,
+        Long.MIN_VALUE to Long.MIN_VALUE,
+        Long.MIN_VALUE to Long.MAX_VALUE,
+        Long.MAX_VALUE to Long.MIN_VALUE,
+    )
+
+    context("geq") {
+        withData(pairs) { (a, b) ->
+            val expectedResult = if (a >= b) 1L else 0L
+            val program = builder.build(buildComplexFunction { geq() })
+            runner.run(program, listOf(a, b)) shouldContainExactly listOf(expectedResult)
+        }
+    }
+})
+
+class GtTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    val pairs = listOf(
+        0L to 0L,
+        1L to -1L,
+        -1L to 0L,
+        0L to 1L,
+        42L to 15L,
+        Long.MAX_VALUE to Long.MAX_VALUE,
+        Long.MIN_VALUE to Long.MIN_VALUE,
+        Long.MIN_VALUE to Long.MAX_VALUE,
+        Long.MAX_VALUE to Long.MIN_VALUE,
+    )
+
+    context("gt") {
+        withData(pairs) { (a, b) ->
+            val expectedResult = if (a > b) 1L else 0L
+            val program = builder.build(buildComplexFunction { gt() })
+            runner.run(program, listOf(a, b)) shouldContainExactly listOf(expectedResult)
+        }
+    }
+})
+
+class LeqTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    val pairs = listOf(
+        0L to 0L,
+        1L to -1L,
+        -1L to 0L,
+        0L to 1L,
+        42L to 15L,
+        Long.MAX_VALUE to Long.MAX_VALUE,
+        Long.MIN_VALUE to Long.MIN_VALUE,
+        Long.MIN_VALUE to Long.MAX_VALUE,
+        Long.MAX_VALUE to Long.MIN_VALUE,
+    )
+
+    context("leq") {
+        withData(pairs) { (a, b) ->
+            val expectedResult = if (a <= b) 1L else 0L
+            val program = builder.build(buildComplexFunction { leq() })
+            runner.run(program, listOf(a, b)) shouldContainExactly listOf(expectedResult)
+        }
+    }
+})
+
+class LtTests : FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    val pairs = listOf(
+        0L to 0L,
+        1L to -1L,
+        -1L to 0L,
+        0L to 1L,
+        42L to 15L,
+        Long.MAX_VALUE to Long.MAX_VALUE,
+        Long.MIN_VALUE to Long.MIN_VALUE,
+        Long.MIN_VALUE to Long.MAX_VALUE,
+        Long.MAX_VALUE to Long.MIN_VALUE,
+    )
+
+    context("lt") {
+        withData(pairs) { (a, b) ->
+            val expectedResult = if (a < b) 1L else 0L
+            val program = builder.build(buildComplexFunction { lt() })
+            runner.run(program, listOf(a, b)) shouldContainExactly listOf(expectedResult)
+        }
+    }
+})
