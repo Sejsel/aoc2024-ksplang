@@ -7,4 +7,4 @@ kotest-framework-datatest = { module ="io.kotest:kotest-framework-datatest", ver
 guava = { module = "com.google.guava:guava", version = "33.4.0-jre" }
 
 [plugins]
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.0.0" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.1.21" }
