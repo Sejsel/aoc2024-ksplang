@@ -189,7 +189,8 @@ What a perfect day to write some ksplang.
 
 It would be nice to distinguish between mutable and immutable variables in the `auto` scopes. I added a `sliceForEach`,
 which executes a block of code for each value in the slice. It provides the value as a variable, but it's a copy
-(it had to be retrieved from the stack), so if you write the following it does not do what you would expect:
+(it had to be retrieved from the stack), so if you wrote the following it did not do what you would expect. Well,
+at least until I changed it just to avoid the footgun, it does actually set it now.
 
 ```kotlin
 val slice = Slice(0.const, 3.const) 

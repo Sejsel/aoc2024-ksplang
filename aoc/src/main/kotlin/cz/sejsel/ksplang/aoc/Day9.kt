@@ -1,6 +1,8 @@
 package cz.sejsel.ksplang.aoc
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
+import cz.sejsel.ksplang.dsl.auto.Scope
+import cz.sejsel.ksplang.dsl.auto.Variable
 import cz.sejsel.ksplang.dsl.auto.auto
 import cz.sejsel.ksplang.dsl.auto.const
 import cz.sejsel.ksplang.dsl.auto.set
@@ -23,47 +25,22 @@ fun main() {
     //println("Generated program for day 9 part 2, $instructionCount2 instructions")
 }
 
-fun day9Part1() = day9()
-fun day9Part2() = day9().also { TODO() }
-
-fun day9() = buildComplexFunction {
+fun day9Part2() = buildComplexFunction {
     // [input]
     stacklen()
     // [input] stacklen
     auto("stacklen") { stacklen ->
-        // input ends with a newline, so we use [0:stacklen-1] as input
-        val input = Slice(const(0), dec(stacklen))
+        val disk = createDisk(stacklen)
+        TODO()
+    }
+}
 
-        val allocator = Allocator(copy(stacklen))
-
-        val sum = variable(0)
-        sliceForEach(input) {
-            set(it) to sub(it, 48.const)
-            set(sum) to add(sum, it)
-        }
-
-        val disk = alloc(allocator, sum)
-
-        val isFile = variable(true)
-        val fileId = variable(0)
-        val diskPos = variable(0)
-        sliceForEach(input) {
-            doNTimes(it) {
-                ifBool(isFile) {
-                    set(disk[diskPos]) to fileId
-                } otherwise {
-                    set(disk[diskPos]) to -1
-                }
-
-                set(diskPos) to inc(diskPos)
-            }
-
-            ifBool(isFile) {
-                set(fileId) to add(fileId, 1)
-            }
-
-            set(isFile) to not(isFile)
-        }
+fun day9Part1() = buildComplexFunction {
+    // [input]
+    stacklen()
+    // [input] stacklen
+    auto("stacklen") { stacklen ->
+        val disk = createDisk(stacklen)
 
         // Now, we move blocks to empty spaces. We scan from the front for empty spaces and from
         // the back for blocks, until they meet in the middle
@@ -89,8 +66,7 @@ fun day9() = buildComplexFunction {
             ifBool(geq(front, back)) {
                 set(stop) to true
             } otherwise {
-                // now we have a front and back which can be "swapped"
-                // we do not care about what is to the right, so we can
+                // swap front and back
                 yeet(front, yoink(back))
                 yeet(back, (-1).const)
             }
@@ -108,4 +84,41 @@ fun day9() = buildComplexFunction {
         keepOnly(checksum)
     }
     leaveTop()
+}
+
+private fun Scope.createDisk(stacklen: Variable): Slice {
+    // input ends with a newline, so we use [0:stacklen-1] as input
+    val input = Slice(const(0), dec(stacklen))
+
+    val allocator = Allocator(copy(stacklen))
+
+    val sum = variable(0)
+    sliceForEach(input) {
+        set(it) to sub(it, 48.const)
+        set(sum) to add(sum, it)
+    }
+
+    val disk = alloc(allocator, sum)
+
+    val isFile = variable(true)
+    val fileId = variable(0)
+    val diskPos = variable(0)
+    sliceForEach(input) {
+        doNTimes(it) {
+            ifBool(isFile) {
+                set(disk[diskPos]) to fileId
+            } otherwise {
+                set(disk[diskPos]) to -1
+            }
+
+            set(diskPos) to inc(diskPos)
+        }
+
+        ifBool(isFile) {
+            set(fileId) to add(fileId, 1)
+        }
+
+        set(isFile) to not(isFile)
+    }
+    return disk
 }
