@@ -88,6 +88,20 @@ sealed interface Block {
         addChild(lroll)
     }
 
+    /**
+     * Universal arithmetic operation.
+     *
+     * Pops the top value from the stack, this is the operation id. If operation id is:
+     * - 0, replaces next two top values with their sum.
+     * - 1, replaces next two top values with their absolute difference.
+     * - 2, replaces next two top values with their product.
+     * - 3, divides the top value by the second top value,
+     *     - if the result is an integer, replaces the two values with the quotient
+     *     - if the result is not an integer, replaces the two values with the remainder (like `a % b` in C)
+     * - 4, replaces the top value with its factorial of its absolute value
+     * - 5, replaces the top value with its sign (1 for positive, -1 for negative, 0 for zero)
+     * - otherwise, program execution ends with an error.
+     */
     fun u() {
         addChild(u)
     }
@@ -187,8 +201,8 @@ data class ComplexFunction(val name: String? = null, override var children: Muta
     }
 }
 
-fun ComplexBlock.ifZero(init: IfZero.() -> Unit): IfZero {
-    val f = IfZero()
+fun ComplexBlock.ifZero(popChecked: Boolean = false, init: IfZero.() -> Unit): IfZero {
+    val f = IfZero(popChecked = popChecked)
     f.init()
     children.add(f)
     return f

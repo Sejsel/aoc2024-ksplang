@@ -147,10 +147,14 @@ fun Scope.bitand(a: Parameter, b: Parameter) = runFun1(a, b) {
 }
 
 /**
- * Does a 32-bit bitwise OR on two values, discarding the upper bits.
+ * Does a bitwise OR on two values.
  */
-fun Scope.bitor32(a: Parameter, b: Parameter) = runFun1(a, b) {
-    bitor32()
+fun Scope.bitor(a: Parameter, b: Parameter) = runFun1(a, b) {
+    bitor()
+}
+
+fun Scope.bitnot(a: Parameter) = runFun1(a) {
+    bitnot()
 }
 
 /**

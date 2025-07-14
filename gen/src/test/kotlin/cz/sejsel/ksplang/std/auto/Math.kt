@@ -137,5 +137,16 @@ class MathTests : FunSpec({
         })
         runner.run(program, prefix) shouldContainExactly prefix + listOf(256)
     }
+
+    test("bitnot") {
+        val number = 10L
+        val program = builder.build(buildComplexFunction {
+            auto {
+                val result = bitnot(number.const)
+                keepOnly(result)
+            }
+        })
+        runner.run(program, prefix) shouldContainExactly prefix + listOf(number.inv())
+    }
 })
 

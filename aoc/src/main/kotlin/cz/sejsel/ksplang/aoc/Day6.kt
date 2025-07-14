@@ -221,7 +221,7 @@ fun Scope.isLoop(
                     ifBool({ bitand(status, UP_BIT) }) {
                         set(looped) to true
                     }
-                    yeet(oldPos, bitor32(status, UP_BIT))
+                    yeet(oldPos, bitor(status, UP_BIT))
 
                     set(y) to add(y, -1)
                 }
@@ -229,7 +229,7 @@ fun Scope.isLoop(
                     ifBool({ bitand(status, RIGHT_BIT) }) {
                         set(looped) to true
                     }
-                    yeet(oldPos, bitor32(status, RIGHT_BIT))
+                    yeet(oldPos, bitor(status, RIGHT_BIT))
 
                     set(x) to add(x, 1)
                 }
@@ -237,7 +237,7 @@ fun Scope.isLoop(
                     ifBool({ bitand(status, DOWN_BIT) }) {
                         set(looped) to true
                     }
-                    yeet(oldPos, bitor32(status, DOWN_BIT))
+                    yeet(oldPos, bitor(status, DOWN_BIT))
 
                     set(y) to add(y, 1)
                 }
@@ -245,7 +245,7 @@ fun Scope.isLoop(
                     ifBool({ bitand(status, LEFT_BIT) }) {
                         set(looped) to true
                     }
-                    yeet(oldPos, bitor32(status, LEFT_BIT))
+                    yeet(oldPos, bitor(status, LEFT_BIT))
 
                     set(x) to add(x, -1)
                 }

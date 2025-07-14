@@ -36,7 +36,7 @@ ksplang programs. And programs used to generate programs used to generate ksplan
 | 5-1 | [20021](/ksplang/5-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt)) | text       | 1.856s     | 132478368             |
 | 5-2 | [25165](/ksplang/5-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day5.kt)) | text       | 2.393s     | 172774543             |
 | 6-1 | [35216](/ksplang/6-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt)) | text       | 2.145s     | 192576888             |
-| 6-2 | [98210](/ksplang/6-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt)) | text       | 6184.82s   | 552616919215          |
+| 6-2 | [98210](/ksplang/6-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day6.kt)) | text       | 4206.66s   | 307526200616          |
 | 7-1 | [22598](/ksplang/7-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day7.kt)) | text       | 88.277s    | 6921562949            |
 | 7-2 | [35233](/ksplang/7-2.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day7.kt)) | text       | 16500.261s | 1453249659806         |
 | 8-1 | [19867](/ksplang/8-1.ksplang) ([generator](/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/Day8.kt)) | text       | 31.51s     | 2236694272            |

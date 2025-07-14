@@ -77,6 +77,18 @@ class StacklenTests : FunSpec({
         val input = listOf(Long.MAX_VALUE, Long.MIN_VALUE)
         runner.run(program, input) shouldContainExactly input + listOf(2)
     }
+
+    test("stacklenWithMin on non-empty stack") {
+        val program = builder.build(buildComplexFunction { stacklenWithMin() })
+        val input = listOf(1L, 2L, 3L, 2L)
+        runner.run(program, input) shouldContainExactly input.dropLast(1) + listOf(input.size.toLong() - 1)
+    }
+
+    test("stacklenWithMin with size of stack excluding the param") {
+        val program = builder.build(buildComplexFunction { stacklenWithMin() })
+        val input = listOf(1L, 2L, 3L, 3L)
+        runner.run(program, input) shouldContainExactly input.dropLast(1) + listOf(input.size.toLong() - 1)
+    }
 })
 
 
