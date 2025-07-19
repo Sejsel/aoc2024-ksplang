@@ -30,6 +30,8 @@ class WasmFunctionScope private constructor(
     fun ComplexFunction.i32Add() {
         check(!localsPopped)
         add()
+        intermediateStackValues -= 1
+
         push(I32_MOD)
         swap2()
         modulo()

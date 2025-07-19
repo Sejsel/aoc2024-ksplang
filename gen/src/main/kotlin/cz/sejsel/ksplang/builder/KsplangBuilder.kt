@@ -366,6 +366,7 @@ class KsplangBuilder(
                             afterPush.setForJump(state.index)
                         } catch (_: PaddingFailureException) {
                             restoreState(backup)
+                            continue
                         }
                         expand(pop)
                         break

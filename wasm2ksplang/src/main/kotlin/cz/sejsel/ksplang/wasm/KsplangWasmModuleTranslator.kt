@@ -4,6 +4,88 @@ import com.dylibso.chicory.wasm.Parser
 import com.dylibso.chicory.wasm.types.ExternalType
 import com.dylibso.chicory.wasm.types.OpCode
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
+import cz.sejsel.ksplang.dsl.core.ProgramFunction
+import cz.sejsel.ksplang.dsl.core.ProgramFunction0To0
+import cz.sejsel.ksplang.dsl.core.ProgramFunction0To1
+import cz.sejsel.ksplang.dsl.core.ProgramFunction0To2
+import cz.sejsel.ksplang.dsl.core.ProgramFunction0To3
+import cz.sejsel.ksplang.dsl.core.ProgramFunction0To4
+import cz.sejsel.ksplang.dsl.core.ProgramFunction0To5
+import cz.sejsel.ksplang.dsl.core.ProgramFunction0To6
+import cz.sejsel.ksplang.dsl.core.ProgramFunction0To7
+import cz.sejsel.ksplang.dsl.core.ProgramFunction0To8
+import cz.sejsel.ksplang.dsl.core.ProgramFunction1To0
+import cz.sejsel.ksplang.dsl.core.ProgramFunction1To1
+import cz.sejsel.ksplang.dsl.core.ProgramFunction1To2
+import cz.sejsel.ksplang.dsl.core.ProgramFunction1To3
+import cz.sejsel.ksplang.dsl.core.ProgramFunction1To4
+import cz.sejsel.ksplang.dsl.core.ProgramFunction1To5
+import cz.sejsel.ksplang.dsl.core.ProgramFunction1To6
+import cz.sejsel.ksplang.dsl.core.ProgramFunction1To7
+import cz.sejsel.ksplang.dsl.core.ProgramFunction1To8
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To0
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To1
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To2
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To3
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To4
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To5
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To6
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To7
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To8
+import cz.sejsel.ksplang.dsl.core.ProgramFunction3To0
+import cz.sejsel.ksplang.dsl.core.ProgramFunction3To1
+import cz.sejsel.ksplang.dsl.core.ProgramFunction3To2
+import cz.sejsel.ksplang.dsl.core.ProgramFunction3To3
+import cz.sejsel.ksplang.dsl.core.ProgramFunction3To4
+import cz.sejsel.ksplang.dsl.core.ProgramFunction3To5
+import cz.sejsel.ksplang.dsl.core.ProgramFunction3To6
+import cz.sejsel.ksplang.dsl.core.ProgramFunction3To7
+import cz.sejsel.ksplang.dsl.core.ProgramFunction3To8
+import cz.sejsel.ksplang.dsl.core.ProgramFunction4To0
+import cz.sejsel.ksplang.dsl.core.ProgramFunction4To1
+import cz.sejsel.ksplang.dsl.core.ProgramFunction4To2
+import cz.sejsel.ksplang.dsl.core.ProgramFunction4To3
+import cz.sejsel.ksplang.dsl.core.ProgramFunction4To4
+import cz.sejsel.ksplang.dsl.core.ProgramFunction4To5
+import cz.sejsel.ksplang.dsl.core.ProgramFunction4To6
+import cz.sejsel.ksplang.dsl.core.ProgramFunction4To7
+import cz.sejsel.ksplang.dsl.core.ProgramFunction4To8
+import cz.sejsel.ksplang.dsl.core.ProgramFunction5To0
+import cz.sejsel.ksplang.dsl.core.ProgramFunction5To1
+import cz.sejsel.ksplang.dsl.core.ProgramFunction5To2
+import cz.sejsel.ksplang.dsl.core.ProgramFunction5To3
+import cz.sejsel.ksplang.dsl.core.ProgramFunction5To4
+import cz.sejsel.ksplang.dsl.core.ProgramFunction5To5
+import cz.sejsel.ksplang.dsl.core.ProgramFunction5To6
+import cz.sejsel.ksplang.dsl.core.ProgramFunction5To7
+import cz.sejsel.ksplang.dsl.core.ProgramFunction5To8
+import cz.sejsel.ksplang.dsl.core.ProgramFunction6To0
+import cz.sejsel.ksplang.dsl.core.ProgramFunction6To1
+import cz.sejsel.ksplang.dsl.core.ProgramFunction6To2
+import cz.sejsel.ksplang.dsl.core.ProgramFunction6To3
+import cz.sejsel.ksplang.dsl.core.ProgramFunction6To4
+import cz.sejsel.ksplang.dsl.core.ProgramFunction6To5
+import cz.sejsel.ksplang.dsl.core.ProgramFunction6To6
+import cz.sejsel.ksplang.dsl.core.ProgramFunction6To7
+import cz.sejsel.ksplang.dsl.core.ProgramFunction6To8
+import cz.sejsel.ksplang.dsl.core.ProgramFunction7To0
+import cz.sejsel.ksplang.dsl.core.ProgramFunction7To1
+import cz.sejsel.ksplang.dsl.core.ProgramFunction7To2
+import cz.sejsel.ksplang.dsl.core.ProgramFunction7To3
+import cz.sejsel.ksplang.dsl.core.ProgramFunction7To4
+import cz.sejsel.ksplang.dsl.core.ProgramFunction7To5
+import cz.sejsel.ksplang.dsl.core.ProgramFunction7To6
+import cz.sejsel.ksplang.dsl.core.ProgramFunction7To7
+import cz.sejsel.ksplang.dsl.core.ProgramFunction7To8
+import cz.sejsel.ksplang.dsl.core.ProgramFunction8To0
+import cz.sejsel.ksplang.dsl.core.ProgramFunction8To1
+import cz.sejsel.ksplang.dsl.core.ProgramFunction8To2
+import cz.sejsel.ksplang.dsl.core.ProgramFunction8To3
+import cz.sejsel.ksplang.dsl.core.ProgramFunction8To4
+import cz.sejsel.ksplang.dsl.core.ProgramFunction8To5
+import cz.sejsel.ksplang.dsl.core.ProgramFunction8To6
+import cz.sejsel.ksplang.dsl.core.ProgramFunction8To7
+import cz.sejsel.ksplang.dsl.core.ProgramFunction8To8
 import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import java.nio.file.Path
@@ -185,7 +267,7 @@ class KsplangWasmModuleTranslator(path: Path) {
                         OpCode.I32_CLZ -> TODO()
                         OpCode.I32_CTZ -> TODO()
                         OpCode.I32_POPCNT -> TODO()
-                        OpCode.I32_ADD -> TODO()
+                        OpCode.I32_ADD -> i32Add()
                         OpCode.I32_SUB -> TODO()
                         OpCode.I32_MUL -> TODO()
                         OpCode.I32_DIV_S -> TODO()
@@ -541,7 +623,118 @@ class KsplangWasmModuleTranslator(path: Path) {
             }
         }
 
-        return ProgramFunctionBase("wasm_${name}_$index", args = paramCount, outputs = returnCount, body)
+        val name = "wasm_${name}_$index"
+        return when (paramCount) {
+            0 -> when (returnCount) {
+                0 -> ProgramFunction0To0(name, body)
+                1 -> ProgramFunction0To1(name, body)
+                2 -> ProgramFunction0To2(name, body)
+                3 -> ProgramFunction0To3(name, body)
+                4 -> ProgramFunction0To4(name, body)
+                5 -> ProgramFunction0To5(name, body)
+                6 -> ProgramFunction0To6(name, body)
+                7 -> ProgramFunction0To7(name, body)
+                8 -> ProgramFunction0To8(name, body)
+                else -> ProgramFunction(name, args = 0, outputs = returnCount, body)
+            }
+            1 -> when (returnCount) {
+                0 -> ProgramFunction1To0(name, body)
+                1 -> ProgramFunction1To1(name, body)
+                2 -> ProgramFunction1To2(name, body)
+                3 -> ProgramFunction1To3(name, body)
+                4 -> ProgramFunction1To4(name, body)
+                5 -> ProgramFunction1To5(name, body)
+                6 -> ProgramFunction1To6(name, body)
+                7 -> ProgramFunction1To7(name, body)
+                8 -> ProgramFunction1To8(name, body)
+                else -> ProgramFunction(name, args = 1, outputs = returnCount, body)
+            }
+            2 -> when (returnCount) {
+                0 -> ProgramFunction2To0(name, body)
+                1 -> ProgramFunction2To1(name, body)
+                2 -> ProgramFunction2To2(name, body)
+                3 -> ProgramFunction2To3(name, body)
+                4 -> ProgramFunction2To4(name, body)
+                5 -> ProgramFunction2To5(name, body)
+                6 -> ProgramFunction2To6(name, body)
+                7 -> ProgramFunction2To7(name, body)
+                8 -> ProgramFunction2To8(name, body)
+                else -> ProgramFunction(name, args = 2, outputs = returnCount, body)
+            }
+            3 -> when (returnCount) {
+                0 -> ProgramFunction3To0(name, body)
+                1 -> ProgramFunction3To1(name, body)
+                2 -> ProgramFunction3To2(name, body)
+                3 -> ProgramFunction3To3(name, body)
+                4 -> ProgramFunction3To4(name, body)
+                5 -> ProgramFunction3To5(name, body)
+                6 -> ProgramFunction3To6(name, body)
+                7 -> ProgramFunction3To7(name, body)
+                8 -> ProgramFunction3To8(name, body)
+                else -> ProgramFunction(name, args = 3, outputs = returnCount, body)
+            }
+            4 -> when (returnCount) {
+                0 -> ProgramFunction4To0(name, body)
+                1 -> ProgramFunction4To1(name, body)
+                2 -> ProgramFunction4To2(name, body)
+                3 -> ProgramFunction4To3(name, body)
+                4 -> ProgramFunction4To4(name, body)
+                5 -> ProgramFunction4To5(name, body)
+                6 -> ProgramFunction4To6(name, body)
+                7 -> ProgramFunction4To7(name, body)
+                8 -> ProgramFunction4To8(name, body)
+                else -> ProgramFunction(name, args = 4, outputs = returnCount, body)
+            }
+            5 -> when (returnCount) {
+                0 -> ProgramFunction5To0(name, body)
+                1 -> ProgramFunction5To1(name, body)
+                2 -> ProgramFunction5To2(name, body)
+                3 -> ProgramFunction5To3(name, body)
+                4 -> ProgramFunction5To4(name, body)
+                5 -> ProgramFunction5To5(name, body)
+                6 -> ProgramFunction5To6(name, body)
+                7 -> ProgramFunction5To7(name, body)
+                8 -> ProgramFunction5To8(name, body)
+                else -> ProgramFunction(name, args = 5, outputs = returnCount, body)
+            }
+            6 -> when (returnCount) {
+                0 -> ProgramFunction6To0(name, body)
+                1 -> ProgramFunction6To1(name, body)
+                2 -> ProgramFunction6To2(name, body)
+                3 -> ProgramFunction6To3(name, body)
+                4 -> ProgramFunction6To4(name, body)
+                5 -> ProgramFunction6To5(name, body)
+                6 -> ProgramFunction6To6(name, body)
+                7 -> ProgramFunction6To7(name, body)
+                8 -> ProgramFunction6To8(name, body)
+                else -> ProgramFunction(name, args = 6, outputs = returnCount, body)
+            }
+            7 -> when (returnCount) {
+                0 -> ProgramFunction7To0(name, body)
+                1 -> ProgramFunction7To1(name, body)
+                2 -> ProgramFunction7To2(name, body)
+                3 -> ProgramFunction7To3(name, body)
+                4 -> ProgramFunction7To4(name, body)
+                5 -> ProgramFunction7To5(name, body)
+                6 -> ProgramFunction7To6(name, body)
+                7 -> ProgramFunction7To7(name, body)
+                8 -> ProgramFunction7To8(name, body)
+                else -> ProgramFunction(name, args = 7, outputs = returnCount, body)
+            }
+            8 -> when (returnCount) {
+                0 -> ProgramFunction8To0(name, body)
+                1 -> ProgramFunction8To1(name, body)
+                2 -> ProgramFunction8To2(name, body)
+                3 -> ProgramFunction8To3(name, body)
+                4 -> ProgramFunction8To4(name, body)
+                5 -> ProgramFunction8To5(name, body)
+                6 -> ProgramFunction8To6(name, body)
+                7 -> ProgramFunction8To7(name, body)
+                8 -> ProgramFunction8To8(name, body)
+                else -> ProgramFunction(name, args = 8, outputs = returnCount, body)
+            }
+            else -> ProgramFunction(name, args = paramCount, outputs = returnCount, body)
+        }
     }
 
     companion object {

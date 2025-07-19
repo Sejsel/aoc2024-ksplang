@@ -8,12 +8,11 @@ import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.auto.auto
 import cz.sejsel.ksplang.dsl.auto.const
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To1
 import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
 import cz.sejsel.ksplang.dsl.core.program
-import cz.sejsel.ksplang.std.auto.Allocator
-import cz.sejsel.ksplang.std.auto.Slice
-import cz.sejsel.ksplang.std.auto.copy
-import cz.sejsel.ksplang.std.auto.stacklen
+import cz.sejsel.ksplang.std.auto.*
+import cz.sejsel.ksplang.std.yoink
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import java.io.File
 import kotlin.io.path.Path
@@ -28,8 +27,8 @@ class WasmAdd {
         }
     }
 
-    fun add(builder: KsplangProgramBuilder): ProgramFunctionBase {
-        return with(builder) { with(module) { getExportedFunction("add")!! } }
+    fun add(builder: KsplangProgramBuilder): ProgramFunction2To1 {
+        return with(builder) { with(module) { getExportedFunction("add")!! as ProgramFunction2To1 } }
     }
 }
 
@@ -75,6 +74,11 @@ fun main() {
 
                 val allocator = Allocator(copy(stacklen))
                 //val arena = alloc(allocator, ARENA_ELEMENTS.const)
+
+                val a = yoink(input.from)
+                val b = yoink(add(input.from, 1))
+                val result = call(addFunction, a, b)
+                keepOnly(result)
             }
         }
     }
