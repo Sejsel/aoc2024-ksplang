@@ -91,7 +91,7 @@ import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import java.nio.file.Path
 import cz.sejsel.ksplang.wasm.WasmFunctionScope.Companion.initialize as initializeScope
 
-class KsplangWasmModule(
+class TranslatedWasmModule(
     val programFunctions: List<ProgramFunctionBase>,
     private val exportedFunctions: Map<String, ProgramFunctionBase>,
 ) {
@@ -114,7 +114,7 @@ class KsplangWasmModuleTranslator(path: Path) {
     private val name = path
     private val module = Parser.parse(path)
 
-    fun KsplangProgramBuilder.install(): KsplangWasmModule {
+    fun KsplangProgramBuilder.install(): TranslatedWasmModule {
         val ksplangModule = translate()
         with(ksplangModule) { installFunctions() }
         return ksplangModule
@@ -123,14 +123,14 @@ class KsplangWasmModuleTranslator(path: Path) {
     // TODO: Forward function declaration
     // TODO: Memory
     // TODO: Start function
-    fun translate(): KsplangWasmModule {
+    fun translate(): TranslatedWasmModule {
         val functions = mutableListOf<ProgramFunctionBase>()
         for (functionIndex in 0..<module.functionSection().functionCount()) {
             val function = functionToKsplang(functionIndex)
             functions.add(function)
         }
 
-        return KsplangWasmModule(
+        return TranslatedWasmModule(
             programFunctions = functions,
             exportedFunctions = associateExportedFunctions(functions)
         )
