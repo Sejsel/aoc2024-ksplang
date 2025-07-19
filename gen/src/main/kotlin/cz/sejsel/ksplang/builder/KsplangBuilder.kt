@@ -76,6 +76,40 @@ private class BuilderState {
     var lastSimpleFunction: SimpleFunction? = null
     var earlyExitPushes = mutableListOf<PreparedPush>()
     var preparedPushes = mutableListOf<PreparedPush>()
+    var functionStates = mutableMapOf<String, FunctionState>()
+
+    fun getFunctionState(name: String): FunctionState {
+        return functionStates.getOrPut(name) { FunctionState() }
+    }
+
+    fun deepCopy(): BuilderState {
+        val copy = BuilderState()
+        copy.index = index
+        copy.program = program.toMutableList()
+        copy.lastDepth = lastDepth
+        copy.lastSimpleFunction = lastSimpleFunction
+        copy.earlyExitPushes = earlyExitPushes.toMutableList()
+        copy.preparedPushes = preparedPushes.toMutableList()
+        copy.functionStates = functionStates.mapValues { it.value.clone() }.toMutableMap()
+        return copy
+    }
+}
+
+private class FunctionState {
+    var callIndex: Int? = null
+        set(value) {
+            require(field == null) { "Cannot set index twice" }
+            field = value
+        }
+
+    val pendingCalls = mutableListOf<PreparedPush>()
+
+    fun clone(): FunctionState {
+        val clone = FunctionState()
+        callIndex?.let { clone.callIndex = it }
+        clone.pendingCalls.addAll(pendingCalls.map { it.copy() })
+        return clone
+    }
 }
 
 /** Transforms the ksplang DSL tree consisting of [Instruction], [SimpleFunction], and [ComplexFunction]
@@ -90,31 +124,27 @@ class KsplangBuilder(
             "Function ${function.name} is already registered"
         }
         registeredFunctions.add(RegisteredFunction(function, nParams, nOut))
+        TODO("Currently not wired up")
+    }
+
+    fun build(program: KsplangProgram): String {
+        return build(program.body, program.definedFunctions)
     }
 
     fun build(programTree: Block): String = when (programTree) {
-        is ComplexBlock -> build(programTree)
+        is ComplexBlock -> build(programTree, functions = emptyList())
         is SimpleFunction -> build(programTree)
         is Instruction -> build(programTree)
     }
 
-    private fun build(programTree: ComplexBlock): String {
+    private fun build(programTree: ComplexBlock, functions: List<ProgramFunctionBase>): String {
+        require(functions.map { it.name }.distinct().size == functions.size) { "All functions must have unique names." }
+
         // For simplification, we use a global address padding (all addresses are padded to the same length)
         for (addressPad in 6..Int.MAX_VALUE) {
             try {
                 val state = BuilderState()
                 val pushNameRegex = """^push\((-?\d+)\)$""".toRegex()
-
-                fun backupState(): BuilderState {
-                    return BuilderState().apply {
-                        index = state.index
-                        program = state.program.toMutableList()
-                        lastDepth = state.lastDepth
-                        lastSimpleFunction = state.lastSimpleFunction
-                        earlyExitPushes = state.earlyExitPushes.toMutableList()
-                        preparedPushes = state.preparedPushes.toMutableList()
-                    }
-                }
 
                 fun restoreState(backup: BuilderState) {
                     state.index = backup.index
@@ -123,6 +153,7 @@ class KsplangBuilder(
                     state.lastSimpleFunction = backup.lastSimpleFunction
                     state.earlyExitPushes = backup.earlyExitPushes.toMutableList()
                     state.preparedPushes = backup.preparedPushes.toMutableList()
+                    state.functionStates = backup.functionStates.mapValues { it.value.clone() }.toMutableMap()
                 }
 
                 fun applyPreparedPush(push: PreparedPush, n: Long, padding: Int) {
@@ -194,8 +225,10 @@ class KsplangBuilder(
 
                             if (!optimized) {
                                 if (useCalls) {
-                                    val registered = registeredFunctions.find { it.name == block.name && it.index != null }
+                                    val registered =
+                                        registeredFunctions.find { it.name == block.name && it.index != null }
                                     if (registered != null) {
+                                        TODO()
                                         e(registered.toCall())
                                     } else {
                                         block.children.forEach { e(it) }
@@ -285,10 +318,18 @@ class KsplangBuilder(
                             e(pop)
                             e(pop)
                         }
+
+                        is FunctionCall -> {
+                            val functionState = state.getFunctionState(block.calledFunction.name)
+                            // Because of function calls in functions (recursion, or calling functions not defined yet),
+                            // we need to prepare this push instead of eagerly expanding it.
+                            val callPush = preparePaddedPush()
+                            functionState.pendingCalls.add(callPush)
+                            e(call)
+                            e(pop)
+                        }
                     }
                 }
-
-                val callables = registeredFunctions.map { it to it.toCallable() }
 
                 // 16 is a really nice number to align to, as it can be created in very few instructions
                 // call cost of num is len(short_pushes[num].split())
@@ -296,42 +337,55 @@ class KsplangBuilder(
                 // call cost 12: 17 25 28 32 48 64 77 256 512 2048 65536 16777216 7625597484988
                 // call cost 13: 15 18 20 26 29 33 49 65 71 78 96 112 128 160 225 257 384 513 1536 2049 3125 4096 4608
                 // call cost 14: 14 19 21 30 34 39 42 50 66 72 79 97 109 113 129 154 161 168 175 192 218 226 258 320 385 450 514 768 896 1024 1537 2050 3072 3126 3200 4097 4352 4609
-                if (callables.isNotEmpty()) {
+                if (functions.isNotEmpty()) {
+                    // We have a separate "padding" here, just for the first jump. If the expansion of the inner
+                    // function fails, it must not be caught here, we need to increase the global padding in that case.
                     for (firstFunStart in 16 until Int.MAX_VALUE) {
-                        val backup = backupState()
+                        val backup = state.deepCopy()
+                        // Initial jump past the callable functions
+                        val afterPush = preparePaddedPush(firstFunStart - 1)
+                        expand(j)
+                        // Callable functions
+                        for (function in functions) {
+                            val functionState = state.getFunctionState(function.name)
+                            val fIndex = state.index
+                            val wrapper = buildComplexFunction("fun_wrapper_${function.name}") {
+                                // Remove address used for the jump (it is not consumed by call)
+                                pop2()
+                                // Move the return address below the arguments
+                                roll(1L + function.args, 1)
+                                +function.body!!
+                                // Move the return address back to the top
+                                roll(1L + function.outputs, function.outputs.toLong())
+                                goto()
+                            }
+                            expand(wrapper)
+                            functionState.callIndex = fIndex
+                        }
                         try {
-                            // Initial jump past the callable functions
-                            val afterPush = preparePaddedPush(firstFunStart - 1)
-                            expand(j)
-                            // TODO: We may be able to save a few instructions per call by padding to a good value
-                            //       should be possible to math it out, we know how many calls we have as well
-                            // TODO: We may also be able to save a bit by using goto instead of j there
-                            // Callable functions
-                            for ((f, c) in callables) {
-                                // We use f.index to check if a function is callable within expansion,
-                                // so we need to only set it after we are done with expanding this function
-                                // or it will expand itself as a call to itself.
-                                val fIndex = state.index
-                                expand(c)
-                                f.index = fIndex
-                            }
-                            // Landing pop for the initial jump
                             afterPush.setForJump(state.index)
-                            expand(pop)
-                            break
                         } catch (_: PaddingFailureException) {
-                            for ((f, _) in callables) {
-                                f.index = null
-                            }
                             restoreState(backup)
                         }
+                        expand(pop)
+                        break
                     }
                 }
 
+                check(state.functionStates.size == functions.size) { "Not all functions were expanded, expected ${functions.size}, got ${state.functionStates.size}" }
+                check(state.functionStates.all { it.value.callIndex != null }) { "Not all functions have a call index set, some functions may not have been expanded properly." }
 
                 programTree.children.forEachIndexed { i, block ->
                     val isLast = i == programTree.children.size - 1
                     expand(block, isLast, depth = 0)
+                }
+
+                // We can now expand all prepared function calls
+                for (function in state.functionStates) {
+                    val functionState = function.value
+                    functionState.pendingCalls.forEach {
+                        it.set(functionState.callIndex!!)
+                    }
                 }
 
                 if (state.earlyExitPushes.isNotEmpty()) {

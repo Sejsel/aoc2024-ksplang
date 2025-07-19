@@ -15,6 +15,13 @@ dependencies {
 
 kotlin {
     jvmToolchain(21)
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            listOf(
+                "-Xcontext-parameters",
+            )
+        )
+    }
 }
 
 tasks.test {

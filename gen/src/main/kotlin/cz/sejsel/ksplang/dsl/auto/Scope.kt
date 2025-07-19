@@ -286,7 +286,6 @@ infix fun IfZero.otherwise(init: ComplexFunction.() -> Unit) {
     this.orElse = f
 }
 
-
 fun ComplexBlock.auto(block: Scope.() -> Unit) {
     val autoBlock = Scope(emptyList(), this, parent = null)
     autoBlock.block()

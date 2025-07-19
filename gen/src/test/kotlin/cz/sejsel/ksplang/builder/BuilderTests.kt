@@ -2,14 +2,18 @@ package cz.sejsel.ksplang.builder
 
 import cz.sejsel.ksplang.KsplangRunner
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
+import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.doWhileNonNegative
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.doWhileZero
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
+import cz.sejsel.ksplang.dsl.core.program
 import cz.sejsel.ksplang.dsl.core.whileNonZero
 import cz.sejsel.ksplang.std.dec
 import cz.sejsel.ksplang.std.dup
+import cz.sejsel.ksplang.std.mul
+import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.swap2
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
@@ -131,3 +135,67 @@ class WhileNonZeroTests : FunSpec({
     }
 })
 
+
+class FunctionTests: FunSpec({
+    val runner = KsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("2 functions if else") {
+        val program = program {
+            val max = function("max", 2, 1) {
+                max2()
+            }
+
+            val gcd = function("gcd", 2, 1) {
+                gcd()
+            }
+
+            body {
+                ifZero(popChecked = true) {
+                    call(gcd)
+                } otherwise {
+                    call(max)
+                }
+            }
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4, 0)) shouldBe listOf(4)
+        runner.run(ksplang, listOf(8, 4, 1)) shouldBe listOf(8)
+    }
+
+    test("factorial recursion") {
+        val program = program {
+            val factorial = function("factorial", 1, 1)
+
+            factorial.setBody {
+                // x
+                ifZero {
+                    // 0
+                    push(1)
+                    pop2()
+                    // 1
+                } otherwise {
+                    // x x
+                    dup()
+                    dec()
+                    // x x-1
+                    call(factorial)
+                    // x x-1!
+                    mul()
+                     // x * factorial(x-1)
+                }
+            }
+
+            body {
+                call(factorial)
+            }
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(3)) shouldBe listOf(6)
+        runner.run(ksplang, listOf(8)) shouldBe listOf(40320)
+    }
+})
