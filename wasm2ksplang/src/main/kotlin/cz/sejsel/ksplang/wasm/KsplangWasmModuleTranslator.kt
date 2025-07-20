@@ -1,8 +1,10 @@
 package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.Parser
+import com.dylibso.chicory.wasm.WasmModule
 import com.dylibso.chicory.wasm.types.ExternalType
 import com.dylibso.chicory.wasm.types.OpCode
+import cz.sejsel.WasmStore
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction
 import cz.sejsel.ksplang.dsl.core.ProgramFunction0To0
@@ -89,6 +91,7 @@ import cz.sejsel.ksplang.dsl.core.ProgramFunction8To8
 import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import java.nio.file.Path
+import kotlin.io.path.name
 import cz.sejsel.ksplang.wasm.WasmFunctionScope.Companion.initialize as initializeScope
 
 class TranslatedWasmModule(
@@ -166,8 +169,8 @@ class KsplangWasmModuleTranslator(path: Path) {
                         OpCode.LOOP -> TODO()
                         OpCode.IF -> TODO()
                         OpCode.ELSE -> TODO()
-                        OpCode.THROW -> TODO()
-                        OpCode.THROW_REF -> TODO()
+                        OpCode.THROW -> unsupportedExceptionHandling()
+                        OpCode.THROW_REF -> unsupportedExceptionHandling()
                         OpCode.END -> {
                             if (instruction.depth() == 0) {
                                 // The scope definition from Chicory is a bit weird here, let's double-check
@@ -186,21 +189,21 @@ class KsplangWasmModuleTranslator(path: Path) {
                         OpCode.RETURN -> TODO()
                         OpCode.CALL -> TODO()
                         OpCode.CALL_INDIRECT -> TODO()
-                        OpCode.RETURN_CALL -> TODO()
-                        OpCode.RETURN_CALL_INDIRECT -> TODO()
-                        OpCode.CALL_REF -> TODO()
-                        OpCode.RETURN_CALL_REF -> TODO()
+                        OpCode.RETURN_CALL -> unsupportedTailCall()
+                        OpCode.RETURN_CALL_INDIRECT -> unsupportedTailCall()
+                        OpCode.CALL_REF -> unsupportedTypedFunctionReferenceTypes()
+                        OpCode.RETURN_CALL_REF -> unsupportedTypedFunctionReferenceTypes()
                         OpCode.DROP -> TODO()
                         OpCode.SELECT -> TODO()
                         OpCode.SELECT_T -> TODO()
-                        OpCode.TRY_TABLE -> TODO()
+                        OpCode.TRY_TABLE -> unsupportedExceptionHandling()
                         OpCode.LOCAL_GET -> getLocal(instruction.operands()[0].toInt())
                         OpCode.LOCAL_SET -> TODO()
                         OpCode.LOCAL_TEE -> TODO()
                         OpCode.GLOBAL_GET -> TODO()
                         OpCode.GLOBAL_SET -> TODO()
-                        OpCode.TABLE_GET -> TODO()
-                        OpCode.TABLE_SET -> TODO()
+                        OpCode.TABLE_GET -> unsupportedReferenceTypes()
+                        OpCode.TABLE_SET -> unsupportedReferenceTypes()
                         OpCode.I32_LOAD -> TODO()
                         OpCode.I64_LOAD -> TODO()
                         OpCode.F32_LOAD -> TODO()
@@ -358,12 +361,12 @@ class KsplangWasmModuleTranslator(path: Path) {
                         OpCode.I64_EXTEND_8_S -> TODO()
                         OpCode.I64_EXTEND_16_S -> TODO()
                         OpCode.I64_EXTEND_32_S -> TODO()
-                        OpCode.REF_NULL -> TODO()
-                        OpCode.REF_IS_NULL -> TODO()
-                        OpCode.REF_FUNC -> TODO()
-                        OpCode.REF_AS_NON_NULL -> TODO()
-                        OpCode.BR_ON_NULL -> TODO()
-                        OpCode.BR_ON_NON_NULL -> TODO()
+                        OpCode.REF_NULL -> unsupportedReferenceTypes()
+                        OpCode.REF_IS_NULL -> unsupportedReferenceTypes()
+                        OpCode.REF_FUNC -> unsupportedReferenceTypes()
+                        OpCode.REF_AS_NON_NULL -> unsupportedTypedFunctionReferenceTypes()
+                        OpCode.BR_ON_NULL -> unsupportedTypedFunctionReferenceTypes()
+                        OpCode.BR_ON_NON_NULL -> unsupportedTypedFunctionReferenceTypes()
                         OpCode.I32_TRUNC_SAT_F32_S -> TODO()
                         OpCode.I32_TRUNC_SAT_F32_U -> TODO()
                         OpCode.I32_TRUNC_SAT_F64_S -> TODO()
@@ -372,16 +375,16 @@ class KsplangWasmModuleTranslator(path: Path) {
                         OpCode.I64_TRUNC_SAT_F32_U -> TODO()
                         OpCode.I64_TRUNC_SAT_F64_S -> TODO()
                         OpCode.I64_TRUNC_SAT_F64_U -> TODO()
-                        OpCode.MEMORY_INIT -> TODO()
-                        OpCode.DATA_DROP -> TODO()
-                        OpCode.MEMORY_COPY -> TODO()
-                        OpCode.MEMORY_FILL -> TODO()
-                        OpCode.TABLE_INIT -> TODO()
-                        OpCode.ELEM_DROP -> TODO()
-                        OpCode.TABLE_COPY -> TODO()
-                        OpCode.TABLE_GROW -> TODO()
-                        OpCode.TABLE_SIZE -> TODO()
-                        OpCode.TABLE_FILL -> TODO()
+                        OpCode.MEMORY_INIT -> unsupportedBulkMemoryOperations()
+                        OpCode.DATA_DROP -> unsupportedBulkMemoryOperations()
+                        OpCode.MEMORY_COPY -> unsupportedBulkMemoryOperations()
+                        OpCode.MEMORY_FILL -> unsupportedBulkMemoryOperations()
+                        OpCode.TABLE_INIT -> unsupportedBulkMemoryOperations()
+                        OpCode.ELEM_DROP -> unsupportedBulkMemoryOperations()
+                        OpCode.TABLE_COPY -> unsupportedBulkMemoryOperations()
+                        OpCode.TABLE_GROW -> unsupportedReferenceTypes()
+                        OpCode.TABLE_SIZE -> unsupportedReferenceTypes()
+                        OpCode.TABLE_FILL -> unsupportedReferenceTypes()
                         OpCode.V128_LOAD -> unsupportedSimd()
                         OpCode.V128_LOAD8x8_S -> unsupportedSimd()
                         OpCode.V128_LOAD8x8_U -> unsupportedSimd()
@@ -623,7 +626,7 @@ class KsplangWasmModuleTranslator(path: Path) {
             }
         }
 
-        val name = "wasm_${name}_$index"
+        val name = "wasm_${moduleName}_$index"
         return when (paramCount) {
             0 -> when (returnCount) {
                 0 -> ProgramFunction0To0(name, body)
@@ -740,6 +743,26 @@ class KsplangWasmModuleTranslator(path: Path) {
     companion object {
         fun unsupportedSimd(): Nothing {
             throw UnsupportedOperationException("SIMD extension is not supported")
+        }
+
+        fun unsupportedReferenceTypes(): Nothing {
+            throw UnsupportedOperationException("Reference Types extension is not supported")
+        }
+
+        fun unsupportedTypedFunctionReferenceTypes(): Nothing {
+            throw UnsupportedOperationException("Typed Function Reference extension is not supported")
+        }
+
+        fun unsupportedBulkMemoryOperations(): Nothing {
+            throw UnsupportedOperationException("Bulk Memory Operations extension is not supported")
+        }
+
+        fun unsupportedTailCall(): Nothing {
+            throw UnsupportedOperationException("Tail Call extension is not supported")
+        }
+
+        fun unsupportedExceptionHandling(): Nothing {
+            throw UnsupportedOperationException("Exception Handling extension is not supported")
         }
     }
 }
