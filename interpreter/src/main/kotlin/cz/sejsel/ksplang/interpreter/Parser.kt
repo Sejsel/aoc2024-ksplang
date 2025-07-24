@@ -1,4 +1,4 @@
-package cz.sejsel
+package cz.sejsel.ksplang.interpreter
 
 fun parseWord(word: String): Op {
     assert(!word.any { it.isWhitespace() })

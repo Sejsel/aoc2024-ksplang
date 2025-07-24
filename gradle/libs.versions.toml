@@ -1,11 +1,13 @@
 [versions]
 kotest = "5.9.1"
 chicory = "1.4.0"
+arrow = "2.1.0"
 
 [libraries]
 kotest-runner = { module ="io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-framework-datatest = { module ="io.kotest:kotest-framework-datatest", version.ref = "kotest" }
 guava = { module = "com.google.guava:guava", version = "33.4.0-jre" }
+arrow = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 chicory-wasm = { module = "com.dylibso.chicory:wasm", version.ref = "chicory" }
 chicory-runtime = { module = "com.dylibso.chicory:runtime", version.ref = "chicory" }
 

@@ -1,4 +1,4 @@
-package cz.sejsel
+package cz.sejsel.ksplang.interpreter
 
 enum class Op {
     /** Not a real operation, only used internally for testing */

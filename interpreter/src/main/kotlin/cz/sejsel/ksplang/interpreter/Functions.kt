@@ -1,4 +1,4 @@
-package cz.sejsel
+package cz.sejsel.ksplang.interpreter
 
 import com.google.common.math.LongMath
 import java.math.RoundingMode

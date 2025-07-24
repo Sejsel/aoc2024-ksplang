@@ -9,10 +9,10 @@ repositories {
 
 dependencies {
     implementation(libs.chicory.wasm)
+    implementation(libs.chicory.runtime)
     implementation(project(":gen"))
     testImplementation(libs.kotest.runner)
     testImplementation(libs.kotest.framework.datatest)
-    testImplementation(libs.chicory.runtime)
 }
 
 kotlin {

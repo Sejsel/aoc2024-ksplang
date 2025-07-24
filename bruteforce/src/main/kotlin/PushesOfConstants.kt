@@ -1,5 +1,11 @@
 package cz.sejsel
 
+import cz.sejsel.ksplang.interpreter.cursedDiv
+import cz.sejsel.ksplang.interpreter.digitSum
+import cz.sejsel.ksplang.interpreter.funkcia
+import cz.sejsel.ksplang.interpreter.gcd
+import cz.sejsel.ksplang.interpreter.lensum
+import cz.sejsel.ksplang.interpreter.parseProgram
 import cz.sejsel.pushes.VerificationSolutionChecker
 import java.io.File
 import java.time.Duration
