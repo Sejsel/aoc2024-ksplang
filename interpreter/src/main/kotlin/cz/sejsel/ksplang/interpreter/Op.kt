@@ -74,4 +74,45 @@ enum class Op {
             Sleep -> "SPANEK"
             Deez -> "deez"
         }
+
+    companion object {
+        fun byId(id: Int): Op? {
+            return when (id) {
+                0 -> Praise
+                1 -> Pop
+                2 -> Pop2
+                3 -> Max
+                4 -> LSwap
+                5 -> Roll
+                6 -> FF
+                7 -> Swap
+                8 -> KPi
+                9 -> Increment
+                10 -> Universal
+                11 -> Remainder
+                12 -> Modulo
+                13 -> TetrationNumIters
+                14 -> TetrationItersNum
+                15 -> Median
+                16 -> DigitSum
+                17 -> LenSum
+                18 -> Bitshift
+                19 -> And
+                20 -> Sum
+                21 -> Gcd2
+                22 -> GcdN
+                23 -> Qeq
+                24 -> Funkcia
+                25 -> BulkXor
+                26 -> BranchIfZero
+                27 -> Call
+                28 -> Goto
+                29 -> Jump
+                30 -> Rev
+                31 -> Sleep
+                32 -> Deez
+                else -> null
+            }
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package cz.sejsel.ksplang.interpreter
 
 import com.google.common.math.LongMath
+import java.math.BigInteger
 import java.math.RoundingMode
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -82,6 +83,17 @@ fun gcd(a: Long, b: Long): Long {
     return x
 }
 
+fun gcd(a: BigInteger, b: BigInteger): BigInteger {
+    var x = a
+    var y = b
+    while (y != BigInteger.ZERO) {
+        val temp = y
+        y = x % y
+        x = temp
+    }
+    return x
+}
+
 fun lensum(a: Long, b: Long): Long {
     fun len(num: Long): Long {
         if (num == Long.MIN_VALUE) {
@@ -128,4 +140,50 @@ private fun factorize(a: Long): Map<Long, Int> {
     }
 
     return factors
+}
+
+sealed class QuadraticEquationResult {
+    object None : QuadraticEquationResult()
+    data class One(val value: BigInteger) : QuadraticEquationResult()
+    data class Two(val smaller: BigInteger, val larger: BigInteger) : QuadraticEquationResult()
+}
+
+fun solveQuadraticEquation(a: Long, b: Long, c: Long): QuadraticEquationResult {
+    val aBig = a.toBigInteger()
+    val bBig = b.toBigInteger()
+    val cBig = c.toBigInteger()
+
+    fun computeDiscriminant(a: BigInteger, b: BigInteger, c: BigInteger): BigInteger {
+        return b * b - a * c * BigInteger.valueOf(4)
+    }
+
+    val discriminant = computeDiscriminant(aBig, bBig, cBig)
+    if (discriminant < BigInteger.ZERO) {
+        return QuadraticEquationResult.None
+    }
+
+    val sqrtDisc = discriminant.sqrt()
+    if (sqrtDisc * sqrtDisc != discriminant) {
+        return QuadraticEquationResult.None
+    }
+
+    val twoA = aBig * BigInteger.valueOf(2)
+    var result1: BigInteger? = null
+    var result2: BigInteger? = null
+
+    if (twoA != BigInteger.ZERO && (-bBig - sqrtDisc) % twoA == BigInteger.ZERO) {
+        val res = (-bBig - sqrtDisc) / twoA
+        result1 = res
+    }
+    if (discriminant != BigInteger.ZERO && twoA != BigInteger.ZERO && (-bBig + sqrtDisc) % twoA == BigInteger.ZERO) {
+        val res = (-bBig + sqrtDisc) / twoA
+        result2 = res
+    }
+
+    return when {
+        result1 != null && result2 != null -> QuadraticEquationResult.Two(minOf(result1, result2), maxOf(result1, result2))
+        result1 != null -> QuadraticEquationResult.One(result1)
+        result2 != null -> QuadraticEquationResult.One(result2)
+        else -> QuadraticEquationResult.None
+    }
 }

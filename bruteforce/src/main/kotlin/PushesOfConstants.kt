@@ -1,5 +1,6 @@
 package cz.sejsel
 
+import cz.sejsel.ksplang.interpreter.Op
 import cz.sejsel.ksplang.interpreter.cursedDiv
 import cz.sejsel.ksplang.interpreter.digitSum
 import cz.sejsel.ksplang.interpreter.funkcia
