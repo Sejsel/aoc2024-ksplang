@@ -79,6 +79,9 @@ class VMTests : FunSpec({
                 runOp(listOf(i.toLong()), Op.Praise) shouldBe List(i) { iLikeKsp }.flatten()
             }
         }
+        test("correct output with numbers") {
+            runOp(listOf(1.toLong()), Op.Praise) shouldBe listOf(77L, 225L, 109L, 32L, 114L, 225L, 100L, 32L, 75L, 83L, 80L)
+        }
         test("stack size limits") {
             fun runPraiseWithStackSize(initialStack: List<Long>, stackSize: Long): Either<OperationError, List<Long>> {
                 val state = State(stackSize, PI_TEST_VALUES)
