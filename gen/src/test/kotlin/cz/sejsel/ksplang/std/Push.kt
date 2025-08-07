@@ -3,7 +3,7 @@ package cz.sejsel.ksplang.std
 import cz.sejsel.ksplang.VALUES_PER_DIGIT_SUM
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildFunction
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
@@ -12,7 +12,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import kotlin.random.Random
 
 class PushTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     for (i in 0L..16L) {
@@ -42,7 +42,7 @@ class PushTests : FunSpec({
 })
 
 class PushOptimizedTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     context("short push programs") {
@@ -59,7 +59,7 @@ class PushOptimizedTests : FunSpec({
 
 
 class PushPaddedToTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     for (i in 0L..16L) {
@@ -76,7 +76,7 @@ class PushPaddedToTests : FunSpec({
 })
 
 class PushOnTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val params = buildList {
@@ -96,7 +96,7 @@ class PushOnTests : FunSpec({
 })
 
 class PushManyTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("pushMany 4 7") {
@@ -114,7 +114,7 @@ class PushManyTests : FunSpec({
 })
 
 class PushManyLenTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
     val program = builder.build(buildComplexFunction {
         pushManyAndKeepLen(4)
@@ -129,7 +129,7 @@ class PushManyLenTests : FunSpec({
 })
 
 class PushManyBottomTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("pushManyBottom 4 7") {

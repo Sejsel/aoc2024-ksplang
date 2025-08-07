@@ -1,6 +1,6 @@
 package cz.sejsel.ksplang.builder
 
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.doWhileNonNegative
@@ -20,7 +20,7 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 
 class IfZeroBuilderTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val a = buildComplexFunction {
@@ -42,7 +42,7 @@ class IfZeroBuilderTests : FunSpec({
 })
 
 class DoWhileZeroBuilderTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val a = buildComplexFunction {
@@ -62,7 +62,7 @@ class DoWhileZeroBuilderTests : FunSpec({
 })
 
 class DoWhileNonZeroBuilderTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val a = buildComplexFunction {
@@ -82,7 +82,7 @@ class DoWhileNonZeroBuilderTests : FunSpec({
 })
 
 class DoWhileNonNegativeBuilderTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val a = buildComplexFunction {
@@ -102,7 +102,7 @@ class DoWhileNonNegativeBuilderTests : FunSpec({
 })
 
 class WhileNonZeroTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("while nonzero") {
@@ -137,7 +137,7 @@ class WhileNonZeroTests : FunSpec({
 
 
 class FunctionTests: FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("2 functions if else") {

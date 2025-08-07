@@ -11,6 +11,7 @@ dependencies {
 
     testImplementation(libs.kotest.runner)
     testImplementation(libs.kotest.framework.datatest)
+    testImplementation(project(":interpreter"))
 }
 
 kotlin {

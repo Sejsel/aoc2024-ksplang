@@ -9,7 +9,7 @@ repositories {
 dependencies {
     implementation(kotlin("reflect"))
     implementation(libs.guava)
-    implementation(libs.arrow)
+    api(libs.arrow)
 
     testImplementation(libs.kotest.runner)
     testImplementation(libs.kotest.framework.datatest)

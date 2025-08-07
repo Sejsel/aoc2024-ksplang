@@ -1,7 +1,7 @@
 package cz.sejsel.ksplang.std
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.buildFunction
 import io.kotest.core.spec.style.FunSpec
@@ -10,7 +10,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import kotlin.streams.toList
 
 class MapTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("map 1 value") {

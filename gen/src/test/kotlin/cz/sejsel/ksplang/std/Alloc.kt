@@ -1,13 +1,13 @@
 package cz.sejsel.ksplang.std
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 
 class AllocTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
     val program = builder.build(buildComplexFunction {
         alloc()

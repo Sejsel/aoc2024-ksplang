@@ -54,5 +54,5 @@ fun parseWord(word: String): Op {
  * @throws IllegalArgumentException if an instruction is not recognized.
  */
 fun parseProgram(program: String): List<Op> {
-    return program.split("\\s".toRegex()).map(::parseWord)
+    return program.split("\\s".toRegex()).filter { it.isNotBlank() }.map { parseWord(it) }
 }

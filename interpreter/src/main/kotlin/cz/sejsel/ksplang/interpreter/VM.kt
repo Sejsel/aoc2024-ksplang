@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.raise.either
 import com.google.common.math.LongMath
 import java.math.BigInteger
+import java.util.zip.GZIPInputStream
 import kotlin.math.abs
 
 
@@ -112,6 +113,14 @@ sealed interface Effect {
     data object Timeout : Effect
     data class RunSubprogramAndAppendResult(val ops: List<Op>) : Effect
     data class TemporaryReverse(val offset: Long) : Effect
+}
+
+object PiDigits {
+    val digits: List<Long> =
+        GZIPInputStream(this::class.java.getResourceAsStream("/pi-10million.txt.gz")).bufferedReader()
+            .readText()
+            .filter { it.isDigit() }
+            .map { it.digitToInt().toLong() }
 }
 
 class State(
@@ -633,7 +642,7 @@ class State(
 data class VMOptions(
     val initialStack: List<Long>,
     val maxStackSize: Int = 2097152,
-    val piDigits: List<Long> = emptyList(),
+    val piDigits: List<Long>? = null,
     val maxOpCount: Long = Long.MAX_VALUE,
 )
 
@@ -661,7 +670,7 @@ data class RunResult(
 fun run(ops: List<Op>, options: VMOptions): Either<RunError, RunResult> {
     val state = State(
         maxStackSize = options.maxStackSize.toLong(),
-        piDigits = options.piDigits
+        piDigits = options.piDigits ?: PiDigits.digits
     )
     state.stack.clear()
     state.stack.addAll(options.initialStack)

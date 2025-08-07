@@ -3,7 +3,7 @@ package cz.sejsel.ksplang.std
 import cz.sejsel.ksplang.VALUES_PER_DIGIT_SUM
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildFunction
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
@@ -14,7 +14,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 class AddTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     context("Add zero does not change value") {
@@ -40,7 +40,7 @@ class AddTests : FunSpec({
 })
 
 class SubTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     context("Sub zero does not change value") {
@@ -66,7 +66,7 @@ class SubTests : FunSpec({
 })
 
 class MulTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val digitSumCases =
@@ -91,7 +91,7 @@ class MulTests : FunSpec({
 })
 
 class DivTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val digitSumCases =
@@ -115,7 +115,7 @@ class DivTests : FunSpec({
 })
 
 class AbsSubTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     context("abssub zero does not change positive value") {
@@ -141,7 +141,7 @@ class AbsSubTests : FunSpec({
 })
 
 class NegateTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("negate zero results in zero") {
@@ -165,7 +165,7 @@ class NegateTests : FunSpec({
 })
 
 class SgnTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("sgn(1) = 1") {
@@ -191,7 +191,7 @@ class SgnTests : FunSpec({
 })
 
 class AbsTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("abs(1) = 1") {
@@ -217,7 +217,7 @@ class AbsTests : FunSpec({
 })
 
 class Min2Tests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val digitSumCases =
@@ -244,7 +244,7 @@ class Min2Tests : FunSpec({
 })
 
 class DecTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     context("dec subtracts 1") {
@@ -263,7 +263,7 @@ class DecTests : FunSpec({
 })
 
 class IsMinTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val program = builder.build(buildFunction { isMin() })
@@ -292,7 +292,7 @@ class IsMinTests : FunSpec({
 })
 
 class BitorTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val program = builder.build(buildComplexFunction { bitor() })
@@ -312,7 +312,7 @@ class BitorTests : FunSpec({
 })
 
 class BitnotMinUnsafeTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val program = builder.build(buildFunction { bitnotMinUnsafe() })
@@ -325,7 +325,7 @@ class BitnotMinUnsafeTests : FunSpec({
 })
 
 class BitnotTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val program = builder.build(buildComplexFunction { bitnot() })

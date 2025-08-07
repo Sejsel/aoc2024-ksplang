@@ -3,14 +3,14 @@ package cz.sejsel.ksplang.std
 import cz.sejsel.ksplang.VALUES_PER_DIGIT_SUM
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildFunction
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
 
 class DupTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     context("dup duplicates single value for all CS") {
@@ -36,7 +36,7 @@ class DupTests : FunSpec({
 })
 
 class DupVariationsTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("dupAb duplicates two values") {
@@ -67,7 +67,7 @@ class DupVariationsTests : FunSpec({
 })
 
 class DupNthTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("dupNth duplicates first") {
