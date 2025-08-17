@@ -1,10 +1,10 @@
 package cz.sejsel.ksplang.wasm
 
+import com.dylibso.chicory.runtime.Store
 import com.dylibso.chicory.wasm.Parser
 import com.dylibso.chicory.wasm.WasmModule
 import com.dylibso.chicory.wasm.types.ExternalType
 import com.dylibso.chicory.wasm.types.OpCode
-import cz.sejsel.WasmStore
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction
 import cz.sejsel.ksplang.dsl.core.ProgramFunction0To0
@@ -91,7 +91,6 @@ import cz.sejsel.ksplang.dsl.core.ProgramFunction8To8
 import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import java.nio.file.Path
-import kotlin.io.path.name
 import cz.sejsel.ksplang.wasm.WasmFunctionScope.Companion.initialize as initializeScope
 
 class TranslatedWasmModule(
@@ -113,40 +112,33 @@ class TranslatedWasmModule(
     }
 }
 
-class KsplangWasmModuleTranslator(path: Path) {
-    private val name = path
-    private val module = Parser.parse(path)
-
-    fun KsplangProgramBuilder.install(): TranslatedWasmModule {
-        val ksplangModule = translate()
-        with(ksplangModule) { installFunctions() }
-        return ksplangModule
-    }
-
+class KsplangWasmModuleTranslator() {
     // TODO: Forward function declaration
     // TODO: Memory
     // TODO: Start function
-    fun translate(): TranslatedWasmModule {
+    fun translate(moduleName: String, path: Path, store: Store): TranslatedWasmModule {
+        val module = Parser.parse(path)
+
         val functions = mutableListOf<ProgramFunctionBase>()
         for (functionIndex in 0..<module.functionSection().functionCount()) {
-            val function = functionToKsplang(functionIndex)
+            val function = functionToKsplang(module, functionIndex, moduleName)
             functions.add(function)
         }
 
         return TranslatedWasmModule(
             programFunctions = functions,
-            exportedFunctions = associateExportedFunctions(functions)
+            exportedFunctions = associateExportedFunctions(module, functions)
         )
     }
 
-    private fun associateExportedFunctions(functions: List<ProgramFunctionBase>): Map<String, ProgramFunctionBase> {
+    private fun associateExportedFunctions(module: WasmModule, functions: List<ProgramFunctionBase>): Map<String, ProgramFunctionBase> {
         val exportSection = module.exportSection()
         return (0..<exportSection.exportCount()).map { exportSection.getExport(it) }
             .filter { it.exportType() == ExternalType.FUNCTION }
             .associate { it.name() to functions[it.index()] }
     }
 
-    private fun functionToKsplang(index: Int): ProgramFunctionBase {
+    private fun functionToKsplang(module: WasmModule, index: Int, moduleName: String): ProgramFunctionBase {
         val functionType = module.typeSection().getType(module.functionSection().getFunctionType(index))
         val code = module.codeSection().functionBodies()[index]
         val localTypes = code.localTypes()
@@ -271,7 +263,7 @@ class KsplangWasmModuleTranslator(path: Path) {
                         OpCode.I32_CTZ -> TODO()
                         OpCode.I32_POPCNT -> TODO()
                         OpCode.I32_ADD -> i32Add()
-                        OpCode.I32_SUB -> TODO()
+                        OpCode.I32_SUB -> i32Sub()
                         OpCode.I32_MUL -> TODO()
                         OpCode.I32_DIV_S -> TODO()
                         OpCode.I32_DIV_U -> TODO()

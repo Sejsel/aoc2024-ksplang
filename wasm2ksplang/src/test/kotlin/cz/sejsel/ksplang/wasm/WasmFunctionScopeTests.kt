@@ -1,17 +1,16 @@
 package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.types.ValType
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
-import cz.sejsel.ksplang.std.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import cz.sejsel.ksplang.wasm.WasmFunctionScope.Companion.initialize as initializeScope
 
 class WasmFunctionScopeTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("initializing non-parameter local should default to 0") {
