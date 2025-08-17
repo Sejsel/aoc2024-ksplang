@@ -13,7 +13,7 @@ import cz.sejsel.ksplang.std.auto.*
 import java.io.File
 import kotlin.io.path.Path
 
-class WasmAdd(store: WasmStore) : KsplangWasmModule(Path("wasm/add.wasm"), store) {
+class WasmAdd(store: Store) : KsplangWasmModule(Path("wasm/add.wasm"), store) {
     fun add(builder: KsplangProgramBuilder): ProgramFunction2To1 {
         return with(builder) { with(module) { getExportedFunction("add")!! as ProgramFunction2To1 } }
     }
@@ -71,7 +71,7 @@ fun main() {
     // Additionally, the runtime store can be simplified drastically, the only dynamically accessed
     // part is the function list (through call_indirect), and it does not change during execution.
 
-    val wasmStore = WasmStore()
+    val wasmStore = Store()
     val addWasmModule = WasmAdd(wasmStore)
 
     val ksplang = program {
