@@ -116,9 +116,7 @@ class KsplangWasmModuleTranslator() {
     // TODO: Forward function declaration
     // TODO: Memory
     // TODO: Start function
-    fun translate(moduleName: String, path: Path, store: Store): TranslatedWasmModule {
-        val module = Parser.parse(path)
-
+    fun translate(moduleName: String, module: WasmModule, store: Store): TranslatedWasmModule {
         val functions = mutableListOf<ProgramFunctionBase>()
         for (functionIndex in 0..<module.functionSection().functionCount()) {
             val function = functionToKsplang(module, functionIndex, moduleName)
@@ -131,7 +129,15 @@ class KsplangWasmModuleTranslator() {
         )
     }
 
-    private fun associateExportedFunctions(module: WasmModule, functions: List<ProgramFunctionBase>): Map<String, ProgramFunctionBase> {
+    fun translate(moduleName: String, path: Path, store: Store): TranslatedWasmModule {
+        val module = Parser.parse(path)
+        return translate(moduleName, module, store)
+    }
+
+    private fun associateExportedFunctions(
+        module: WasmModule,
+        functions: List<ProgramFunctionBase>
+    ): Map<String, ProgramFunctionBase> {
         val exportSection = module.exportSection()
         return (0..<exportSection.exportCount()).map { exportSection.getExport(it) }
             .filter { it.exportType() == ExternalType.FUNCTION }
@@ -632,6 +638,7 @@ class KsplangWasmModuleTranslator() {
                 8 -> ProgramFunction0To8(name, body)
                 else -> ProgramFunction(name, args = 0, outputs = returnCount, body)
             }
+
             1 -> when (returnCount) {
                 0 -> ProgramFunction1To0(name, body)
                 1 -> ProgramFunction1To1(name, body)
@@ -644,6 +651,7 @@ class KsplangWasmModuleTranslator() {
                 8 -> ProgramFunction1To8(name, body)
                 else -> ProgramFunction(name, args = 1, outputs = returnCount, body)
             }
+
             2 -> when (returnCount) {
                 0 -> ProgramFunction2To0(name, body)
                 1 -> ProgramFunction2To1(name, body)
@@ -656,6 +664,7 @@ class KsplangWasmModuleTranslator() {
                 8 -> ProgramFunction2To8(name, body)
                 else -> ProgramFunction(name, args = 2, outputs = returnCount, body)
             }
+
             3 -> when (returnCount) {
                 0 -> ProgramFunction3To0(name, body)
                 1 -> ProgramFunction3To1(name, body)
@@ -668,6 +677,7 @@ class KsplangWasmModuleTranslator() {
                 8 -> ProgramFunction3To8(name, body)
                 else -> ProgramFunction(name, args = 3, outputs = returnCount, body)
             }
+
             4 -> when (returnCount) {
                 0 -> ProgramFunction4To0(name, body)
                 1 -> ProgramFunction4To1(name, body)
@@ -680,6 +690,7 @@ class KsplangWasmModuleTranslator() {
                 8 -> ProgramFunction4To8(name, body)
                 else -> ProgramFunction(name, args = 4, outputs = returnCount, body)
             }
+
             5 -> when (returnCount) {
                 0 -> ProgramFunction5To0(name, body)
                 1 -> ProgramFunction5To1(name, body)
@@ -692,6 +703,7 @@ class KsplangWasmModuleTranslator() {
                 8 -> ProgramFunction5To8(name, body)
                 else -> ProgramFunction(name, args = 5, outputs = returnCount, body)
             }
+
             6 -> when (returnCount) {
                 0 -> ProgramFunction6To0(name, body)
                 1 -> ProgramFunction6To1(name, body)
@@ -704,6 +716,7 @@ class KsplangWasmModuleTranslator() {
                 8 -> ProgramFunction6To8(name, body)
                 else -> ProgramFunction(name, args = 6, outputs = returnCount, body)
             }
+
             7 -> when (returnCount) {
                 0 -> ProgramFunction7To0(name, body)
                 1 -> ProgramFunction7To1(name, body)
@@ -716,6 +729,7 @@ class KsplangWasmModuleTranslator() {
                 8 -> ProgramFunction7To8(name, body)
                 else -> ProgramFunction(name, args = 7, outputs = returnCount, body)
             }
+
             8 -> when (returnCount) {
                 0 -> ProgramFunction8To0(name, body)
                 1 -> ProgramFunction8To1(name, body)
@@ -728,6 +742,7 @@ class KsplangWasmModuleTranslator() {
                 8 -> ProgramFunction8To8(name, body)
                 else -> ProgramFunction(name, args = 8, outputs = returnCount, body)
             }
+
             else -> ProgramFunction(name, args = paramCount, outputs = returnCount, body)
         }
     }
