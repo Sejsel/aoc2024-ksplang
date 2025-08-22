@@ -264,7 +264,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I32_POPCNT -> TODO()
                         OpCode.I32_ADD -> i32Add()
                         OpCode.I32_SUB -> i32Sub()
-                        OpCode.I32_MUL -> TODO()
+                        OpCode.I32_MUL -> i32Mul()
                         OpCode.I32_DIV_S -> TODO()
                         OpCode.I32_DIV_U -> TODO()
                         OpCode.I32_REM_S -> TODO()

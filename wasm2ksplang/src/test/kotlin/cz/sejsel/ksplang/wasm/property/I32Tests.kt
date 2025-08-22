@@ -54,18 +54,46 @@ class I32Tests : FunSpec({
         }
         val ksplang = builder.build(function)
 
-        test("i32add(a, b) should equal to (a - b) - uint") {
+        test("i32sub(a, b) should equal to (a - b) - uint") {
             checkAll<UInt, UInt> { a, b ->
                 val input = listOf(a.toLong(), b.toLong())
                 runner.run(ksplang, input) shouldBe input + (a - b).bitsToLong()
             }
         }
 
-        test("i32add(a, b) should equal to (a - b) - int") {
+        test("i32sub(a, b) should equal to (a - b) - int") {
             checkAll<Int, Int> { a, b ->
                 val input = listOf(a.toLong(), b.toLong())
                 // toLong does sign extension, we do not want that
                 val expected = (a - b).bitsToLong()
+                runner.run(ksplang, input) shouldBe input + expected
+            }
+        }
+    }
+
+    context("i32Mul") {
+        val function = buildComplexFunction {
+            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList())
+            with(scope) {
+                getLocal(0)
+                getLocal(1)
+                i32Mul()
+            }
+        }
+        val ksplang = builder.build(function)
+
+        test("i32mul(a, b) should equal to (a * b) - uint") {
+            checkAll<UInt, UInt> { a, b ->
+                val input = listOf(a.toLong(), b.toLong())
+                runner.run(ksplang, input) shouldBe input + (a * b).bitsToLong()
+            }
+        }
+
+        test("i32mul(a, b) should equal to (a * b) - int") {
+            checkAll<Int, Int> { a, b ->
+                val input = listOf(a.toLong(), b.toLong())
+                // toLong does sign extension, we do not want that
+                val expected = (a * b).bitsToLong()
                 runner.run(ksplang, input) shouldBe input + expected
             }
         }

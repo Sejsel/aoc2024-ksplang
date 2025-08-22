@@ -47,6 +47,16 @@ class WasmFunctionScope private constructor(
         modulo()
     }
 
+    fun ComplexFunction.i32Mul() {
+        check(!localsPopped)
+        mul()
+        intermediateStackValues -= 1
+
+        push(I32_MOD)
+        swap2()
+        modulo()
+    }
+
     fun ComplexFunction.popLocals() {
         check(!localsPopped) { "Locals have already been popped in this scope" }
         // There should be only return values + locals on the stack now.
