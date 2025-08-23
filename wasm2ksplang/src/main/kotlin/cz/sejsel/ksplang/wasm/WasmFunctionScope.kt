@@ -142,6 +142,13 @@ class WasmFunctionScope private constructor(
         modulo()
     }
 
+    fun ComplexFunction.bitAnd() {
+        check(!localsPopped)
+        bitand()
+        intermediateStackValues -= 1
+        // No need to MOD as it cannot set any higher bits
+    }
+
     fun ComplexFunction.popLocals() {
         check(!localsPopped) { "Locals have already been popped in this scope" }
         // There should be only return values + locals on the stack now.

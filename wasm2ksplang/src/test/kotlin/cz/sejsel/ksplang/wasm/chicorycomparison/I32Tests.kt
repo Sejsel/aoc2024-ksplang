@@ -147,6 +147,12 @@ class I32ChicoryTests : FunSpec({
         checkAllI32WithSecondNonZero(func, ksplang)
         checkAllU32WithSecondNonZero(func, ksplang)
     }
+
+    context("i32.and") {
+        val (func, ksplang) = prepareI32BinaryFunModule("i32.and")
+        checkAllI32WithSecondNonZero(func, ksplang)
+        checkAllU32WithSecondNonZero(func, ksplang)
+    }
 })
 
 /*
