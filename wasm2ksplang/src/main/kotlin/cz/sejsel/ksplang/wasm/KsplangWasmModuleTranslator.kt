@@ -278,7 +278,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I32_AND -> bitAnd()
                         OpCode.I32_OR -> bitOr()
                         OpCode.I32_XOR -> bitXor()
-                        OpCode.I32_SHL -> TODO()
+                        OpCode.I32_SHL -> i32Shl()
                         OpCode.I32_SHR_S -> TODO()
                         OpCode.I32_SHR_U -> TODO()
                         OpCode.I32_ROTL -> TODO()
