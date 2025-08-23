@@ -318,6 +318,23 @@ fun ComplexBlock.bitor() = complexFunction("bitor") {
     // ~(~b & ~a)
 }
 
+fun ComplexBlock.bitxor() = complexFunction("bitxor") {
+    // a b
+    dupAb()
+    // a b a b
+    bitor()
+    // a b a|b
+    roll(3, 1)
+    // a|b a b
+    bitand()
+    // a|b a&b
+    bitnot()
+    // a|b ~(a&b)
+    bitand()
+    // (a|b)&~(a&b)
+    // -- or also a^b
+}
+
 /**
  * Does a bitwise NOT on a value. Works on all values except for -2^63. Fast.
  * If you need to also handle -2^63, see [bitnot] instead.

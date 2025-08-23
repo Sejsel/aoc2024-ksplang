@@ -316,6 +316,26 @@ class BitorTests : FunSpec({
     }
 })
 
+class BitXorTests : FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+
+    val program = builder.build(buildComplexFunction { bitxor() })
+
+    test("bitxor all combinations") {
+        runner.run(program, listOf(0b1100, 0b1010)) shouldContainExactly listOf(0b0110)
+    }
+    test("bitxor MIN and MAX") {
+        runner.run(program, listOf(Long.MIN_VALUE, Long.MAX_VALUE)) shouldContainExactly listOf(Long.MIN_VALUE.xor(Long.MAX_VALUE))
+    }
+    test("bitxor MIN and MIN") {
+        runner.run(program, listOf(Long.MIN_VALUE, Long.MIN_VALUE)) shouldContainExactly listOf(Long.MIN_VALUE.xor(Long.MIN_VALUE))
+    }
+    test("bitxor MAX and MAX") {
+        runner.run(program, listOf(Long.MAX_VALUE, Long.MAX_VALUE)) shouldContainExactly listOf(Long.MAX_VALUE.xor(Long.MAX_VALUE))
+    }
+})
+
 class BitnotMinUnsafeTests : FunSpec({
     val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
