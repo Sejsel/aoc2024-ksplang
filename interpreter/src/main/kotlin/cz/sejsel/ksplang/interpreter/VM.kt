@@ -294,8 +294,7 @@ class State(
             }
 
             Op.Universal -> {
-                val op = pop().bind()
-                when (op) {
+                when (val op = pop().bind()) {
                     0L -> {
                         val a = pop().bind()
                         val b = pop().bind()
@@ -316,7 +315,7 @@ class State(
                         val b = pop().bind()
                         val product = try {
                             LongMath.checkedMultiply(a, b)
-                        } catch (e: ArithmeticException) {
+                        } catch (_: ArithmeticException) {
                             raise(OperationError.IntegerOverflow)
                         }
                         push(product).bind()

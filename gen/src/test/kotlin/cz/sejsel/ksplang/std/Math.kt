@@ -93,6 +93,7 @@ class MulTests : FunSpec({
 class DivTests : FunSpec({
     val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
+    val program = builder.build(buildFunction { div() })
 
     val digitSumCases =
         VALUES_PER_DIGIT_SUM.map { 1L to it } + VALUES_PER_DIGIT_SUM.map { 2L to it } + VALUES_PER_DIGIT_SUM.map { 3L to it }
@@ -103,12 +104,16 @@ class DivTests : FunSpec({
         Long.MAX_VALUE to 0,
         10L to 10,
         1000L to 1000,
-        -1000L to 1000
+        -1000L to 1000,
+        1000L to -1000,
+        -1L to 2,
+        -2L to 1,
+        1L to -2,
+        2L to -1,
     )
 
     context("div") {
         withData(digitSumCases + extraCases) { (a, b) ->
-            val program = builder.build(buildFunction { div() })
             runner.run(program, listOf(a, b)) shouldContainExactly listOf(b / a)
         }
     }

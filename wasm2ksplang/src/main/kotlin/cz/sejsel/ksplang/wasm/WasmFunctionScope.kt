@@ -2,6 +2,8 @@ package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
+import cz.sejsel.ksplang.dsl.core.ifZero
+import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.std.*
 
 class WasmFunctionScope private constructor(
@@ -13,8 +15,6 @@ class WasmFunctionScope private constructor(
     private var intermediateStackValues = 0
     private var localsPopped: Boolean = false
 
-    // TODO: There should be some push of default values for locals not passed as parameters.
-
     private fun ComplexFunction.dupLocal(index: Int) {
         check(!localsPopped)
         push(localTypes.size + intermediateStackValues - index)
@@ -22,6 +22,30 @@ class WasmFunctionScope private constructor(
         intermediateStackValues++
     }
 
+    private fun ComplexFunction.i32ToSigned() {
+        // a
+        dup()
+        push(2147483648)
+        // a a 2^31
+        cmp()
+        // a cmp -- 1 if a > 2^31
+        //       -- 0 if a == 2^31, -1 if a < 2^31
+        inc()
+        // a cmp++ -- 1 or 2 if a >= 2^31
+        //         -- 0 if if a < 2^31
+        ifZero(popChecked = true) {
+            // a < 2^31
+            // a
+        } otherwise {
+            // a
+            push(4294967296)
+            sub()
+            // a-2^32
+        }
+    }
+
+
+    // TODO: Find last local usage in function, and instead of duplicating, we can consume it.
     fun ComplexFunction.getLocal(index: Int) {
         check(!localsPopped)
         dupLocal(index)
@@ -49,7 +73,68 @@ class WasmFunctionScope private constructor(
 
     fun ComplexFunction.i32Mul() {
         check(!localsPopped)
+        // Unfortunately, we only have signed i64 multiplication, so we can overflow
+        // even with multiplication of two i32 values.
+
+        TODO("Not yet implemented due to overflows") // See Hacker's delight TABLE 2–2. OVERFLOW TEST FOR SIGNED MULTIPLICATION onwards, we can have a fast case
+
+        /*
         mul()
+        intermediateStackValues -= 1
+
+        push(I32_MOD)
+        swap2()
+        modulo()
+        */
+    }
+
+    fun ComplexFunction.i32DivSigned() {
+        check(!localsPopped)
+        // a b
+        i32ToSigned()
+        // a b_s
+        swap2()
+        i32ToSigned()
+        // b_s a_s
+        div()
+        intermediateStackValues -= 1
+
+        push(I32_MOD)
+        swap2()
+        modulo()
+    }
+
+    fun ComplexFunction.i32DivUnsigned() {
+        check(!localsPopped)
+        swap2()
+        div()
+        intermediateStackValues -= 1
+
+        push(I32_MOD)
+        swap2()
+        modulo()
+    }
+
+    fun ComplexFunction.i32RemSigned() {
+        check(!localsPopped)
+        // a b
+        i32ToSigned()
+        // a b_s
+        swap2()
+        i32ToSigned()
+        // b_s a_s
+        REM()
+        intermediateStackValues -= 1
+
+        push(I32_MOD)
+        swap2()
+        modulo()
+    }
+
+    fun ComplexFunction.i32RemUnsigned() {
+        check(!localsPopped)
+        swap2()
+        REM()
         intermediateStackValues -= 1
 
         push(I32_MOD)

@@ -14,6 +14,11 @@ import cz.sejsel.ksplang.wasm.bitsToLong
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.scopes.FunSpecContainerScope
 import io.kotest.matchers.shouldBe
+import io.kotest.property.Arb
+import io.kotest.property.PropertyContext
+import io.kotest.property.arbitrary.filter
+import io.kotest.property.arbitrary.int
+import io.kotest.property.arbitrary.uInt
 import io.kotest.property.checkAll
 
 class I32ChicoryTests : FunSpec({
@@ -41,77 +46,106 @@ class I32ChicoryTests : FunSpec({
         return Pair(func, ksplang)
     }
 
+    fun checkIntResult(
+        func: ExportFunction,
+        ksplang: String
+    ): suspend PropertyContext.(Int, Int) -> Unit = { a, b ->
+        val input = listOf(a.bitsToLong(), b.bitsToLong())
+        val expected = func.apply(*input.toLongArray()).single()
+        val result = runner.run(ksplang, input)
+        // Note that the upper bits do not match between ksplang and chicory.
+        // Chicory may have sign extension (1111... in all upper 32 bits),
+        // while ksplang always maintains zeros in the bits.
+        result.last().toInt() shouldBe expected.toInt()
+    }
+
+    fun checkUIntResult(
+        func: ExportFunction,
+        ksplang: String
+    ): suspend PropertyContext.(UInt, UInt) -> Unit = { a, b ->
+        val input = listOf(a.bitsToLong(), b.bitsToLong())
+        val expected = func.apply(*input.toLongArray()).single()
+        val result = runner.run(ksplang, input)
+        // Note that the upper bits do not match between ksplang and chicory.
+        // Chicory may have sign extension (1111... in all upper 32 bits),
+        // while ksplang always maintains zeros in the bits.
+        result.last().toInt() shouldBe expected.toInt()
+    }
+
     suspend fun FunSpecContainerScope.checkAllI32(func: ExportFunction, ksplang: String) {
         this.test("chicory result should equal ksplang result - int") {
-            checkAll<Int, Int> { a, b ->
-                val input = listOf(a.bitsToLong(), b.bitsToLong())
-                val expected = func.apply(*input.toLongArray()).single()
-                val result = runner.run(ksplang, input)
-                // Note that the upper bits do not match between ksplang and chicory.
-                // Chicory may have sign extension (1111... in all upper 32 bits),
-                // while ksplang always maintains zeros in the bits.
-                result.last().toInt() shouldBe expected.toInt()
-            }
+            checkAll<Int, Int>(checkIntResult(func, ksplang))
         }
     }
 
     suspend fun FunSpecContainerScope.checkAllU32(func: ExportFunction, ksplang: String) {
         this.test("chicory result should equal ksplang result - uint") {
-            checkAll<UInt, UInt> { a, b ->
-                val input = listOf(a.bitsToLong(), b.bitsToLong())
-                val expected = func.apply(*input.toLongArray()).single()
-                val result = runner.run(ksplang, input)
-                // Note that the upper bits do not match between ksplang and chicory.
-                // Chicory may have sign extension (1111... in all upper 32 bits),
-                // while ksplang always maintains zeros in the bits.
-                result.last().toInt() shouldBe expected.toInt()
-            }
+            checkAll<UInt, UInt> (checkUIntResult(func, ksplang))
         }
     }
 
-    context("i32Add") {
-        val (func, ksplang) = prepareModule(
-            wat = $$"""
+    suspend fun FunSpecContainerScope.checkAllI32WithSecondNonZero(func: ExportFunction, ksplang: String) {
+        this.test("chicory result should equal ksplang result - int, nonzero int") {
+            checkAll(Arb.int(), Arb.int().filter { it != 0 }, checkIntResult(func, ksplang))
+        }
+    }
+
+    suspend fun FunSpecContainerScope.checkAllU32WithSecondNonZero(func: ExportFunction, ksplang: String) {
+        this.test("chicory result should equal ksplang result - uint, nonzero uint") {
+            checkAll(Arb.uInt(), Arb.uInt().filter { it != 0U }, checkUIntResult(func, ksplang))
+        }
+    }
+
+    fun prepareI32BinaryFunModule(instructionName: String) = prepareModule(
+        wat = $$"""
                 (module (func $add (export "fun") (param $a i32) (param $b i32) (result i32)
                     local.get $a
                     local.get $b
-                    i32.add
+                    $$instructionName
                 ))""".trimIndent(),
-            exportedFunctionName = "fun"
-        )
+        exportedFunctionName = "fun"
+    )
 
+    context("i32.add") {
+        val (func, ksplang) = prepareI32BinaryFunModule("i32.add")
         checkAllI32(func, ksplang)
         checkAllU32(func, ksplang)
     }
 
-    context("i32Sub") {
-        val (func, ksplang) = prepareModule(
-            wat = $$"""
-                (module (func $add (export "fun") (param $a i32) (param $b i32) (result i32)
-                    local.get $a
-                    local.get $b
-                    i32.sub
-                ))""".trimIndent(),
-            exportedFunctionName = "fun"
-        )
-
+    context("i32.sub") {
+        val (func, ksplang) = prepareI32BinaryFunModule("i32.sub")
         checkAllI32(func, ksplang)
         checkAllU32(func, ksplang)
     }
 
-    context("i32Mul") {
-        val (func, ksplang) = prepareModule(
-            wat = $$"""
-                (module (func $add (export "fun") (param $a i32) (param $b i32) (result i32)
-                    local.get $a
-                    local.get $b
-                    i32.mul
-                ))""".trimIndent(),
-            exportedFunctionName = "fun"
-        )
-
+    context("i32.mul") {
+        val (func, ksplang) = prepareI32BinaryFunModule("i32.mul")
         checkAllI32(func, ksplang)
         checkAllU32(func, ksplang)
+    }
+
+    context("i32.div_s") {
+        val (func, ksplang) = prepareI32BinaryFunModule("i32.div_s")
+        checkAllI32WithSecondNonZero(func, ksplang)
+        checkAllU32WithSecondNonZero(func, ksplang)
+    }
+
+    context("i32.div_u") {
+        val (func, ksplang) = prepareI32BinaryFunModule("i32.div_u")
+        checkAllI32WithSecondNonZero(func, ksplang)
+        checkAllU32WithSecondNonZero(func, ksplang)
+    }
+
+    context("i32.rem_u") {
+        val (func, ksplang) = prepareI32BinaryFunModule("i32.rem_u")
+        checkAllI32WithSecondNonZero(func, ksplang)
+        checkAllU32WithSecondNonZero(func, ksplang)
+    }
+
+    context("i32.rem_s") {
+        val (func, ksplang) = prepareI32BinaryFunModule("i32.rem_s")
+        checkAllI32WithSecondNonZero(func, ksplang)
+        checkAllU32WithSecondNonZero(func, ksplang)
     }
 })
 
