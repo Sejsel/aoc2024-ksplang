@@ -157,6 +157,29 @@ class WasmFunctionScope private constructor(
         modulo()
     }
 
+    fun ComplexFunction.i32ShrUnsigned() {
+        check(!localsPopped)
+        // val by
+        push(32)
+        swap2()
+        modulo()
+        // val by%32
+        push(1)
+        swap2()
+        // val 1 by%32
+        bitshift()
+        // val 2**by%32
+        swap2()
+        div()
+        // val//(2**by%32)
+
+        intermediateStackValues -= 1
+
+        push(I32_MOD)
+        swap2()
+        modulo()
+    }
+
     fun ComplexFunction.bitAnd() {
         check(!localsPopped)
         bitand()
