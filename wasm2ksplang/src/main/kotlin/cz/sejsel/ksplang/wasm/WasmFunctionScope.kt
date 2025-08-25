@@ -164,14 +164,65 @@ class WasmFunctionScope private constructor(
         swap2()
         modulo()
         // val by%32
+        u32Shr()
+        intermediateStackValues -= 1
+
+        push(I32_MOD)
+        swap2()
+        modulo()
+    }
+
+    /**
+     * Unsigned shift right. Do not use with by > 63, it would fail with division by zero.
+     * Does not do sign extension (hence it is unsigned)
+     * a by -> a>>by
+     */
+    private fun ComplexFunction.u32Shr() {
         push(1)
         swap2()
-        // val 1 by%32
+        // a 1 by
         bitshift()
-        // val 2**by%32
+        // a 2**by
         swap2()
         div()
-        // val//(2**by%32)
+        // a//(2**by)
+        // a>>by
+    }
+
+    fun ComplexFunction.i32ShrSigned() {
+        check(!localsPopped)
+        // We are using ((x+2^31)>>by) - (2^31>>by) from Hacker's Delight section 2.7
+        // instead of (2^31>>by), we are using 1 << (31-by), which we can do because by is at most 31.
+
+        // val by
+        push(32)
+        swap2()
+        modulo()
+        // val by%32
+        // val by    (for simplification, but it is mod 32)
+        swap2()
+        // by val
+        i32ToSigned() // this is very important, we need full sign extension for the final sub to work as expected
+        // by val
+
+        add(2147483648) // cannot overflow if val is 32-bit
+        dupSecond()
+        // by val+2^31 by
+        u32Shr()
+        // by (val+2^31)>>by
+
+        push(1)
+        // by (val+2^31)>>by 1
+        roll(3, 2)
+        // (val+2^31)>>by 1 by
+        push(31)
+        subabs()
+        // (val+2^31)>>by 1 31-by
+        bitshift()
+        // (val+2^31)>>by 1<<31-by
+        // (val+2^31)>>by 2^31>>by
+        sub()
+        // ((val+2^31)>>by)-(2^31>>by)
 
         intermediateStackValues -= 1
 
