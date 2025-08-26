@@ -45,34 +45,36 @@ class WasmFunctionScope private constructor(
     }
 
 
+    private fun ComplexFunction.instruction(stackSizeChange: Int, block: ComplexFunction.() -> Unit) {
+        check(!localsPopped)
+        intermediateStackValues += stackSizeChange
+        block()
+    }
+
+
     // TODO: Find last local usage in function, and instead of duplicating, we can consume it.
     fun ComplexFunction.getLocal(index: Int) {
         check(!localsPopped)
         dupLocal(index)
     }
 
-    fun ComplexFunction.i32Add() {
-        check(!localsPopped)
+    fun ComplexFunction.i32Add() = instruction(stackSizeChange = -1) {
         add()
-        intermediateStackValues -= 1
 
         push(I32_MOD)
         swap2()
         modulo()
     }
 
-    fun ComplexFunction.i32Sub() {
-        check(!localsPopped)
+    fun ComplexFunction.i32Sub() = instruction(stackSizeChange = -1) {
         sub()
-        intermediateStackValues -= 1
 
         push(I32_MOD)
         swap2()
         modulo()
     }
 
-    fun ComplexFunction.i32Mul() {
-        check(!localsPopped)
+    fun ComplexFunction.i32Mul() = instruction(stackSizeChange = -1) {
         // Unfortunately, we only have signed i64 multiplication, so we can overflow
         // even with multiplication of two i32 values.
 
@@ -80,7 +82,6 @@ class WasmFunctionScope private constructor(
 
         /*
         mul()
-        intermediateStackValues -= 1
 
         push(I32_MOD)
         swap2()
@@ -88,8 +89,7 @@ class WasmFunctionScope private constructor(
         */
     }
 
-    fun ComplexFunction.i32DivSigned() {
-        check(!localsPopped)
+    fun ComplexFunction.i32DivSigned() = instruction(stackSizeChange = -1) {
         // a b
         i32ToSigned()
         // a b_s
@@ -97,26 +97,22 @@ class WasmFunctionScope private constructor(
         i32ToSigned()
         // b_s a_s
         div()
-        intermediateStackValues -= 1
 
         push(I32_MOD)
         swap2()
         modulo()
     }
 
-    fun ComplexFunction.i32DivUnsigned() {
-        check(!localsPopped)
+    fun ComplexFunction.i32DivUnsigned() = instruction(stackSizeChange = -1) {
         swap2()
         div()
-        intermediateStackValues -= 1
 
         push(I32_MOD)
         swap2()
         modulo()
     }
 
-    fun ComplexFunction.i32RemSigned() {
-        check(!localsPopped)
+    fun ComplexFunction.i32RemSigned() = instruction(stackSizeChange = -1) {
         // a b
         i32ToSigned()
         // a b_s
@@ -124,48 +120,41 @@ class WasmFunctionScope private constructor(
         i32ToSigned()
         // b_s a_s
         REM()
-        intermediateStackValues -= 1
 
         push(I32_MOD)
         swap2()
         modulo()
     }
 
-    fun ComplexFunction.i32RemUnsigned() {
-        check(!localsPopped)
+    fun ComplexFunction.i32RemUnsigned() = instruction(stackSizeChange = -1) {
         swap2()
         REM()
-        intermediateStackValues -= 1
 
         push(I32_MOD)
         swap2()
         modulo()
     }
 
-    fun ComplexFunction.i32Shl() {
-        check(!localsPopped)
+    fun ComplexFunction.i32Shl() = instruction(stackSizeChange = -1) {
         // val by
         push(32)
         swap2()
         modulo()
         // val by%32
         bitshift()
-        intermediateStackValues -= 1
 
         push(I32_MOD)
         swap2()
         modulo()
     }
 
-    fun ComplexFunction.i32ShrUnsigned() {
-        check(!localsPopped)
+    fun ComplexFunction.i32ShrUnsigned() = instruction(stackSizeChange = -1) {
         // val by
         push(32)
         swap2()
         modulo()
         // val by%32
         u32Shr()
-        intermediateStackValues -= 1
 
         push(I32_MOD)
         swap2()
@@ -189,10 +178,10 @@ class WasmFunctionScope private constructor(
         // a>>by
     }
 
-    fun ComplexFunction.i32ShrSigned() {
-        check(!localsPopped)
-        // We are using ((x+2^31)>>by) - (2^31>>by) from Hacker's Delight section 2.7
-        // instead of (2^31>>by), we are using 1 << (31-by), which we can do because by is at most 31.
+    fun ComplexFunction.i32ShrSigned() = instruction(stackSizeChange = -1) {
+        // We are using ((val+2^31)>>by) - (2^31>>by) from Hacker's Delight section 2.7
+        // instead of (2^31>>by), we are using 1 << (31-by), which we can safely do because by is at most 31.
+        // we need to convert val to signed representation for this to work as expected
 
         // val by
         push(32)
@@ -203,7 +192,7 @@ class WasmFunctionScope private constructor(
         swap2()
         // by val
         i32ToSigned() // this is very important, we need full sign extension for the final sub to work as expected
-        // by val
+        // by val    (we don't denote the sign extension on val either)
 
         add(2147483648) // cannot overflow if val is 32-bit
         dupSecond()
@@ -224,31 +213,23 @@ class WasmFunctionScope private constructor(
         sub()
         // ((val+2^31)>>by)-(2^31>>by)
 
-        intermediateStackValues -= 1
-
         push(I32_MOD)
         swap2()
         modulo()
     }
 
-    fun ComplexFunction.bitAnd() {
-        check(!localsPopped)
+    fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
         bitand()
-        intermediateStackValues -= 1
         // No need to MOD as it cannot set any higher bits
     }
 
-    fun ComplexFunction.bitOr() {
-        check(!localsPopped)
+    fun ComplexFunction.bitOr() = instruction(stackSizeChange = -1) {
         bitor()
-        intermediateStackValues -= 1
         // No need to MOD as it cannot set any higher bits
     }
 
-    fun ComplexFunction.bitXor() {
-        check(!localsPopped)
+    fun ComplexFunction.bitXor() = instruction(stackSizeChange = -1) {
         bitxor()
-        intermediateStackValues -= 1
         // No need to MOD as it cannot set any higher bits
     }
 
