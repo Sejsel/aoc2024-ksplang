@@ -281,7 +281,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I32_SHL -> i32Shl()
                         OpCode.I32_SHR_S -> i32ShrSigned()
                         OpCode.I32_SHR_U -> i32ShrUnsigned()
-                        OpCode.I32_ROTL -> TODO()
+                        OpCode.I32_ROTL -> i32Rotl()
                         OpCode.I32_ROTR -> TODO()
                         OpCode.I64_CLZ -> TODO()
                         OpCode.I64_CTZ -> TODO()

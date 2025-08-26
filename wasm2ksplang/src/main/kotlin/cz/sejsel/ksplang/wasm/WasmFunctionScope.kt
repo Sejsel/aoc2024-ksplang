@@ -218,6 +218,28 @@ class WasmFunctionScope private constructor(
         modulo()
     }
 
+    fun ComplexFunction.i32Rotl() = instruction(stackSizeChange = -1) {
+        // a by
+        push(32)
+        swap2()
+        modulo()
+        // a by%32
+        // a by    (for simplification)
+        bitshift()
+        // a<<by
+        dup()
+        // a<<by a<<by
+        push(32)
+        u32Shr()
+        // a<<by (a<<by)>>32
+        bitor()
+        // (a<<by) | ((a<<by)>>32)
+
+        push(I32_MOD)
+        swap2()
+        modulo()
+    }
+
     fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
         bitand()
         // No need to MOD as it cannot set any higher bits
