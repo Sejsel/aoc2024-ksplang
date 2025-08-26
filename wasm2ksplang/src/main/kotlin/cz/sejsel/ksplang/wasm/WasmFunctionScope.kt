@@ -268,6 +268,15 @@ class WasmFunctionScope private constructor(
         zeroNot()
     }
 
+    fun ComplexFunction.i32Eq() = instruction(stackSizeChange = -1) {
+        // a b
+        // unlike in i64, where we would need cmp(), we can do subabs as it cannot overflow
+        subabs()
+        // |a-b|
+        zeroNot()
+        // a==b?1:0
+    }
+
     fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
         bitand()
         // No need to MOD as it cannot set any higher bits
