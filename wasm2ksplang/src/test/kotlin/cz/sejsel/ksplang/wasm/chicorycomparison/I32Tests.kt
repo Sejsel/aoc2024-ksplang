@@ -16,6 +16,7 @@ import io.kotest.core.spec.style.scopes.FunSpecContainerScope
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.PropertyContext
+import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.uInt
@@ -122,15 +123,29 @@ class I32ChicoryTests : FunSpec({
         }
     }
 
-    suspend fun FunSpecContainerScope.checkAllI32PairsWithSecondNonZero(func: ExportFunction, ksplang: String) {
-        this.test("chicory result should equal ksplang result - int, nonzero int") {
-            checkAll(Arb.int(), Arb.int().filter { it != 0 }, checkIntResultBinary(func, ksplang))
+    suspend fun FunSpecContainerScope.checkAllI32PairsWithFilter(
+        func: ExportFunction,
+        ksplang: String,
+        filter: (Int, Int) -> Boolean
+    ) {
+        val arb = Arb.bind(Arb.int(), Arb.int()) { a, b -> Pair(a, b) }.filter { filter(it.first, it.second) }
+        this.test("chicory result should equal ksplang result - int, int with filter") {
+            checkAll(arb) {
+                checkIntResultBinary(func, ksplang)(it.first, it.second)
+            }
         }
     }
 
-    suspend fun FunSpecContainerScope.checkAllU32PairsWithSecondNonZero(func: ExportFunction, ksplang: String) {
-        this.test("chicory result should equal ksplang result - uint, nonzero uint") {
-            checkAll(Arb.uInt(), Arb.uInt().filter { it != 0U }, checkUIntResultBinary(func, ksplang))
+    suspend fun FunSpecContainerScope.checkAllU32PairsWithFilter(
+        func: ExportFunction,
+        ksplang: String,
+        filter: (UInt, UInt) -> Boolean
+    ) {
+        val arb = Arb.bind(Arb.uInt(), Arb.uInt()) { a, b -> Pair(a, b) }.filter { filter(it.first, it.second) }
+        this.test("chicory result should equal ksplang result - uint, uint with filter") {
+            checkAll(arb) {
+                checkUIntResultBinary(func, ksplang)(it.first, it.second)
+            }
         }
     }
 
@@ -173,26 +188,30 @@ class I32ChicoryTests : FunSpec({
 
     context("i32.div_s") {
         val (func, ksplang) = prepareI32BinaryFunModule("i32.div_s")
-        checkAllI32PairsWithSecondNonZero(func, ksplang)
-        checkAllU32PairsWithSecondNonZero(func, ksplang)
+        // Partial: division by zero and overflow case are undefined
+        checkAllI32PairsWithFilter(func, ksplang) { a, b -> b != 0 && !(b == -1 && a == Int.MIN_VALUE) }
+        checkAllU32PairsWithFilter(func, ksplang) { a, b -> b != 0U && !(b.toInt() == -1 && a.toInt() == Int.MIN_VALUE) }
     }
 
     context("i32.div_u") {
         val (func, ksplang) = prepareI32BinaryFunModule("i32.div_u")
-        checkAllI32PairsWithSecondNonZero(func, ksplang)
-        checkAllU32PairsWithSecondNonZero(func, ksplang)
+        // Partial: division by zero is undefined
+        checkAllI32PairsWithFilter(func, ksplang) { _, b -> b != 0 }
+        checkAllU32PairsWithFilter(func, ksplang) { _, b -> b != 0U }
     }
 
     context("i32.rem_u") {
         val (func, ksplang) = prepareI32BinaryFunModule("i32.rem_u")
-        checkAllI32PairsWithSecondNonZero(func, ksplang)
-        checkAllU32PairsWithSecondNonZero(func, ksplang)
+        // Partial: division by zero is undefined
+        checkAllI32PairsWithFilter(func, ksplang) { _, b -> b != 0 }
+        checkAllU32PairsWithFilter(func, ksplang) { _, b -> b != 0U }
     }
 
     context("i32.rem_s") {
         val (func, ksplang) = prepareI32BinaryFunModule("i32.rem_s")
-        checkAllI32PairsWithSecondNonZero(func, ksplang)
-        checkAllU32PairsWithSecondNonZero(func, ksplang)
+        // Partial: division by zero is undefined
+        checkAllI32PairsWithFilter(func, ksplang) { _, b -> b != 0 }
+        checkAllU32PairsWithFilter(func, ksplang) { _, b -> b != 0U }
     }
 
     context("i32.and") {
