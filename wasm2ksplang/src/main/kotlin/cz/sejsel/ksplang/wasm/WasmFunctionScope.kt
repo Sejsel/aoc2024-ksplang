@@ -263,6 +263,11 @@ class WasmFunctionScope private constructor(
         i32RotateLeft()
     }
 
+    fun ComplexFunction.i32Eqz() = instruction(stackSizeChange = 0) {
+        // a
+        zeroNot()
+    }
+
     fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
         bitand()
         // No need to MOD as it cannot set any higher bits
