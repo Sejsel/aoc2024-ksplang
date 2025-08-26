@@ -218,13 +218,8 @@ class WasmFunctionScope private constructor(
         modulo()
     }
 
-    fun ComplexFunction.i32Rotl() = instruction(stackSizeChange = -1) {
-        // a by
-        push(32)
-        swap2()
-        modulo()
-        // a by%32
-        // a by    (for simplification)
+    // Used by both i32Rotl and i32Rotr
+    private fun ComplexFunction.i32RotateLeft() {
         bitshift()
         // a<<by
         dup()
@@ -238,6 +233,34 @@ class WasmFunctionScope private constructor(
         push(I32_MOD)
         swap2()
         modulo()
+    }
+
+    fun ComplexFunction.i32Rotl() = instruction(stackSizeChange = -1) {
+        // a by
+        push(32)
+        swap2()
+        modulo()
+        // a by%32
+        // a by    (for simplification)
+        i32RotateLeft()
+    }
+
+    fun ComplexFunction.i32Rotr() = instruction(stackSizeChange = -1) {
+        // a by
+        push(32)
+        swap2()
+        modulo()
+        // a by%32
+        // a by    (for simplification)
+        ifZero {
+            // a 0
+        } otherwise {
+            push(32)
+            subabs()
+            // a 32-by
+        }
+        // a 32-by
+        i32RotateLeft()
     }
 
     fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
