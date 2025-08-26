@@ -233,7 +233,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.F64_CONST -> TODO()
                         OpCode.I32_EQZ -> i32Eqz()
                         OpCode.I32_EQ -> i32Eq()
-                        OpCode.I32_NE -> TODO()
+                        OpCode.I32_NE -> i32Ne()
                         OpCode.I32_LT_S -> TODO()
                         OpCode.I32_LT_U -> TODO()
                         OpCode.I32_GT_S -> TODO()
