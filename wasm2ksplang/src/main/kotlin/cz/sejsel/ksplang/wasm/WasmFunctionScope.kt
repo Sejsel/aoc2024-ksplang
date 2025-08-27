@@ -24,26 +24,20 @@ class WasmFunctionScope private constructor(
     }
 
     private fun ComplexFunction.i32ToSigned() {
-        // TODO: Use Hacker's delight 2.6 Sign Extension instead, should be much faster (especially if we are using cmp)
+        // Based on Hacker's Delight Chapter 2.6 - Sign Extension
+
         // a
-        dup()
-        push(2147483648)
-        // a a 2^31
-        cmp()
-        // a cmp -- 1 if a > 2^31
-        //       -- 0 if a == 2^31, -1 if a < 2^31
-        inc()
-        // a cmp++ -- 1 or 2 if a >= 2^31
-        //         -- 0 if if a < 2^31
-        ifZero(popChecked = true) {
-            // a < 2^31
-            // a
-        } otherwise {
-            // a
-            push(4294967296)
-            sub()
-            // a-2^32
-        }
+        add(2147483648)
+        // a+2^31
+        i32Mod()
+        // (a+2^31)&(0xFFFFFFFF)
+        add(-2147483648)
+        // ((a+2^31)&(0xFFFFFFFF))-2^31
+    }
+
+    private fun ComplexFunction.i32Mod() {
+        push(4294967295)
+        bitand()
     }
 
 
@@ -63,17 +57,13 @@ class WasmFunctionScope private constructor(
     fun ComplexFunction.i32Add() = instruction(stackSizeChange = -1) {
         add()
 
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
     }
 
     fun ComplexFunction.i32Sub() = instruction(stackSizeChange = -1) {
         sub()
 
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
     }
 
     fun ComplexFunction.i32Mul() = instruction(stackSizeChange = -1) {
@@ -85,9 +75,7 @@ class WasmFunctionScope private constructor(
         /*
         mul()
 
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
         */
     }
 
@@ -100,18 +88,14 @@ class WasmFunctionScope private constructor(
         // b_s a_s
         div()
 
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
     }
 
     fun ComplexFunction.i32DivUnsigned() = instruction(stackSizeChange = -1) {
         swap2()
         div()
 
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
     }
 
     fun ComplexFunction.i32RemSigned() = instruction(stackSizeChange = -1) {
@@ -123,18 +107,14 @@ class WasmFunctionScope private constructor(
         // b_s a_s
         REM()
 
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
     }
 
     fun ComplexFunction.i32RemUnsigned() = instruction(stackSizeChange = -1) {
         swap2()
         REM()
 
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
     }
 
     fun ComplexFunction.i32Shl() = instruction(stackSizeChange = -1) {
@@ -145,9 +125,7 @@ class WasmFunctionScope private constructor(
         // val by%32
         bitshift()
 
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
     }
 
     fun ComplexFunction.i32ShrUnsigned() = instruction(stackSizeChange = -1) {
@@ -158,9 +136,7 @@ class WasmFunctionScope private constructor(
         // val by%32
         u32Shr()
 
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
     }
 
     /**
@@ -215,9 +191,7 @@ class WasmFunctionScope private constructor(
         sub()
         // ((val+2^31)>>by)-(2^31>>by)
 
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
     }
 
     // Used by both i32Rotl and i32Rotr
@@ -232,9 +206,7 @@ class WasmFunctionScope private constructor(
         bitor()
         // (a<<by) | ((a<<by)>>32)
 
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
     }
 
     fun ComplexFunction.i32Rotl() = instruction(stackSizeChange = -1) {
@@ -371,9 +343,7 @@ class WasmFunctionScope private constructor(
         // a-1 ~a
         bitand()
         // (a-1)&(~a)
-        push(I32_MOD)
-        swap2()
-        modulo()
+        i32Mod()
         i32CountSetBits()
     }
 
