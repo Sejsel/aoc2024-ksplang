@@ -377,6 +377,18 @@ class WasmFunctionScope private constructor(
         i32CountSetBits()
     }
 
+    fun ComplexFunction.i32LtUnsigned() = instruction(stackSizeChange = -1) {
+        // a b
+        sub()
+        sgn()
+        // sgn(a-b)
+        // 1 if a > b, 0 if a = b, -1 if a < b
+        inc()
+        // 2 if a > b, 1 if a = b, 0 if a < b
+        zeroNotPositive()
+        // 0 if a > b, 0 if a = b, 1 if a < b
+    }
+
     fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
         bitand()
         // No need to MOD as it cannot set any higher bits

@@ -235,7 +235,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I32_EQ -> i32Eq()
                         OpCode.I32_NE -> i32Ne()
                         OpCode.I32_LT_S -> TODO() // TODO: Hacker's Delight 2.12
-                        OpCode.I32_LT_U -> TODO()
+                        OpCode.I32_LT_U -> i32LtUnsigned()
                         OpCode.I32_GT_S -> TODO()
                         OpCode.I32_GT_U -> TODO()
                         OpCode.I32_LE_S -> TODO()
