@@ -378,18 +378,26 @@ class WasmFunctionScope private constructor(
     }
 
     private fun ComplexFunction.i32Lt() {
+        i32Ge()
+        zeroNotPositive()
+    }
+
+    private fun ComplexFunction.i32Gt() {
+        i32Le()
+        zeroNotPositive()
+    }
+
+    private fun ComplexFunction.i32Le() {
         // a b
         sub()
         sgn()
         // sgn(a-b)
         // 1 if a > b, 0 if a = b, -1 if a < b
-        inc()
-        // 2 if a > b, 1 if a = b, 0 if a < b
         zeroNotPositive()
-        // 0 if a > b, 0 if a = b, 1 if a < b
+        // 0 if a > b, 1 if a = b, 1 if a < b
     }
 
-    private fun ComplexFunction.i32Gt() {
+    private fun ComplexFunction.i32Ge() {
         // a b
         sub()
         sgn()
@@ -397,10 +405,8 @@ class WasmFunctionScope private constructor(
         // 1 if a > b, 0 if a = b, -1 if a < b
         negate()
         // -1 if a > b, 0 if a = b, 1 if a < b
-        inc()
-        // 0 if a > b, 1 if a = b, 2 if a < b
         zeroNotPositive()
-        // 1 if a > b, 0 if a = b, 0 if a < b
+        // 1 if a > b, 1 if a = b, 0 if a < b
     }
 
     fun ComplexFunction.i32LtUnsigned() = instruction(stackSizeChange = -1) {
@@ -425,6 +431,30 @@ class WasmFunctionScope private constructor(
         i32ToSigned()
         // b a
         i32Lt() // we swapped the arguments, no swapping back (for perf)
+    }
+
+    fun ComplexFunction.i32LeUnsigned() = instruction(stackSizeChange = -1) {
+        i32Le()
+    }
+
+    fun ComplexFunction.i32LeSigned() = instruction(stackSizeChange = -1) {
+        i32ToSigned()
+        swap2()
+        i32ToSigned()
+        // b a
+        i32Ge() // we swapped the arguments, no swapping back (for perf)
+    }
+
+    fun ComplexFunction.i32GeUnsigned() = instruction(stackSizeChange = -1) {
+        i32Ge()
+    }
+
+    fun ComplexFunction.i32GeSigned() = instruction(stackSizeChange = -1) {
+        i32ToSigned()
+        swap2()
+        i32ToSigned()
+        // b a
+        i32Le() // we swapped the arguments, no swapping back (for perf)
     }
 
     fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
