@@ -2,8 +2,6 @@ package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
-import cz.sejsel.ksplang.dsl.core.doWhileNonZero
-import cz.sejsel.ksplang.dsl.core.doWhileZero
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.whileNonZero
@@ -292,7 +290,7 @@ class WasmFunctionScope private constructor(
         // a==b?0:1
     }
 
-    fun ComplexFunction.i32PopCnt() = instruction(stackSizeChange = 0) {
+    private fun ComplexFunction.i32CountSetBits() {
         // a
         push(0)
         // a res
@@ -312,6 +310,10 @@ class WasmFunctionScope private constructor(
             // res+1 (a&(a-1))
         }
         // res
+    }
+
+    fun ComplexFunction.i32PopCnt() = instruction(stackSizeChange = 0) {
+        i32CountSetBits()
     }
 
     fun ComplexFunction.i32Clz() = instruction(stackSizeChange = 0) {
@@ -355,6 +357,24 @@ class WasmFunctionScope private constructor(
             // res a<<clz
             pop()
         }
+    }
+
+    fun ComplexFunction.i32Ctz() = instruction(stackSizeChange = 0) {
+        // a
+        dup()
+        // a a
+        dec() // only works for i32
+        // a a-1
+        swap2()
+        // a-1 a
+        bitnot()
+        // a-1 ~a
+        bitand()
+        // (a-1)&(~a)
+        push(I32_MOD)
+        swap2()
+        modulo()
+        i32CountSetBits()
     }
 
     fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
