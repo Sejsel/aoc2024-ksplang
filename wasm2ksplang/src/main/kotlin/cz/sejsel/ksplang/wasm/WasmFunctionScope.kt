@@ -415,6 +415,18 @@ class WasmFunctionScope private constructor(
         i32Gt() // we swapped the arguments, no swapping back (for perf)
     }
 
+    fun ComplexFunction.i32GtUnsigned() = instruction(stackSizeChange = -1) {
+        i32Gt()
+    }
+
+    fun ComplexFunction.i32GtSigned() = instruction(stackSizeChange = -1) {
+        i32ToSigned()
+        swap2()
+        i32ToSigned()
+        // b a
+        i32Lt() // we swapped the arguments, no swapping back (for perf)
+    }
+
     fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
         bitand()
         // No need to MOD as it cannot set any higher bits
