@@ -264,6 +264,9 @@ data class DoWhileZero(override var children: MutableList<Block> = mutableListOf
     }
 }
 
+/**
+ * Consumes the value at the end of the stack at the end of each loop.
+ */
 fun ComplexBlock.doWhileZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     val f = DoWhileZero()
     f.init()
@@ -271,6 +274,9 @@ fun ComplexBlock.doWhileZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     return f
 }
 
+/**
+ * Consumes the value at the end of the stack at the end of each loop.
+ */
 fun ComplexBlock.doWhileNonZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     val f = DoWhileZero()
     f.init()
@@ -281,6 +287,9 @@ fun ComplexBlock.doWhileNonZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     return f
 }
 
+/**
+ * Consumes the value at the end of the stack at the end of each loop.
+ */
 fun ComplexBlock.doWhileNonNegative(init: DoWhileZero.() -> Unit): DoWhileZero {
     val f = DoWhileZero()
     f.init()

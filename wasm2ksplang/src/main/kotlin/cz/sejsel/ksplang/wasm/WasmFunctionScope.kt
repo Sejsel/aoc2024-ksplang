@@ -3,6 +3,7 @@ package cz.sejsel.ksplang.wasm
 import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
+import cz.sejsel.ksplang.dsl.core.doWhileZero
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.whileNonZero
@@ -311,6 +312,49 @@ class WasmFunctionScope private constructor(
             // res+1 (a&(a-1))
         }
         // res
+    }
+
+    fun ComplexFunction.i32Clz() = instruction(stackSizeChange = 0) {
+        ifZero {
+            // 0
+            push(32)
+            // 0 32
+            pop2()
+            // 32
+        } otherwise {
+            // a
+            push(0)
+            // a res
+            swap2()
+            // res a
+            dup()
+            push(2147483648)
+            bitand()
+            // res a a&(2^31)
+            zeroNotPositive() // works only because this is i32 and not i64
+            whileNonZero {
+                // res-1 a check
+                pop()
+                // res-1 a
+                swap2()
+                inc()
+                swap2()
+                // res a
+
+                push(1)
+                bitshift()
+                // res a<<1
+                dup()
+                // res a<<1 a<<1
+                push(2147483648)
+                bitand()
+                // res a<<1 (0 if MSB is not set)
+                zeroNotPositive()
+                // res a<<1 (1 if MSB is not set)
+            }
+            // res a<<clz
+            pop()
+        }
     }
 
     fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
