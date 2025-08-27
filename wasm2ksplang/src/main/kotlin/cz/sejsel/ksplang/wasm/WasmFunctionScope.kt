@@ -377,7 +377,7 @@ class WasmFunctionScope private constructor(
         i32CountSetBits()
     }
 
-    fun ComplexFunction.i32LtUnsigned() = instruction(stackSizeChange = -1) {
+    private fun ComplexFunction.i32Lt() {
         // a b
         sub()
         sgn()
@@ -387,6 +387,32 @@ class WasmFunctionScope private constructor(
         // 2 if a > b, 1 if a = b, 0 if a < b
         zeroNotPositive()
         // 0 if a > b, 0 if a = b, 1 if a < b
+    }
+
+    private fun ComplexFunction.i32Gt() {
+        // a b
+        sub()
+        sgn()
+        // sgn(a-b)
+        // 1 if a > b, 0 if a = b, -1 if a < b
+        negate()
+        // -1 if a > b, 0 if a = b, 1 if a < b
+        inc()
+        // 0 if a > b, 1 if a = b, 2 if a < b
+        zeroNotPositive()
+        // 1 if a > b, 0 if a = b, 0 if a < b
+    }
+
+    fun ComplexFunction.i32LtUnsigned() = instruction(stackSizeChange = -1) {
+        i32Lt()
+    }
+
+    fun ComplexFunction.i32LtSigned() = instruction(stackSizeChange = -1) {
+        i32ToSigned()
+        swap2()
+        i32ToSigned()
+        // b a
+        i32Gt() // we swapped the arguments, no swapping back (for perf)
     }
 
     fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
