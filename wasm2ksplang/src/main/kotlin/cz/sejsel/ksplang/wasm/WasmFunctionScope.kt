@@ -2,8 +2,10 @@ package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
+import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
+import cz.sejsel.ksplang.dsl.core.whileNonZero
 import cz.sejsel.ksplang.std.*
 
 class WasmFunctionScope private constructor(
@@ -23,6 +25,7 @@ class WasmFunctionScope private constructor(
     }
 
     private fun ComplexFunction.i32ToSigned() {
+        // TODO: Use Hacker's delight 2.6 Sign Extension instead, should be much faster (especially if we are using cmp)
         // a
         dup()
         push(2147483648)
@@ -286,6 +289,28 @@ class WasmFunctionScope private constructor(
         // a==b?1:0
         zeroNotPositive()
         // a==b?0:1
+    }
+
+    fun ComplexFunction.i32PopCnt() = instruction(stackSizeChange = 0) {
+        // a
+        push(0)
+        // a res
+        swap2()
+        // res a
+        whileNonZero {
+            // res a
+            swap2()
+            inc()
+            swap2()
+            // res+1 a
+            dup()
+            // res+1 a a
+            dec() // we can do this because this is i32
+            // res+1 a a-1
+            bitand()
+            // res+1 (a&(a-1))
+        }
+        // res
     }
 
     fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {

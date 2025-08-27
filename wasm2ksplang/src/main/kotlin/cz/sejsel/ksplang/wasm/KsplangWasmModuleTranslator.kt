@@ -234,7 +234,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I32_EQZ -> i32Eqz()
                         OpCode.I32_EQ -> i32Eq()
                         OpCode.I32_NE -> i32Ne()
-                        OpCode.I32_LT_S -> TODO()
+                        OpCode.I32_LT_S -> TODO() // TODO: Hacker's Delight 2.12
                         OpCode.I32_LT_U -> TODO()
                         OpCode.I32_GT_S -> TODO()
                         OpCode.I32_GT_U -> TODO()
@@ -267,7 +267,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.F64_GE -> TODO()
                         OpCode.I32_CLZ -> TODO()
                         OpCode.I32_CTZ -> TODO()
-                        OpCode.I32_POPCNT -> TODO()
+                        OpCode.I32_POPCNT -> i32PopCnt()
                         OpCode.I32_ADD -> i32Add()
                         OpCode.I32_SUB -> i32Sub()
                         OpCode.I32_MUL -> i32Mul()
@@ -299,7 +299,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I64_SHL -> TODO()
                         OpCode.I64_SHR_S -> TODO()
                         OpCode.I64_SHR_U -> TODO()
-                        OpCode.I64_ROTL -> TODO()
+                        OpCode.I64_ROTL -> TODO() // TODO: Hacker's Delight 2.15
                         OpCode.I64_ROTR -> TODO()
                         OpCode.F32_ABS -> TODO()
                         OpCode.F32_NEG -> TODO()
