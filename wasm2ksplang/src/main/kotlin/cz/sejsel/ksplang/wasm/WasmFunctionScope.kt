@@ -442,6 +442,15 @@ class WasmFunctionScope private constructor(
         // No need to MOD as it cannot set any higher bits
     }
 
+    fun ComplexFunction.i64Shl() = instruction(stackSizeChange = -1) {
+        // val by
+        push(64)
+        swap2()
+        modulo()
+        // val by%64
+        bitshift()
+    }
+
     fun ComplexFunction.popLocals() {
         check(!localsPopped) { "Locals have already been popped in this scope" }
         // There should be only return values + locals on the stack now.
