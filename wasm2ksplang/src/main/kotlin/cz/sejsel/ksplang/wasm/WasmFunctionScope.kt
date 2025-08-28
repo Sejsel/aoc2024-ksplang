@@ -442,6 +442,57 @@ class WasmFunctionScope private constructor(
         // No need to MOD as it cannot set any higher bits
     }
 
+    fun ComplexFunction.i64Add() = instruction(stackSizeChange = -1) {
+        // We must avoid SIGNED addition overflow here. Note that this is different from UNSIGNED overflow
+        // for example 0xFF...FF + 1 would be unsigned overflow, but is NOT signed overflow.
+
+        // It is tempting to just mask out top bit and then do standard addition, and apply the top bit later.
+        // However, that would still potentially do a signed overflow, we can only do 62-bit addition safely.
+
+        // Instead of handling top 2 bits, we instead use two 32-bit additions, which should be the same amount of effort
+
+        // a b
+        dupAb()
+        // a b a b
+        i32Mod()
+        swap2()
+        i32Mod()
+        // a b b_lo a_lo
+        add() // result may be 33-bit
+        // a b lo+  -- the + indicates lo can have carry (be 33-bit)
+        dup()
+        // a b lo+ lo+
+        push(32)
+        u32Shr()
+        // a b lo+ lo_carry   -- either 0 or 1
+        roll(4, 2)
+        // lo+ lo_carry a b
+        push(32)
+        u32Shr() // doing this may result in sign extension, but we are getting rid of that with i32Mod
+        i32Mod()
+        // lo+ lo_carry a b_hi
+        swap2()
+        push(32)
+        u32Shr() // doing this may result in sign extension, but we are getting rid of that with i32Mod
+        i32Mod()
+        // lo+ lo_carry b_hi a_hi
+        add() // result may be 33-bit
+        // lo+ lo_carry b_hi+a_hi
+        add()
+        // lo+ lo_carry+b_hi+a_hi
+        // lo+ hi+
+        push(32)
+        bitshift()
+        // lo+ hi+<<32
+        // lo+ hi<<32  -- bitshift will get rid of the carry on hi+
+        swap2()
+        // hi<<32 lo+  -- lo+ may still be 33-bit if it had carry
+        i32Mod()
+        // hi<<32 lo
+        bitor()
+        // (hi<<32)|lo
+    }
+
     fun ComplexFunction.i64Shl() = instruction(stackSizeChange = -1) {
         // val by
         push(64)

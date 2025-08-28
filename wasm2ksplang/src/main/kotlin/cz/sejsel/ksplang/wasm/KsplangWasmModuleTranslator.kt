@@ -286,7 +286,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I64_CLZ -> TODO()
                         OpCode.I64_CTZ -> TODO()
                         OpCode.I64_POPCNT -> TODO()
-                        OpCode.I64_ADD -> TODO()
+                        OpCode.I64_ADD -> i64Add()
                         OpCode.I64_SUB -> TODO()
                         OpCode.I64_MUL -> TODO()
                         OpCode.I64_DIV_S -> TODO()
