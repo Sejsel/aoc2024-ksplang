@@ -442,7 +442,7 @@ class WasmFunctionScope private constructor(
         // No need to MOD as it cannot set any higher bits
     }
 
-    fun ComplexFunction.i64Add() = instruction(stackSizeChange = -1) {
+    private fun ComplexFunction.i64WrappingAdd() {
         // We must avoid SIGNED addition overflow here. Note that this is different from UNSIGNED overflow
         // for example 0xFF...FF + 1 would be unsigned overflow, but is NOT signed overflow.
 
@@ -491,6 +491,24 @@ class WasmFunctionScope private constructor(
         // hi<<32 lo
         bitor()
         // (hi<<32)|lo
+    }
+
+    fun ComplexFunction.i64Add() = instruction(stackSizeChange = -1) {
+        i64WrappingAdd()
+    }
+
+    fun ComplexFunction.i64Sub() = instruction(stackSizeChange = -1) {
+        // a b
+        dup()
+        isMinRaw()
+        // a b isMin(b)?0:nonzero
+        ifZero(popChecked = true) {
+            // a b
+        } otherwise {
+            negate()
+            // a -b
+        }
+        i64WrappingAdd()
     }
 
     fun ComplexFunction.i64Shl() = instruction(stackSizeChange = -1) {
