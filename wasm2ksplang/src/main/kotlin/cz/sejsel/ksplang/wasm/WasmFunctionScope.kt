@@ -518,6 +518,13 @@ class WasmFunctionScope private constructor(
         div() // can only overflow in case when a is MIN and b is -1, which is undefined behavior in WASM
     }
 
+    fun ComplexFunction.i64RemSigned() = instruction(stackSizeChange = -1) {
+        // a b
+        swap2()
+        // b a
+        REM()
+    }
+
     fun ComplexFunction.i64Shl() = instruction(stackSizeChange = -1) {
         // val by
         push(64)
