@@ -549,8 +549,6 @@ class WasmFunctionScope private constructor(
     }
 
     companion object {
-        private const val I32_MOD = 4294967296L
-
         fun ComplexFunction.initialize(
             params: List<ValType>,
             localTypes: List<ValType>,
