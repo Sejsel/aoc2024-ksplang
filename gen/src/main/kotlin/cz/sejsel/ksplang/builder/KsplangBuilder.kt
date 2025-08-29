@@ -39,20 +39,21 @@ data class RegisteredFunction(
 
 
 data class PreparedPush(
+    /** Index of first instruction in the push. */
     val index: Int,
-    val setter: (PreparedPush, Long, Int) -> Unit,
+    /** Index of the replaced segment in the program. */
+    val programIndex: Int,
+    val setter: (PreparedPush, Long) -> Unit,
     val padding: Int,
     var invalidated: Boolean = false,
 ) {
-    val placeholder: String = "[PREPARED-PUSH-$index]"
-
     fun set(n: Int) = set(n.toLong())
 
     fun set(n: Long) {
         if (invalidated) {
             throw IllegalStateException("This push was already set")
         }
-        setter(this, n, padding)
+        setter(this, n)
         invalidated = true
     }
 
@@ -71,8 +72,9 @@ data class PreparedPush(
 
 private class BuilderState {
     var index = 0
-    var program = mutableListOf<String>()
-    var lastDepth = 0
+    // This is a list of lists to support replacing subparts of different lengths (prepared pushes...)
+    var program = mutableListOf<List<AnnotatedKsplangSegment>>()
+    var funCounter = 0
     var lastSimpleFunction: SimpleFunction? = null
     var earlyExitPushes = mutableListOf<PreparedPush>()
     var preparedPushes = mutableListOf<PreparedPush>()
@@ -82,11 +84,12 @@ private class BuilderState {
         return functionStates.getOrPut(name) { FunctionState() }
     }
 
+    fun getEmittedFunctionId() = funCounter++
+
     fun deepCopy(): BuilderState {
         val copy = BuilderState()
         copy.index = index
         copy.program = program.toMutableList()
-        copy.lastDepth = lastDepth
         copy.lastSimpleFunction = lastSimpleFunction
         copy.earlyExitPushes = earlyExitPushes.toMutableList()
         copy.preparedPushes = preparedPushes.toMutableList()
@@ -112,6 +115,47 @@ private class FunctionState {
     }
 }
 
+sealed interface AnnotatedKsplangSegment {
+    /** A ksplang operation. */
+    data class Op(val instruction: Instruction) : AnnotatedKsplangSegment
+    /** A marker showing the start of a simple/complex function, match with corresponding [FuncEnd] using the [id]. */
+    data class FuncStart(val name: String?, val id: Int) : AnnotatedKsplangSegment
+    /** A marker showing the end of a simple/complex function, match with corresponding [FuncStart] using the [id]. */
+    data class FuncEnd(val id: Int) : AnnotatedKsplangSegment
+}
+
+class Ksplang(val segments: List<AnnotatedKsplangSegment>) {
+    fun toRunnableProgram(): String {
+        val sb = StringBuilder()
+        var depth = 0
+        var isLineStarted = false
+        for (segment in segments) {
+            when (segment) {
+                is AnnotatedKsplangSegment.Op -> {
+                    if (!isLineStarted) {
+                        sb.append("\n", " ".repeat(depth))
+                        isLineStarted = true
+                    } else {
+                        sb.append(" ")
+                    }
+                    sb.append(segment.instruction.text)
+                }
+                is AnnotatedKsplangSegment.FuncStart -> {
+                    depth += 1
+                    isLineStarted = false
+                }
+                is AnnotatedKsplangSegment.FuncEnd -> {
+                    depth -= 1
+                    isLineStarted = false
+                }
+            }
+        }
+
+        return sb.toString().trimIndent()
+    }
+}
+
+
 /** Transforms the ksplang DSL tree consisting of [Instruction], [SimpleFunction], and [ComplexFunction]
  * into real ksplang code. */
 class KsplangBuilder(
@@ -127,17 +171,20 @@ class KsplangBuilder(
         TODO("Currently not wired up")
     }
 
-    fun build(program: KsplangProgram): String {
-        return build(program.body, program.definedFunctions)
+    fun build(program: KsplangProgram) = buildAnnotated(program).toRunnableProgram()
+    fun build(programTree: Block) = buildAnnotated(programTree).toRunnableProgram()
+
+    fun buildAnnotated(program: KsplangProgram): Ksplang {
+        return buildAnnotated(program.body, program.definedFunctions)
     }
 
-    fun build(programTree: Block): String = when (programTree) {
-        is ComplexBlock -> build(programTree, functions = emptyList())
-        is SimpleFunction -> build(programTree)
-        is Instruction -> build(programTree)
+    fun buildAnnotated(programTree: Block): Ksplang = when (programTree) {
+        is ComplexBlock -> buildAnnotated(programTree, functions = emptyList())
+        is SimpleFunction -> buildAnnotated(programTree)
+        is Instruction -> buildAnnotated(programTree)
     }
 
-    private fun build(programTree: ComplexBlock, functions: List<ProgramFunctionBase>): String {
+    private fun buildAnnotated(programTree: ComplexBlock, functions: List<ProgramFunctionBase>): Ksplang {
         require(functions.map { it.name }.distinct().size == functions.size) { "All functions must have unique names." }
 
         // For simplification, we use a global address padding (all addresses are padded to the same length)
@@ -149,23 +196,28 @@ class KsplangBuilder(
                 fun restoreState(backup: BuilderState) {
                     state.index = backup.index
                     state.program = backup.program.toMutableList()
-                    state.lastDepth = backup.lastDepth
                     state.lastSimpleFunction = backup.lastSimpleFunction
                     state.earlyExitPushes = backup.earlyExitPushes.toMutableList()
                     state.preparedPushes = backup.preparedPushes.toMutableList()
                     state.functionStates = backup.functionStates.mapValues { it.value.clone() }.toMutableMap()
                 }
 
-                fun applyPreparedPush(push: PreparedPush, n: Long, padding: Int) {
-                    val index = state.program.indexOf(push.placeholder)
-                    val paddedPush = extract { pushPaddedTo(n, padding) }
-                    state.program[index] = build(paddedPush.getInstructions()) + "\n"
+                fun applyPreparedPush(push: PreparedPush, n: Long) {
+                    val paddedPush = extract { pushPaddedTo(n, push.padding) }
+                    check(state.program[push.programIndex].isEmpty()) { "Prepared push applied twice or program index is broken" }
+                    state.program[push.programIndex] = buildList {
+                        val funcEmitId = state.getEmittedFunctionId()
+                        add(AnnotatedKsplangSegment.FuncStart(paddedPush.name, funcEmitId))
+                        addAll(paddedPush.getInstructions().map { AnnotatedKsplangSegment.Op(it) })
+                        add(AnnotatedKsplangSegment.FuncEnd(funcEmitId))
+                    }
                 }
 
                 fun preparePaddedPush(padding: Int? = null): PreparedPush {
                     val padding = padding ?: addressPad
-                    val push = PreparedPush(state.index, ::applyPreparedPush, padding)
-                    state.program.add(push.placeholder)
+                    val programIndex = state.program.size
+                    val push = PreparedPush(state.index, programIndex, ::applyPreparedPush, padding)
+                    state.program.add(emptyList())
                     state.index += padding
                     state.preparedPushes.add(push)
                     return push
@@ -174,35 +226,25 @@ class KsplangBuilder(
                 fun expand(
                     block: Block,
                     isLast: Boolean = false,
-                    depth: Int = 0,
                     useCalls: Boolean = true
                 ) {
                     // A shorthand to expand recursively with correct params
                     fun e(block: Block) {
-                        expand(block, isLast, depth + 1, useCalls)
+                        expand(block, isLast, useCalls)
                     }
-
-                    if (depth > state.lastDepth) {
-                        while (state.program.isNotEmpty() && state.program.last().isBlank()) {
-                            state.program.removeLast()
-                        }
-                        if (state.program.isNotEmpty() && state.program.last() != "\n") {
-                            state.program.add("\n")
-                        }
-                        state.program.add(" ".repeat(depth))
-                    }
-                    state.lastDepth = depth
 
                     when (block) {
                         is Instruction -> {
                             state.lastSimpleFunction = null
                             state.index++
-                            state.program.add(block.text)
-                            state.program.add(" ")
+                            state.program.add(listOf(AnnotatedKsplangSegment.Op(block)))
                         }
 
                         is SimpleFunction -> {
                             var optimized = false
+                            val funcEmitId = state.getEmittedFunctionId()
+                            state.program.add(listOf(AnnotatedKsplangSegment.FuncStart(block.name, funcEmitId)))
+
                             if (enablePushOptimizations && state.lastSimpleFunction != null) {
                                 val lastMatch = pushNameRegex.find(state.lastSimpleFunction!!.name ?: "")
                                 val thisMatch = pushNameRegex.find(block.name ?: "")
@@ -238,13 +280,17 @@ class KsplangBuilder(
                                 }
                             }
                             state.lastSimpleFunction = block
+                            state.program.add(listOf(AnnotatedKsplangSegment.FuncEnd(funcEmitId)))
                         }
 
                         is ComplexFunction -> {
+                            val funcEmitId = state.getEmittedFunctionId()
+                            state.program.add(listOf(AnnotatedKsplangSegment.FuncStart(block.name, funcEmitId)))
                             // It may be called complex, but it is so simple, oh so simple:
                             for (child in block.children) {
                                 e(child)
                             }
+                            state.program.add(listOf(AnnotatedKsplangSegment.FuncEnd(funcEmitId)))
                         }
 
                         is IfZero -> {
@@ -378,7 +424,7 @@ class KsplangBuilder(
 
                 programTree.children.forEachIndexed { i, block ->
                     val isLast = i == programTree.children.size - 1
-                    expand(block, isLast, depth = 0)
+                    expand(block, isLast)
                 }
 
                 // We can now expand all prepared function calls
@@ -393,7 +439,7 @@ class KsplangBuilder(
                     TODO()
                 }
 
-                return state.program.joinToString("")
+                return Ksplang(state.program.flatten())
             } catch (e: PaddingFailureException) {
                 // Try again with a different address padding
                 registeredFunctions.forEach {
@@ -405,11 +451,13 @@ class KsplangBuilder(
         throw IllegalStateException("Could not find a suitable address padding")
     }
 
-    private fun build(instructions: SimpleFunction): String {
-        return build(instructions.getInstructions())
+    private fun buildAnnotated(instructions: SimpleFunction): Ksplang {
+        return buildAnnotated(instructions.getInstructions())
     }
 
-    fun build(instructions: List<Instruction>): String {
-        return instructions.joinToString(" ") { it.text }
+    fun build(instructions: List<Instruction>): String = buildAnnotated(instructions).toRunnableProgram()
+
+    fun buildAnnotated(instructions: List<Instruction>): Ksplang {
+        return Ksplang(instructions.map { AnnotatedKsplangSegment.Op(it) })
     }
 }

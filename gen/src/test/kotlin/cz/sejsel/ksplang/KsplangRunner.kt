@@ -1,6 +1,7 @@
 package cz.sejsel.ksplang
 
 import arrow.core.getOrElse
+import cz.sejsel.ksplang.builder.Ksplang
 import cz.sejsel.ksplang.interpreter.VMOptions
 import cz.sejsel.ksplang.interpreter.parseProgram
 import java.nio.file.Path
@@ -9,6 +10,7 @@ import kotlin.io.path.writeText
 
 interface KsplangRunner {
     fun run(program: String, input: List<Long>): List<Long>
+    fun run(program: Ksplang, input: List<Long>) = run(program.toRunnableProgram(), input)
 }
 
 typealias DefaultKsplangRunner = KotlinKsplangRunner
@@ -41,6 +43,7 @@ class RustKsplangRunner(
     /** Maximum operation limit (amount of operations that can be executed) */
     val defaultOpLimit: Long = 100000
 ) : KsplangRunner {
+
     override fun run(program: String, input: List<Long>): List<Long> {
         var programFile: Path? = null
         try {
