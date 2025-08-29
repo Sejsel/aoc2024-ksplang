@@ -243,7 +243,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I32_GE_S -> i32GeSigned()
                         OpCode.I32_GE_U -> i32GeUnsigned()
                         OpCode.I64_EQZ -> TODO()
-                        OpCode.I64_EQ -> TODO()
+                        OpCode.I64_EQ -> i64Eq()
                         OpCode.I64_NE -> TODO()
                         OpCode.I64_LT_S -> TODO()
                         OpCode.I64_LT_U -> TODO()

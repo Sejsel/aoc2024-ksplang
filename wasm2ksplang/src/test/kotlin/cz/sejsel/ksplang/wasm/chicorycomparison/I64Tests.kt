@@ -49,10 +49,7 @@ class I64ChicoryTests : FunSpec({
         val input = listOf(a)
         val expected = func.apply(*input.toLongArray()).single()
         val result = runner.run(ksplang, input)
-        // Note that the upper bits do not match between ksplang and chicory.
-        // Chicory may have sign extension (1111... in all upper 32 bits),
-        // while ksplang always maintains zeros in the bits.
-        result.last().toInt() shouldBe expected.toInt()
+        result.last() shouldBe expected
     }
 
     fun checkLongResultBinary(
@@ -62,10 +59,7 @@ class I64ChicoryTests : FunSpec({
         val input = listOf(a, b)
         val expected = func.apply(*input.toLongArray()).single()
         val result = runner.run(ksplang, input)
-        // Note that the upper bits do not match between ksplang and chicory.
-        // Chicory may have sign extension (1111... in all upper 32 bits),
-        // while ksplang always maintains zeros in the bits.
-        result.last().toInt() shouldBe expected.toInt()
+        result.last() shouldBe expected
     }
 
     suspend fun FunSpecContainerScope.checkAllI64(func: ExportFunction, ksplang: String) {
@@ -93,7 +87,7 @@ class I64ChicoryTests : FunSpec({
         }
     }
 
-    fun prepareI64UnaryFunModule(instructionName: String) = prepareModule(
+    fun prepareI64toI64UnaryFunModule(instructionName: String) = prepareModule(
         wat = $$"""
                 (module (func $add (export "fun") (param $a i64) (result i64)
                     local.get $a
@@ -102,7 +96,16 @@ class I64ChicoryTests : FunSpec({
         exportedFunctionName = "fun"
     )
 
-    fun prepareI64BinaryFunModule(instructionName: String) = prepareModule(
+    fun prepareI64toI32UnaryFunModule(instructionName: String) = prepareModule(
+        wat = $$"""
+                (module (func $add (export "fun") (param $a i64) (result i32)
+                    local.get $a
+                    $$instructionName
+                ))""".trimIndent(),
+        exportedFunctionName = "fun"
+    )
+
+    fun prepareI64toI64BinaryFunModule(instructionName: String) = prepareModule(
         wat = $$"""
                 (module (func $add (export "fun") (param $a i64) (param $b i64) (result i64)
                     local.get $a
@@ -112,152 +115,162 @@ class I64ChicoryTests : FunSpec({
         exportedFunctionName = "fun"
     )
 
+    fun prepareI64toI32BinaryFunModule(instructionName: String) = prepareModule(
+        wat = $$"""
+                (module (func $add (export "fun") (param $a i64) (param $b i64) (result i32)
+                    local.get $a
+                    local.get $b
+                    $$instructionName
+                ))""".trimIndent(),
+        exportedFunctionName = "fun"
+    )
+
     context("i64.add") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.add")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.add")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.sub") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.sub")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.sub")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.mul") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.mul")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.mul")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.div_s") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.div_s")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.div_s")
         // Partial: division by zero and overflow case are undefined
         checkAllI64PairsWithFilter(func, ksplang) { a, b -> b != 0L && !(b == -1L && a == Long.MIN_VALUE) }
     }
 
     context("i64.div_u") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.div_u")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.div_u")
         // Partial: division by zero is undefined
         checkAllI64PairsWithFilter(func, ksplang) { _, b -> b != 0L }
     }
 
     context("i64.rem_u") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.rem_u")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.rem_u")
         // Partial: division by zero is undefined
         checkAllI64PairsWithFilter(func, ksplang) { _, b -> b != 0L }
     }
 
     context("i64.rem_s") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.rem_s")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.rem_s")
         // Partial: division by zero is undefined
         checkAllI64PairsWithFilter(func, ksplang) { _, b -> b != 0L }
     }
 
     context("i64.and") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.and")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.and")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.or") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.or")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.or")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.xor") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.xor")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.xor")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.shl") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.shl")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.shl")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.shr_s") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.shr_s")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.shr_s")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.shr_u") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.shr_u")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.shr_u")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.rotl") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.rotl")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.rotl")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.rotr") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.rotr")
+        val (func, ksplang) = prepareI64toI64BinaryFunModule("i64.rotr")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.clz") {
-        val (func, ksplang) = prepareI64UnaryFunModule("i64.clz")
+        val (func, ksplang) = prepareI64toI64UnaryFunModule("i64.clz")
         checkAllI64(func, ksplang)
     }
 
     context("i64.ctz") {
-        val (func, ksplang) = prepareI64UnaryFunModule("i64.ctz")
+        val (func, ksplang) = prepareI64toI64UnaryFunModule("i64.ctz")
         checkAllI64(func, ksplang)
     }
 
     context("i64.popcnt") {
-        val (func, ksplang) = prepareI64UnaryFunModule("i64.popcnt")
+        val (func, ksplang) = prepareI64toI64UnaryFunModule("i64.popcnt")
         checkAllI64(func, ksplang)
     }
 
     context("i64.eqz") {
-        val (func, ksplang) = prepareI64UnaryFunModule("i64.eqz")
+        val (func, ksplang) = prepareI64toI32UnaryFunModule("i64.eqz")
         checkAllI64(func, ksplang)
     }
 
     context("i64.eq") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.eq")
+        val (func, ksplang) = prepareI64toI32BinaryFunModule("i64.eq")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.ne") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.ne")
+        val (func, ksplang) = prepareI64toI32BinaryFunModule("i64.ne")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.lt_s") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.lt_s")
+        val (func, ksplang) = prepareI64toI32BinaryFunModule("i64.lt_s")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.lt_u") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.lt_u")
+        val (func, ksplang) = prepareI64toI32BinaryFunModule("i64.lt_u")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.gt_s") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.gt_s")
+        val (func, ksplang) = prepareI64toI32BinaryFunModule("i64.gt_s")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.gt_u") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.gt_u")
+        val (func, ksplang) = prepareI64toI32BinaryFunModule("i64.gt_u")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.le_s") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.le_s")
+        val (func, ksplang) = prepareI64toI32BinaryFunModule("i64.le_s")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.le_u") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.le_u")
+        val (func, ksplang) = prepareI64toI32BinaryFunModule("i64.le_u")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.ge_s") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.ge_s")
+        val (func, ksplang) = prepareI64toI32BinaryFunModule("i64.ge_s")
         checkAllI64Pairs(func, ksplang)
     }
 
     context("i64.ge_u") {
-        val (func, ksplang) = prepareI64BinaryFunModule("i64.ge_u")
+        val (func, ksplang) = prepareI64toI32BinaryFunModule("i64.ge_u")
         checkAllI64Pairs(func, ksplang)
     }
 })

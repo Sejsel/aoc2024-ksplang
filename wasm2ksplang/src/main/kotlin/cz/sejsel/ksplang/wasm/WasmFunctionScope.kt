@@ -534,6 +534,11 @@ class WasmFunctionScope private constructor(
         bitshift()
     }
 
+    fun ComplexFunction.i64Eq() = instruction(stackSizeChange = -1) {
+        cmp()
+        zeroNot()
+    }
+
     fun ComplexFunction.popLocals() {
         check(!localsPopped) { "Locals have already been popped in this scope" }
         // There should be only return values + locals on the stack now.
