@@ -28,30 +28,28 @@ fun ComplexBlock.cmp() = complexFunction("cmp") {
     add()
     // a b sgn(a)-sgn(b)
     ifZero {
-        // a b
+        // a b 0
         pop()
-        // a
-        dupAb()
-        // a a b
+        // a b
         dup(); sgn(); negate(); add()
-        // a a b-sgn(b)
+        // a b-sgn(b)
         negate()
-        // a a -(b-sgn(b))
-        roll(2, 1)
-        // a -(b-sgn(b)) a
+        // a -(b-sgn(b))
+        swap2()
+        // -(b-sgn(b)) a
         dup(); sgn(); negate(); add()
-        // a -(b-sgn(b)) a-sgn(a)
+        // -(b-sgn(b)) a-sgn(a)
         add()
-        // a a-b
+        // a-b
         sgn()
-        // a sgn(a-b)
+        // sgn(a-b)
     } otherwise {
         sgn()
         // a b sgn(sgn(a)-sgn(b))
+        pop2()
+        pop2()
     }
-    // a b sgn(a-b)
-    pop2()
-    pop2()
+    // sgn(a-b)
 }
 
 /**
