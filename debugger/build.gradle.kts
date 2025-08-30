@@ -1,6 +1,7 @@
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.ktor)
 }
 
 repositories {
@@ -9,7 +10,10 @@ repositories {
 
 dependencies {
     implementation(project(":gen"))
-    testImplementation(project(":interpreter"))
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.websockets)
+    implementation(libs.logback.classic)
 }
 
 kotlin {
