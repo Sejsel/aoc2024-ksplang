@@ -12,6 +12,7 @@ import cz.sejsel.ksplang.std.roll
 import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.pushOn
 import cz.sejsel.ksplang.std.pushPaddedTo
+import kotlinx.serialization.json.Json
 
 data class RegisteredFunction(
     val function: SimpleFunction,
@@ -84,7 +85,7 @@ private class BuilderState {
         return functionStates.getOrPut(name) { FunctionState() }
     }
 
-    fun getEmittedFunctionId() = funCounter++
+    fun getNextBlockId() = funCounter++
 
     fun deepCopy(): BuilderState {
         val copy = BuilderState()
@@ -115,16 +116,7 @@ private class FunctionState {
     }
 }
 
-sealed interface AnnotatedKsplangSegment {
-    /** A ksplang operation. */
-    data class Op(val instruction: Instruction) : AnnotatedKsplangSegment
-    /** A marker showing the start of a simple/complex function, match with corresponding [FuncEnd] using the [id]. */
-    data class FuncStart(val name: String?, val id: Int) : AnnotatedKsplangSegment
-    /** A marker showing the end of a simple/complex function, match with corresponding [FuncStart] using the [id]. */
-    data class FuncEnd(val id: Int) : AnnotatedKsplangSegment
-}
-
-class Ksplang(val segments: List<AnnotatedKsplangSegment>) {
+data class Ksplang(val segments: List<AnnotatedKsplangSegment>) {
     fun toRunnableProgram(): String {
         val sb = StringBuilder()
         var depth = 0
@@ -138,13 +130,13 @@ class Ksplang(val segments: List<AnnotatedKsplangSegment>) {
                     } else {
                         sb.append(" ")
                     }
-                    sb.append(segment.instruction.text)
+                    sb.append(segment.instruction)
                 }
-                is AnnotatedKsplangSegment.FuncStart -> {
+                is AnnotatedKsplangSegment.BlockStart -> {
                     depth += 1
                     isLineStarted = false
                 }
-                is AnnotatedKsplangSegment.FuncEnd -> {
+                is AnnotatedKsplangSegment.BlockEnd -> {
                     depth -= 1
                     isLineStarted = false
                 }
@@ -153,6 +145,10 @@ class Ksplang(val segments: List<AnnotatedKsplangSegment>) {
 
         return sb.toString().trimIndent()
     }
+
+    fun toAnnotatedTree(): AnnotatedKsplangTree = segments.toTree()
+
+    fun toAnnotatedTreeJson(): String = Json.encodeToString(toAnnotatedTree())
 }
 
 
@@ -206,10 +202,10 @@ class KsplangBuilder(
                     val paddedPush = extract { pushPaddedTo(n, push.padding) }
                     check(state.program[push.programIndex].isEmpty()) { "Prepared push applied twice or program index is broken" }
                     state.program[push.programIndex] = buildList {
-                        val funcEmitId = state.getEmittedFunctionId()
-                        add(AnnotatedKsplangSegment.FuncStart(paddedPush.name, funcEmitId))
-                        addAll(paddedPush.getInstructions().map { AnnotatedKsplangSegment.Op(it) })
-                        add(AnnotatedKsplangSegment.FuncEnd(funcEmitId))
+                        val blockId = state.getNextBlockId()
+                        add(AnnotatedKsplangSegment.BlockStart(paddedPush.name, blockId, BlockType.InlinedFunction))
+                        addAll(paddedPush.getInstructions().map { AnnotatedKsplangSegment.Op(it.text) })
+                        add(AnnotatedKsplangSegment.BlockEnd(blockId))
                     }
                 }
 
@@ -237,13 +233,13 @@ class KsplangBuilder(
                         is Instruction -> {
                             state.lastSimpleFunction = null
                             state.index++
-                            state.program.add(listOf(AnnotatedKsplangSegment.Op(block)))
+                            state.program.add(listOf(AnnotatedKsplangSegment.Op(block.text)))
                         }
 
                         is SimpleFunction -> {
                             var optimized = false
-                            val funcEmitId = state.getEmittedFunctionId()
-                            state.program.add(listOf(AnnotatedKsplangSegment.FuncStart(block.name, funcEmitId)))
+                            val blockId = state.getNextBlockId()
+                            state.program.add(listOf(AnnotatedKsplangSegment.BlockStart(block.name, blockId, BlockType.InlinedFunction)))
 
                             if (enablePushOptimizations && state.lastSimpleFunction != null) {
                                 val lastMatch = pushNameRegex.find(state.lastSimpleFunction!!.name ?: "")
@@ -280,17 +276,17 @@ class KsplangBuilder(
                                 }
                             }
                             state.lastSimpleFunction = block
-                            state.program.add(listOf(AnnotatedKsplangSegment.FuncEnd(funcEmitId)))
+                            state.program.add(listOf(AnnotatedKsplangSegment.BlockEnd(blockId)))
                         }
 
                         is ComplexFunction -> {
-                            val funcEmitId = state.getEmittedFunctionId()
-                            state.program.add(listOf(AnnotatedKsplangSegment.FuncStart(block.name, funcEmitId)))
+                            val blockId = state.getNextBlockId()
+                            state.program.add(listOf(AnnotatedKsplangSegment.BlockStart(block.name, blockId, BlockType.InlinedFunction)))
                             // It may be called complex, but it is so simple, oh so simple:
                             for (child in block.children) {
                                 e(child)
                             }
-                            state.program.add(listOf(AnnotatedKsplangSegment.FuncEnd(funcEmitId)))
+                            state.program.add(listOf(AnnotatedKsplangSegment.BlockEnd(blockId)))
                         }
 
                         is IfZero -> {
@@ -366,6 +362,9 @@ class KsplangBuilder(
                         }
 
                         is FunctionCall -> {
+                            val blockId = state.getNextBlockId()
+                            state.program.add(listOf(AnnotatedKsplangSegment.BlockStart("call_${block.calledFunction.name}", blockId, BlockType.FunctionCall)))
+
                             val functionState = state.getFunctionState(block.calledFunction.name)
                             // Because of function calls in functions (recursion, or calling functions not defined yet),
                             // we need to prepare this push instead of eagerly expanding it.
@@ -373,6 +372,8 @@ class KsplangBuilder(
                             functionState.pendingCalls.add(callPush)
                             e(call)
                             e(pop)
+
+                            state.program.add(listOf(AnnotatedKsplangSegment.BlockEnd(blockId)))
                         }
                     }
                 }
@@ -458,6 +459,6 @@ class KsplangBuilder(
     fun build(instructions: List<Instruction>): String = buildAnnotated(instructions).toRunnableProgram()
 
     fun buildAnnotated(instructions: List<Instruction>): Ksplang {
-        return Ksplang(instructions.map { AnnotatedKsplangSegment.Op(it) })
+        return Ksplang(instructions.map { AnnotatedKsplangSegment.Op(it.text) })
     }
 }

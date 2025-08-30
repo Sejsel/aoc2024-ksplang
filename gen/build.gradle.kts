@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 repositories {
@@ -8,6 +9,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("reflect"))
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.kotest.runner)
     testImplementation(libs.kotest.framework.datatest)

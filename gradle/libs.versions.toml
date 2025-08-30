@@ -2,6 +2,7 @@
 kotest = "5.9.1"
 chicory = "1.4.0"
 arrow = "2.1.0"
+kotlin = "2.2.0"
 
 [libraries]
 kotest-runner = { module ="io.kotest:kotest-runner-junit5", version.ref = "kotest" }
@@ -12,6 +13,8 @@ arrow = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 chicory-wasm = { module = "com.dylibso.chicory:wasm", version.ref = "chicory" }
 chicory-wasm-tools = { module = "com.dylibso.chicory:wasm-tools", version.ref = "chicory" }
 chicory-runtime = { module = "com.dylibso.chicory:runtime", version.ref = "chicory" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.9.0" }
 
 [plugins]
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.2.0" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
