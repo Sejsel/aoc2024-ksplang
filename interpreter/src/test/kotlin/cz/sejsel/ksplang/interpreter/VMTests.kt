@@ -84,11 +84,16 @@ class VMTests : FunSpec({
         }
         test("stack size limits") {
             fun runPraiseWithStackSize(initialStack: List<Long>, stackSize: Long): Either<OperationError, List<Long>> {
-                val state = State(stackSize, PI_TEST_VALUES)
-                state.stack.addAll(initialStack)
-                val result = state.apply(Op.Praise)
-                return when (result) {
-                    is Either.Left -> Either.Left(result.value)
+                val state = State(listOf(Op.Praise), initialStack, stackSize, PI_TEST_VALUES)
+                return when (val result = state.runNextOp()) {
+                    is Either.Left -> {
+                        when (result.value) {
+                            is RunError.OperationFailed -> Either.Left((result.value as RunError.OperationFailed).error)
+                            RunError.RunTooLong -> error("should not happen")
+                            RunError.StackOverflow -> error("should not happen")
+                            RunError.Timeout -> error("should not happen")
+                        }
+                    }
                     is Either.Right -> Either.Right(state.stack.toList())
                 }
             }
@@ -170,9 +175,8 @@ class VMTests : FunSpec({
         }
         test("ff fills with min") {
             fun runFF(initialStack: List<Long>, stackSize: Int): List<Long> {
-                val state = State(stackSize.toLong(), PI_TEST_VALUES)
-                state.stack.addAll(initialStack)
-                state.apply(Op.FF)
+                val state = State(listOf(Op.FF), initialStack, stackSize.toLong(), PI_TEST_VALUES)
+                state.runNextOp()
                 return state.stack
             }
             runFF(listOf(1L, 2L), 8) shouldBe List(8) { Long.MIN_VALUE }

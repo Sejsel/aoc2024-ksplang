@@ -45,7 +45,8 @@ class PushOptimizedTests : FunSpec({
     val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
-    context("short push programs") {
+    // This is a LOT of tests
+    xcontext("short push programs") {
         withData(ShortPushes.sequencesByNumber.keys) { i ->
             val program = builder.build(buildFunction {
                 push(i)

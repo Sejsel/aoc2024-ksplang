@@ -124,10 +124,23 @@ object PiDigits {
 }
 
 class State(
+    ops: List<Op>,
+    initialStack: List<Long>,
     val maxStackSize: Long,
-    val piDigits: List<Long>
+    val piDigits: List<Long>,
+    val maxOpCount: Long = Long.MAX_VALUE,
 ) {
-    val stack: MutableList<Long> = mutableListOf()
+    private val ops = ops.toMutableList()
+    private val stack: MutableList<Long> = initialStack.toMutableList()
+    private val reverseUndoStack = mutableListOf<Pair<Int, Int>>()
+    private var ip: Int = 0
+    private var opsRun: Long = 0L
+    private var reversed: Boolean = false
+
+    fun getCurrentIp(): Int = ip
+    fun isReversed(): Boolean = reversed
+    fun operationsRun(): Long = opsRun
+    fun getStack() = stack.toList()
 
     fun clear() {
         stack.clear()
@@ -160,13 +173,170 @@ class State(
         }
     }
 
-    fun peek_n(n: Int): Either<OperationError, Long> {
+    fun peekN(n: Int): Either<OperationError, Long> {
         val index = stack.size - (1 + n)
         if (index < 0 || index >= stack.size) {
             return Either.Left(OperationError.PeekFailed(index.toLong()))
         }
         return Either.Right(stack[index])
     }
+
+    fun runNextOp(): Either<RunError, Boolean> {
+        while (reverseUndoStack.isNotEmpty()) {
+            val (reverseIp, returnIp) = reverseUndoStack.last()
+
+            if (reverseIp == ip) {
+                reversed = !reversed
+                ip = returnIp
+                stack.reverse()
+                reverseUndoStack.removeLast()
+            } else {
+                break
+            }
+        }
+
+        val op = ops.getOrNull(ip)
+
+        if (op != null) {
+            val (ipChange, instructionsRun) = apply(op).let {
+                when (it) {
+                    is Either.Right<Effect> -> {
+                        return@let when (it.value) {
+                            Effect.None -> IPChange.Increment to 1L
+                            is Effect.SetInstructionPointer -> {
+                                val index = (it.value as Effect.SetInstructionPointer).instructionIndex
+                                check(index >= Int.MIN_VALUE && index <= Int.MAX_VALUE) {
+                                    "Index out of puny java bounds"
+                                }
+                                IPChange.Set(index.toInt()) to 1L
+                            }
+                            is Effect.AddInstructionPointer -> {
+                                val offset = (it.value as Effect.AddInstructionPointer).offset
+                                check(offset >= Int.MIN_VALUE && offset <= Int.MAX_VALUE) {
+                                    "Offset out of puny java bounds"
+                                }
+                                IPChange.Add(offset.toInt()) to 1L
+                            }
+                            is Effect.RunSubprogramAndAppendResult -> {
+                                val remainingOps = maxOpCount - opsRun
+                                val subprogramOps = (it.value as Effect.RunSubprogramAndAppendResult).ops
+                                val result = run(
+                                    subprogramOps,
+                                    VMOptions(
+                                        initialStack = emptyList(),
+                                        maxStackSize = maxStackSize.toInt(),
+                                        piDigits = piDigits,
+                                        maxOpCount = remainingOps,
+                                    )
+                                )
+
+                                when (result) {
+                                    is Either.Right<RunResult> -> {
+                                        result.value.stack.map {
+                                            val id = if (it < Int.MAX_VALUE && it > Int.MIN_VALUE) {
+                                                it.toInt()
+                                            } else {
+                                                return Either.Left(RunError.OperationFailed(OperationError.InvalidInstructionId(it)))
+                                            }
+                                            val op = Op.byId(id)
+                                            if (op != null) {
+                                                ops.add(op)
+                                            } else {
+                                                return Either.Left(RunError.OperationFailed(OperationError.InvalidInstructionId(it)))
+                                            }
+                                        }
+
+                                        IPChange.Increment to (1 + result.value.instructionCounter)
+                                    }
+                                    is Either.Left<RunError> -> return result
+                                }
+                            }
+                            is Effect.SaveAndSetInstructionPointer -> {
+                                val savedIp = ip.toLong() + (if (reversed) -1L else 1L)
+                                val result = push(savedIp)
+                                if (result.isLeft()) {
+                                    return Either.Left(RunError.OperationFailed(OperationError.PushFailed))
+                                }
+
+                                val newIp = (it.value as Effect.SaveAndSetInstructionPointer).instructionIndex
+                                if (newIp > Int.MAX_VALUE || newIp < Int.MIN_VALUE) {
+                                    return Either.Left(RunError.OperationFailed(OperationError.JavaOnlyHasIntIndices(newIp)))
+                                }
+                                IPChange.Set(newIp.toInt()) to 1L
+                            }
+                            is Effect.TemporaryReverse -> {
+                                val offset = (it.value as Effect.TemporaryReverse).offset
+                                val returnIp = if (reversed) {
+                                    ip - (offset + 1)
+                                } else {
+                                    ip + (offset + 1)
+                                }
+
+                                if (returnIp < 0 || returnIp >= ops.size) {
+                                    return Either.Left(RunError.OperationFailed(OperationError.RevReturnInstructionOutOfRange(returnIp.toLong())))
+                                }
+
+                                reversed = !reversed
+                                reverseUndoStack.add(ip to returnIp.toInt())
+                                stack.reverse()
+                                if (offset > Int.MAX_VALUE || offset < Int.MIN_VALUE) {
+                                    return Either.Left(RunError.OperationFailed(OperationError.JavaOnlyHasIntIndices(offset)))
+                                }
+
+                                IPChange.Add(-offset.toInt()) to 1
+                            }
+                            Effect.Timeout -> return Either.Left(RunError.Timeout)
+                        }
+                    }
+                    is Either.Left<OperationError> -> {
+                        return Either.Left(RunError.OperationFailed(it.value))
+                    }
+                }
+            }
+
+            when (ipChange) {
+                is IPChange.Add -> {
+                    val newIp = if (reversed) {
+                        ip - ipChange.offset
+                    } else {
+                        ip + ipChange.offset
+                    }
+
+                    if (newIp < 0 || newIp >= ops.size) {
+                        return Either.Left(RunError.OperationFailed(OperationError.InstructionOutOfRange(newIp.toLong())))
+                    }
+                    ip = newIp
+                }
+                IPChange.Increment -> {
+                    if (reversed) {
+                        ip -= 1
+                    } else {
+                        ip += 1
+                    }
+                }
+                is IPChange.Set -> {
+                    if (ipChange.ip < 0 || ipChange.ip >= ops.size) {
+                        return Either.Left(RunError.OperationFailed(OperationError.InstructionOutOfRange(ipChange.ip.toLong())))
+                    }
+                    ip = ipChange.ip
+                }
+            }
+
+            opsRun += instructionsRun.toLong()
+            if (opsRun >= maxOpCount) {
+                return Either.Left(RunError.RunTooLong)
+            }
+
+            // Sanity check: should not happen
+            if (stack.size > maxStackSize) {
+                return Either.Left(RunError.StackOverflow)
+            }
+        } else {
+            return Either.Right(true)
+        }
+        return Either.Right(false)
+    }
+
 
     fun apply(op: Op): Either<OperationError, Effect> = either {
         when (op) {
@@ -468,7 +638,7 @@ class State(
                 val n = peek().bind()
                 if (n <= 0L) raise(OperationError.NonpositiveLength(n))
                 if (len() < n) raise(OperationError.NotEnoughElements(len(), n))
-                val values = (0 until n).map { peek_n(it.toInt()).bind() }.sorted()
+                val values = (0 until n).map { peekN(it.toInt()).bind() }.sorted()
                 val result = if (values.size % 2 == 0) {
                     val mid1 = values[values.size / 2 - 1]
                     val mid2 = values[values.size / 2]
@@ -576,7 +746,7 @@ class State(
             Op.BranchIfZero -> {
                 val c = peek().bind()
                 if (c != 0L) return@either Effect.None
-                val i = peek_n(1).bind()
+                val i = peekN(1).bind()
                 if (i < 0L) raise(OperationError.NegativeInstructionIndex(i))
                 return@either Effect.SetInstructionPointer(i)
             }
@@ -666,189 +836,31 @@ data class RunResult(
     val reversed: Boolean,
 )
 
-fun run(ops: List<Op>, options: VMOptions): Either<RunError, RunResult> {
+
+fun run(ops: List<Op>, options: VMOptions): Either<RunError, RunResult> = either {
     val state = State(
+        ops = ops,
+        initialStack = options.initialStack,
         maxStackSize = options.maxStackSize.toLong(),
-        piDigits = options.piDigits ?: PiDigits.digits
+        piDigits = options.piDigits ?: PiDigits.digits,
+        maxOpCount = options.maxOpCount
     )
-    state.stack.clear()
-    state.stack.addAll(options.initialStack)
-
-    val ops = ops.toMutableList()
-
-    val reverseUndoStack = mutableListOf<Pair<Int, Int>>()
-
-    var ip = 0
-    var opsRun = 0L
-    var reversed = false
-
     while (true) {
-        while (reverseUndoStack.isNotEmpty()) {
-            val (reverseIp, returnIp) = reverseUndoStack.last()
-
-            if (reverseIp == ip) {
-                reversed = !reversed
-                ip = returnIp
-                state.stack.reverse()
-                reverseUndoStack.removeLast()
-            } else {
-                break
-            }
-        }
-
-        val op = ops.getOrNull(ip)
-
-        if (op != null) {
-            val (ipChange, instructionsRun) = state.apply(op).let {
-                when (it) {
-                    is Either.Right<Effect> -> {
-                        return@let when (it.value) {
-                            Effect.None -> IPChange.Increment to 1L
-                            is Effect.SetInstructionPointer -> {
-                                val index = (it.value as Effect.SetInstructionPointer).instructionIndex
-                                check(index >= Int.MIN_VALUE && index <= Int.MAX_VALUE) {
-                                    "Index out of puny java bounds"
-                                }
-                                IPChange.Set(index.toInt()) to 1L
-                            }
-                            is Effect.AddInstructionPointer -> {
-                                val offset = (it.value as Effect.AddInstructionPointer).offset
-                                check(offset >= Int.MIN_VALUE && offset <= Int.MAX_VALUE) {
-                                    "Offset out of puny java bounds"
-                                }
-                                IPChange.Add(offset.toInt()) to 1L
-                            }
-                            is Effect.RunSubprogramAndAppendResult -> {
-                                val remainingOps = options.maxOpCount - opsRun
-                                val subprogramOps = (it.value as Effect.RunSubprogramAndAppendResult).ops
-                                val result = run(
-                                    subprogramOps,
-                                    VMOptions(
-                                        initialStack = emptyList(),
-                                        maxStackSize = options.maxStackSize,
-                                        piDigits = options.piDigits,
-                                        maxOpCount = remainingOps,
-                                    )
-                                )
-
-                                when (result) {
-                                    is Either.Right<RunResult> -> {
-                                        result.value.stack.map {
-                                            val id = if (it < Int.MAX_VALUE && it > Int.MIN_VALUE) {
-                                                it.toInt()
-                                            } else {
-                                                return Either.Left(RunError.OperationFailed(OperationError.InvalidInstructionId(it)))
-                                            }
-                                            val op = Op.byId(id)
-                                            if (op != null) {
-                                                ops.add(op)
-                                            } else {
-                                                return Either.Left(RunError.OperationFailed(OperationError.InvalidInstructionId(it)))
-                                            }
-                                        }
-
-                                        IPChange.Increment to (1 + result.value.instructionCounter)
-                                    }
-                                    is Either.Left<RunError> -> return result
-                                }
-                            }
-                            is Effect.SaveAndSetInstructionPointer -> {
-                                val savedIp = ip.toLong() + (if (reversed) -1L else 1L)
-                                val result = state.push(savedIp)
-                                if (result.isLeft()) {
-                                    return Either.Left(RunError.OperationFailed(OperationError.PushFailed))
-                                }
-
-                                val newIp = (it.value as Effect.SaveAndSetInstructionPointer).instructionIndex
-                                if (newIp > Int.MAX_VALUE || newIp < Int.MIN_VALUE) {
-                                    return Either.Left(RunError.OperationFailed(OperationError.JavaOnlyHasIntIndices(newIp)))
-                                }
-                                IPChange.Set(newIp.toInt()) to 1L
-                            }
-                            is Effect.TemporaryReverse -> {
-                                val offset = (it.value as Effect.TemporaryReverse).offset
-                                val returnIp = if (reversed) {
-                                    ip - (offset + 1)
-                                } else {
-                                    ip + (offset + 1)
-                                }
-
-                                if (returnIp < 0 || returnIp >= ops.size) {
-                                    return Either.Left(RunError.OperationFailed(OperationError.RevReturnInstructionOutOfRange(returnIp.toLong())))
-                                }
-
-                                reversed = !reversed
-                                reverseUndoStack.add(ip to returnIp.toInt())
-                                state.stack.reverse()
-                                if (offset > Int.MAX_VALUE || offset < Int.MIN_VALUE) {
-                                    return Either.Left(RunError.OperationFailed(OperationError.JavaOnlyHasIntIndices(offset)))
-                                }
-
-                                IPChange.Add(-offset.toInt()) to 1
-                            }
-                            Effect.Timeout -> return Either.Left(RunError.Timeout)
-                        }
-                    }
-                    is Either.Left<OperationError> -> {
-                        return Either.Left(RunError.OperationFailed(it.value))
-                    }
-                }
-            }
-
-            when (ipChange) {
-                is IPChange.Add -> {
-                    val newIp = if (reversed) {
-                        ip - ipChange.offset
-                    } else {
-                        ip + ipChange.offset
-                    }
-
-                    if (newIp < 0 || newIp >= ops.size) {
-                        return Either.Left(RunError.OperationFailed(OperationError.InstructionOutOfRange(newIp.toLong())))
-                    }
-                    ip = newIp
-                }
-                IPChange.Increment -> {
-                    if (reversed) {
-                        ip -= 1
-                    } else {
-                        ip += 1
-                    }
-                }
-                is IPChange.Set -> {
-                    if (ipChange.ip < 0 || ipChange.ip >= ops.size) {
-                        return Either.Left(RunError.OperationFailed(OperationError.InstructionOutOfRange(ipChange.ip.toLong())))
-                    }
-                    ip = ipChange.ip
-                }
-            }
-
-            opsRun += instructionsRun.toLong()
-            if (opsRun >= options.maxOpCount) {
-                return Either.Left(RunError.RunTooLong)
-            }
-
-
-            // Sanity check: should not happen
-            if (state.stack.size > options.maxStackSize) {
-                return Either.Left(RunError.StackOverflow)
-            }
-        } else {
+        val end = state.runNextOp().bind()
+        if (end) {
             break
         }
     }
 
-    return Either.Right(
-        RunResult(
-            stack = state.stack.toList(),
-            instructionCounter = opsRun,
-            instructionPointer = ip.toLong(),
-            reversed = reversed
-        )
+    RunResult(
+        stack = state.getStack(),
+        instructionCounter = state.operationsRun(),
+        instructionPointer = state.getCurrentIp().toLong(),
+        reversed = state.isReversed()
     )
 }
 
-fun Long.checkedAdd(other: Long): Either<OperationError.IntegerOverflow, Long> {
+private fun Long.checkedAdd(other: Long): Either<OperationError.IntegerOverflow, Long> {
     return try {
         Either.Right(LongMath.checkedAdd(this, other))
     } catch (e: ArithmeticException) {
@@ -856,7 +868,7 @@ fun Long.checkedAdd(other: Long): Either<OperationError.IntegerOverflow, Long> {
     }
 }
 
-fun Long.checkedSubtract(other: Long): Either<OperationError.IntegerOverflow, Long> {
+private fun Long.checkedSubtract(other: Long): Either<OperationError.IntegerOverflow, Long> {
     return try {
         Either.Right(LongMath.checkedSubtract(this, other))
     } catch (e: ArithmeticException) {
@@ -864,7 +876,7 @@ fun Long.checkedSubtract(other: Long): Either<OperationError.IntegerOverflow, Lo
     }
 }
 
-fun <T> MutableList<T>.rotateRight(n: Int) {
+private fun <T> MutableList<T>.rotateRight(n: Int) {
     if (this.isEmpty()) return
     val k = ((n % this.size) + this.size) % this.size
     if (k == 0) return
@@ -873,13 +885,13 @@ fun <T> MutableList<T>.rotateRight(n: Int) {
     this.subList(k, this.size).reverse()
 }
 
-fun <T> MutableList<T>.swap(i: Int, j: Int) {
+private fun <T> MutableList<T>.swap(i: Int, j: Int) {
     val tmp = this[i]
     this[i] = this[j]
     this[j] = tmp
 }
 
-fun BigInteger.toCheckedLong(): Either<OperationError.IntegerOverflow, Long> {
+private fun BigInteger.toCheckedLong(): Either<OperationError.IntegerOverflow, Long> {
     return if (this < Long.MIN_VALUE.toBigInteger() || this > Long.MAX_VALUE.toBigInteger()) {
         Either.Left(OperationError.IntegerOverflow)
     } else {

@@ -111,6 +111,7 @@ class MathTests : FunSpec({
             auto {
                 val a = variable("a", 1)
                 set(a) to negate(a)
+                keepOnly(a)
             }
         })
         runner.run(program, prefix) shouldContainExactly prefix + listOf(-1)

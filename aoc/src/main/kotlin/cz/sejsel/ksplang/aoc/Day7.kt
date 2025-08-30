@@ -144,7 +144,7 @@ private fun Scope.tryAddMulAndConcat(
     return isSolvable
 }
 
-private fun Scope.concat(a: Parameter, b: Parameter) = runFun1(a, b) {
+internal fun Scope.concat(a: Parameter, b: Parameter) = runFun1(a, b) {
     // a b
     dup()
     // a b b
