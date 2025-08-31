@@ -1,6 +1,8 @@
 import { useWebSocket } from './hooks/useWebSocket';
 import { CodeDisplay } from './components/CodeDisplay';
 import { StepControls } from './components/StepControls';
+import { StackDisplay } from './components/StackDisplay';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import './App.css';
 
 function App() {
@@ -12,8 +14,8 @@ function App() {
   } = useWebSocket('ws://localhost:8080/ws');
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="h-screen bg-gray-50 p-4 flex flex-col">
+      <div className="flex flex-col h-full">
         <header className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">
             ksplang Debugger
@@ -23,24 +25,35 @@ function App() {
           </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Code Display - Takes up 2/3 of the width on large screens */}
-          <div className="lg:col-span-2">
+        <PanelGroup direction="horizontal" className="flex-1 min-h-0">
+          {/* Code Display Panel */}
+          <Panel defaultSize={67} minSize={30}>
             <CodeDisplay 
               program={currentState?.program || null}
               currentState={currentState}
             />
-          </div>
-
-          {/* Step Controls - Takes up 1/3 of the width on large screens */}
-          <div>
-            <StepControls
-              currentState={currentState}
-              connected={connected}
-              onStepTo={stepTo}
-            />
-          </div>
-        </div>
+          </Panel>
+          
+          <PanelResizeHandle className="w-1 bg-gray-100 hover:bg-gray-200 transition-colors duration-200 cursor-col-resize" />
+          
+          {/* Controls and Stack Panel */}
+          <Panel defaultSize={33} minSize={25}>
+            <div className="flex flex-col gap-4 h-full">
+              <div>
+                <StepControls
+                  currentState={currentState}
+                  connected={connected}
+                  onStepTo={stepTo}
+                />
+              </div>
+              <div className="flex-1 min-h-0">
+                <StackDisplay
+                  currentState={currentState}
+                />
+              </div>
+            </div>
+          </Panel>
+        </PanelGroup>
 
         {/* Connection Status Bar */}
         <div className="mt-6 text-center">
