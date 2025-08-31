@@ -1,6 +1,5 @@
 package cz.sejsel.ksplang.builder
 
-import cz.sejsel.ksplang.dsl.core.Instruction
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -50,6 +49,44 @@ private data class WorkInProgressTree(
     val type: BlockType,
     val children: MutableList<AnnotatedKsplangTree>
 )
+
+fun AnnotatedKsplangTree.toRunnableProgram(): String {
+    val sb = StringBuilder()
+    var depth = 0
+    var isLineStarted = false
+    fun append(tree: AnnotatedKsplangTree) {
+        when (tree) {
+            is AnnotatedKsplangTree.Op -> {
+                if (!isLineStarted) {
+                    sb.append("\n", " ".repeat(depth))
+                    isLineStarted = true
+                } else {
+                    sb.append(" ")
+                }
+                sb.append(tree.instruction)
+            }
+
+            is AnnotatedKsplangTree.Block -> {
+                depth += 1
+                isLineStarted = false
+                for (child in tree.children) {
+                    append(child)
+                }
+                depth -= 1
+                isLineStarted = false
+            }
+
+            is AnnotatedKsplangTree.Root -> {
+                for (child in tree.children) {
+                    append(child)
+                }
+            }
+        }
+    }
+
+    append(this)
+    return sb.toString().trimIndent()
+}
 
 fun List<AnnotatedKsplangSegment>.toTree(): AnnotatedKsplangTree {
     val stack = ArrayDeque<WorkInProgressTree>()

@@ -10,9 +10,11 @@ repositories {
 
 dependencies {
     implementation(project(":gen"))
+    implementation(project(":interpreter"))
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.websockets)
+    implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.logback.classic)
 }
 
