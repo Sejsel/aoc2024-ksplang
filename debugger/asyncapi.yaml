@@ -18,30 +18,30 @@ servers:
     description: Development server
 
 channels:
-  /ws:
+  debugger:
     address: /ws
     messages:
-      frontendRequest:
+      FrontendRequest:
         $ref: '#/components/messages/FrontendRequest'
-      stateMessage:
+      StateMessage:
         $ref: '#/components/messages/StateMessage'
 
 operations:
   receiveFrontendRequest:
     action: receive
     channel:
-      $ref: '#/channels/~1ws'
+      $ref: '#/channels/debugger'
     messages:
-      - $ref: '#/components/messages/FrontendRequest'
+      - $ref: '#/channels/debugger/messages/FrontendRequest'
     summary: Receive commands from frontend
     description: Handle various debugging commands from the frontend client
 
   sendStateMessage:
     action: send
     channel:
-      $ref: '#/channels/~1ws'
+      $ref: '#/channels/debugger'
     messages:
-      - $ref: '#/components/messages/StateMessage'
+      - $ref: '#/channels/debugger/messages/StateMessage'
     summary: Send state updates to frontend
     description: Send current debugger state to the frontend client
 
@@ -69,8 +69,7 @@ components:
         - $ref: '#/components/schemas/SetProgram'
         - $ref: '#/components/schemas/SetStack'
         - $ref: '#/components/schemas/StepTo'
-      discriminator:
-        propertyName: type
+      discriminator: type
 
     SetProgram:
       type: object
@@ -120,23 +119,31 @@ components:
     StateMessage:
       oneOf:
         - $ref: '#/components/schemas/NewState'
-      discriminator:
-        propertyName: type
+      discriminator: type
 
     NewState:
       type: object
       required:
         - type
+        - program
         - ip
+        - step
         - stack
         - reversed
       properties:
         type:
           type: string
           const: state
+        program:
+          $ref: '#/components/schemas/AnnotatedKsplangTree'
+          description: The current program being debugged
         ip:
           type: integer
           description: Current instruction pointer
+        step:
+          type: integer
+          format: int64
+          description: Current step number (number of executed instructions)
         stack:
           type: array
           items:
@@ -157,8 +164,7 @@ components:
         - $ref: '#/components/schemas/KsplangOp'
         - $ref: '#/components/schemas/KsplangBlock'
         - $ref: '#/components/schemas/KsplangRoot'
-      discriminator:
-        propertyName: type
+      discriminator: type
       description: |
         Annotated ksplang program tree structure that represents a parsed and annotated 
         ksplang program ready for debugging. The tree can contain operations, blocks, or be a root node.
@@ -239,8 +245,7 @@ components:
       oneOf:
         - $ref: '#/components/schemas/InlinedFunction'
         - $ref: '#/components/schemas/FunctionCall'
-      discriminator:
-        propertyName: type
+      discriminator: type
       description: Type of code block in the ksplang program
 
     InlinedFunction:
@@ -262,92 +267,3 @@ components:
           type: string
           const: function_call
       description: A function call block
-
-  examples:
-    SetProgramExample:
-      summary: Example of setting a new program with actual ksplang instructions
-      value:
-        type: set_program
-        program:
-          type: root
-          children:
-            - type: block
-              name: double
-              blockType:
-                type: inlined_function
-              children:
-                - type: op
-                  instruction: "CS"
-                - type: op
-                  instruction: "++"
-            - type: block
-              name: null
-              blockType:
-                type: function_call
-              children:
-                - type: op
-                  instruction: "lensum"
-                - type: op
-                  instruction: "CS"
-                - type: op
-                  instruction: "funkcia"
-
-    ComplexProgramExample:
-      summary: Example of a more complex nested program structure with real ksplang instructions
-      value:
-        type: set_program
-        program:
-          type: root
-          children:
-            - type: block
-              name: "factorial"
-              blockType:
-                type: inlined_function
-              children:
-                - type: op
-                  instruction: "CS"
-                - type: op
-                  instruction: "CS"
-                - type: op
-                  instruction: "lensum"
-                - type: block
-                  name: "loop"
-                  blockType:
-                    type: function_call
-                  children:
-                    - type: op
-                      instruction: "pop2"
-                    - type: op
-                      instruction: "lroll"
-                    - type: op
-                      instruction: "swap"
-
-    SetStackExample:
-      summary: Example of setting initial stack
-      value:
-        type: set_stack
-        stack: [1, 2, 3]
-
-    StepToExample:
-      summary: Example of stepping to instruction 10
-      value:
-        type: step_to
-        executedInstructions: 10
-
-    NewStateExample:
-      summary: Example of current debugger state without error
-      value:
-        type: state
-        ip: 5
-        stack: [1, 2, 3, 26]
-        reversed: false
-        error: null
-
-    NewStateWithErrorExample:
-      summary: Example of current debugger state with an execution error
-      value:
-        type: state
-        ip: 8
-        stack: [42]
-        reversed: false
-        error: "Stack underflow: attempted to pop from empty stack"

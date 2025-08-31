@@ -14,6 +14,7 @@ import cz.sejsel.ksplang.interpreter.parseProgram
 import cz.sejsel.ksplang.std.add
 import cz.sejsel.ksplang.std.mul
 import cz.sejsel.ksplang.std.push
+import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.server.application.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -26,10 +27,13 @@ import io.ktor.server.websocket.sendSerialized
 import io.ktor.server.websocket.webSocket
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 fun main(args: Array<String>) {
     embeddedServer(Netty, port = 8080, host = "localhost") {
-        install(WebSockets)
+        install(WebSockets) {
+            contentConverter = KotlinxWebsocketSerializationConverter(Json)
+        }
         routing {
             get("/") {
                 call.respondText("CS CS lensum CS funkcia ++ praise")
@@ -53,7 +57,9 @@ fun main(args: Array<String>) {
                 suspend fun sendState() {
                     sendSerialized<StateMessage>(
                         StateMessage.NewState(
+                            program = program,
                             ip = state.getCurrentIp(),
+                            step = step,
                             stack = state.getStack(),
                             reversed = state.isReversed(),
                             error = lastError?.toString()
@@ -85,6 +91,7 @@ fun main(args: Array<String>) {
                 while (true) {
                     when (val request = receiveDeserialized<FrontendRequest>()) {
                         is FrontendRequest.SetProgram -> {
+                            log.info("Setting program to ${request.program.toString().take(100)}...")
                             program = request.program
                             state = initializeState()
                             runToStep()
@@ -92,6 +99,7 @@ fun main(args: Array<String>) {
                         }
 
                         is FrontendRequest.SetStack -> {
+                            log.info("Setting stack to ${request.stack.size} elements")
                             stack = request.stack
                             state = initializeState()
                             runToStep()
@@ -99,15 +107,16 @@ fun main(args: Array<String>) {
                         }
 
                         is FrontendRequest.StepTo -> {
+                            log.info("Stepping to ${request.executedInstructions} (currently at $step)")
                             step = request.executedInstructions
-                            sendState()
                             runToStep()
+                            sendState()
                         }
                     }
                 }
             }
         }
-    }
+    }.start(wait = true)
 }
 
 fun testingProgram(): Ksplang {
@@ -150,7 +159,9 @@ sealed interface StateMessage {
     @Serializable
     @SerialName("state")
     data class NewState(
+        val program: AnnotatedKsplangTree,
         val ip: Int,
+        val step: Long,
         val stack: List<Long>,
         val reversed: Boolean,
         val error: String?,
