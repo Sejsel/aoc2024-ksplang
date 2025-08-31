@@ -181,6 +181,7 @@ class State(
         return Either.Right(stack[index])
     }
 
+    /** Returns whether the program terminated (ip went out of range), or an error. */
     fun runNextOp(): Either<RunError, Boolean> {
         while (reverseUndoStack.isNotEmpty()) {
             val (reverseIp, returnIp) = reverseUndoStack.last()

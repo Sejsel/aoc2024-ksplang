@@ -1,5 +1,6 @@
 package cz.sejsel.ksplang.debugger
 
+import arrow.core.Either
 import cz.sejsel.ksplang.builder.AnnotatedKsplangTree
 import cz.sejsel.ksplang.builder.Ksplang
 import cz.sejsel.ksplang.builder.KsplangBuilder
@@ -7,6 +8,7 @@ import cz.sejsel.ksplang.builder.toRunnableProgram
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.program
 import cz.sejsel.ksplang.interpreter.PiDigits
+import cz.sejsel.ksplang.interpreter.RunError
 import cz.sejsel.ksplang.interpreter.State
 import cz.sejsel.ksplang.interpreter.parseProgram
 import cz.sejsel.ksplang.std.add
@@ -37,6 +39,8 @@ fun main(args: Array<String>) {
                 var program = testingProgram().toAnnotatedTree()
                 var step = 0L
 
+                var lastError: RunError? = null
+
                 fun initializeState() = State(
                     ops = parseProgram(program.toRunnableProgram()),
                     initialStack = stack,
@@ -52,15 +56,26 @@ fun main(args: Array<String>) {
                             ip = state.getCurrentIp(),
                             stack = state.getStack(),
                             reversed = state.isReversed(),
+                            error = lastError?.toString()
                         )
                     )
                 }
 
                 fun runToStep() {
                     // Big beware: operationsRun may increase multiple times in one step (during deez).
+                    lastError = null
                     state = initializeState()
                     while (state.operationsRun() < step) {
-                        state.runNextOp()
+                        when (val result = state.runNextOp()) {
+                            is Either.Left<RunError> -> {
+                                lastError = result.value
+                                return
+                            }
+                            is Either.Right<Boolean> -> {
+                                val terminate = result.value
+                                if (terminate) return
+                            }
+                        }
                     }
                 }
 
@@ -138,5 +153,6 @@ sealed interface StateMessage {
         val ip: Int,
         val stack: List<Long>,
         val reversed: Boolean,
+        val error: String?,
     ) : StateMessage
 }
