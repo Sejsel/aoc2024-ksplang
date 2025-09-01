@@ -10,7 +10,10 @@ function App() {
     currentState, 
     connected, 
     connecting,
-    stepTo 
+    stepTo,
+    runToEnd,
+    runToInstruction,
+    runToInstructionBackwards
   } = useWebSocket('ws://localhost:8080/ws');
 
   return (
@@ -31,6 +34,8 @@ function App() {
             <CodeDisplay 
               program={currentState?.program || null}
               currentState={currentState}
+              onRunToInstruction={runToInstruction}
+              onRunToInstructionBackwards={runToInstructionBackwards}
             />
           </Panel>
           
@@ -40,11 +45,14 @@ function App() {
           <Panel defaultSize={33} minSize={25}>
             <div className="flex flex-col gap-4 h-full">
               <div>
-                <StepControls
-                  currentState={currentState}
-                  connected={connected}
-                  onStepTo={stepTo}
-                />
+                              <StepControls
+                currentState={currentState}
+                connected={connected}
+                onStepTo={stepTo}
+                onRunToEnd={runToEnd}
+                onRunToInstruction={runToInstruction}
+                onRunToInstructionBackwards={runToInstructionBackwards}
+              />
               </div>
               <div className="flex-1 min-h-0">
                 <StackDisplay

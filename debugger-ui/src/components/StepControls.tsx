@@ -7,9 +7,12 @@ interface StepControlsProps {
   currentState: StateMessage | null;
   connected: boolean;
   onStepTo: (instructionCount: bigint) => void;
+  onRunToEnd: () => void;
+  onRunToInstruction: (fromStep: bigint, instructionIndex: number) => void;
+  onRunToInstructionBackwards: (fromStep: bigint, instructionIndex: number) => void;
 }
 
-export function StepControls({ currentState, connected, onStepTo }: StepControlsProps) {
+export function StepControls({ currentState, connected, onStepTo, onRunToEnd, onRunToInstruction, onRunToInstructionBackwards }: StepControlsProps) {
   const currentStep = currentState?.step ?? BigInt(0);
 
   const handleStepTo = (step: bigint) => {
@@ -86,6 +89,16 @@ export function StepControls({ currentState, connected, onStepTo }: StepControls
           title="10 steps forward"
         >
           →→
+        </Button>
+
+        <Button 
+          onClick={onRunToEnd}
+          disabled={!connected}
+          variant="outline"
+          size="sm"
+          title="Run to end"
+        >
+          🏁
         </Button>
       </div>
 

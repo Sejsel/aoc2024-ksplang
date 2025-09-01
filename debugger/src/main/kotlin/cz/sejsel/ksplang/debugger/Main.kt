@@ -13,7 +13,6 @@ import cz.sejsel.ksplang.interpreter.RunError
 import cz.sejsel.ksplang.interpreter.State
 import cz.sejsel.ksplang.interpreter.parseProgram
 import cz.sejsel.ksplang.std.add
-import cz.sejsel.ksplang.std.cmp
 import cz.sejsel.ksplang.std.dec
 import cz.sejsel.ksplang.std.dup
 import cz.sejsel.ksplang.std.mul
@@ -89,6 +88,7 @@ fun main(args: Array<String>) {
                             }
                         }
                     }
+                    step = state.operationsRun()
                 }
 
                 runToStep()
@@ -118,6 +118,92 @@ fun main(args: Array<String>) {
                             runToStep()
                             sendState()
                         }
+
+                        FrontendRequest.RunToEnd -> {
+                            log.info("Running to end")
+                            step = Long.MAX_VALUE
+                            runToStep()
+                            step = state.operationsRun()
+                            sendState()
+                        }
+
+                        is FrontendRequest.RunToInstruction -> {
+                            log.info("Running to instruction ${request.instructionIndex} forwards")
+                            val targetIp = request.instructionIndex
+                            val originalStep = step
+                            state = initializeState()
+                            lastError = null
+                            step = 0
+                            var instructionReached = false
+                            while (true) {
+                                if (state.getCurrentIp() == targetIp && state.operationsRun() >= request.fromStep) {
+                                    instructionReached = true
+                                    break
+                                }
+                                when (val result = state.runNextOp()) {
+                                    is Either.Left<RunError> -> {
+                                        lastError = result.value
+                                        break
+                                    }
+
+                                    is Either.Right<Boolean> -> {
+                                        val terminate = result.value
+                                        if (terminate) break
+                                    }
+                                }
+                                step = state.operationsRun()
+                            }
+
+                            if (!instructionReached) {
+                                log.info("... never occurred")
+                                step = originalStep
+                                runToStep()
+                            }
+
+                            sendState()
+                        }
+
+                        is FrontendRequest.RunToInstructionBackwards -> {
+                            // To make this reasonably efficient, what we do is:
+                            // Run from start, keep track of last step when we were at the target instruction
+                            // Stop at toStep
+                            // Rerun until lastStep if it occurred.
+                            log.info("Running to instruction ${request.instructionIndex} backwards")
+                            val originalStep = step
+                            val targetIp = request.instructionIndex
+                            state = initializeState()
+                            lastError = null
+                            step = 0
+                            var lastStepAtTarget: Long? = null
+                            while (true) {
+                                if (state.getCurrentIp() == targetIp && state.operationsRun() <= request.fromStep) {
+                                    lastStepAtTarget = state.operationsRun()
+                                }
+                                if (state.operationsRun() >= request.fromStep) break
+                                when (val result = state.runNextOp()) {
+                                    is Either.Left<RunError> -> {
+                                        lastError = result.value
+                                        break
+                                    }
+
+                                    is Either.Right<Boolean> -> {
+                                        val terminate = result.value
+                                        if (terminate) break
+                                    }
+                                }
+                            }
+
+                            if (lastStepAtTarget != null) {
+                                log.info("... last occurrence at $lastStepAtTarget, rerunning")
+                                step = lastStepAtTarget
+                                runToStep()
+                            } else {
+                                log.info("... never occurred")
+                                step = originalStep
+                                runToStep()
+                            }
+                            sendState()
+                        }
                     }
                 }
             }
@@ -145,7 +231,7 @@ fun testingProgram(): Ksplang {
 fun testingProgram2(): Ksplang {
     val builder = KsplangBuilder()
     val ksplang = program {
-        val double = function2To1("double") {
+        val double = function1To1("double") {
             mul(2)
         }
 
@@ -184,6 +270,18 @@ sealed interface FrontendRequest {
         /** Target number of executed instructions (absolute). */
         val executedInstructions: Long
     ) : FrontendRequest
+
+    @Serializable
+    @SerialName("run_to_end")
+    object RunToEnd : FrontendRequest
+
+    @Serializable
+    @SerialName("run_to_instruction")
+    data class RunToInstruction(val fromStep: Long, val instructionIndex: Int) : FrontendRequest
+
+    @Serializable
+    @SerialName("run_to_instruction_backwards")
+    data class RunToInstructionBackwards(val fromStep: Long, val instructionIndex: Int) : FrontendRequest
 }
 
 @Serializable

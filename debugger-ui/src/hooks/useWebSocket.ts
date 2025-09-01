@@ -150,6 +150,28 @@ export function useWebSocket(url: string) {
     } as StepTo);
   }, [sendMessage]);
 
+  const runToEnd = useCallback(() => {
+    sendMessage({
+      type: 'run_to_end',
+    });
+  }, [sendMessage]);
+
+  const runToInstruction = useCallback((fromStep: bigint, instructionIndex: number) => {
+    sendMessage({
+      type: 'run_to_instruction',
+      fromStep: fromStep,
+      instructionIndex: instructionIndex,
+    });
+  }, [sendMessage]);
+
+  const runToInstructionBackwards = useCallback((fromStep: bigint, instructionIndex: number) => {
+    sendMessage({
+      type: 'run_to_instruction_backwards',
+      fromStep: fromStep,
+      instructionIndex: instructionIndex,
+    });
+  }, [sendMessage]);
+
   useEffect(() => {
     connect();
     
@@ -164,5 +186,8 @@ export function useWebSocket(url: string) {
     disconnect,
     sendMessage,
     stepTo,
+    runToEnd,
+    runToInstruction,
+    runToInstructionBackwards,
   };
 }

@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { AnnotatedKsplangTree, StateMessage } from '../types/debugger';
 import { Checkbox } from './ui/checkbox';
 
 interface CodeDisplayProps {
   program: AnnotatedKsplangTree | null;
   currentState: StateMessage | null;
+  onRunToInstruction: (fromStep: bigint, instructionIndex: number) => void;
+  onRunToInstructionBackwards: (fromStep: bigint, instructionIndex: number) => void;
 }
 
 interface RenderNodeProps {
@@ -13,6 +15,11 @@ interface RenderNodeProps {
   currentIp: number;
   instructionMap: Map<AnnotatedKsplangTree, number>;
   showNumbers: boolean;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  onRunToInstruction: (fromStep: bigint, instructionIndex: number) => void;
+  onRunToInstructionBackwards: (fromStep: bigint, instructionIndex: number) => void;
+  currentStep: bigint;
+  isCtrlPressed: boolean;
 }
 
 function buildInstructionMap(node: AnnotatedKsplangTree, map: Map<AnnotatedKsplangTree, number>, counter: { current: number }): void {
@@ -26,7 +33,7 @@ function buildInstructionMap(node: AnnotatedKsplangTree, map: Map<AnnotatedKspla
   }
 }
 
-function RenderNode({ node, depth, currentIp, instructionMap, showNumbers }: RenderNodeProps) {
+function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, scrollContainerRef, onRunToInstruction, onRunToInstructionBackwards, currentStep, isCtrlPressed, hoveredInstruction, setHoveredInstruction }: RenderNodeProps & { hoveredInstruction: number | null, setHoveredInstruction: (idx: number | null) => void }) {
   // Rainbow colors for block hierarchy (faint versions)
   const rainbowColors = [
     'border-red-200',
@@ -44,15 +51,58 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers }: Ren
   if (node.type === 'op') {
     const instructionIndex = instructionMap.get(node) ?? -1;
     const isCurrentInstruction = instructionIndex === currentIp;
-    
+    const isHovered = hoveredInstruction === instructionIndex;
+
+    const handleClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (e.ctrlKey) {
+        onRunToInstructionBackwards(currentStep, instructionIndex);
+      } else {
+        onRunToInstruction(currentStep, instructionIndex);
+      }
+    };
+
+    useEffect(() => {
+      if (!isCurrentInstruction && isHovered) {
+        const el = document.querySelector(`[data-instruction-idx='${instructionIndex}']`);
+        if (el) {
+          if (isCtrlPressed) {
+            el.classList.add('bg-red-50', 'border-red-200');
+            el.classList.remove('bg-blue-50', 'border-blue-200');
+          } else {
+            el.classList.add('bg-blue-50', 'border-blue-200');
+            el.classList.remove('bg-red-50', 'border-red-200');
+          }
+        }
+      }
+    }, [isCtrlPressed, isHovered, isCurrentInstruction, instructionIndex]);
+
     return (
-      <span 
-        className={`font-mono text-xs mr-1 px-1 py-0.5 rounded ${
-          isCurrentInstruction 
-            ? "bg-yellow-100 border border-yellow-500 font-semibold text-yellow-800" 
-            : "hover:bg-gray-50 text-gray-800"
+      <span
+        data-instruction-idx={instructionIndex}
+        ref={isCurrentInstruction ? (el) => {
+          if (el && scrollContainerRef && scrollContainerRef.current) {
+            const container = scrollContainerRef.current;
+            const containerRect = container.getBoundingClientRect();
+            const elementRect = el.getBoundingClientRect();
+            const elementTop = elementRect.top - containerRect.top + container.scrollTop;
+            const elementCenter = elementTop - container.clientHeight / 2 + el.clientHeight / 2;
+            container.scrollTo({ top: elementCenter, behavior: 'smooth' });
+          }
+        } : undefined}
+        className={`font-mono text-xs mr-1 px-1 py-0.5 rounded border cursor-pointer transition-colors ${
+          isCurrentInstruction
+            ? "bg-yellow-100 border-yellow-500 font-semibold text-yellow-800"
+            : isHovered
+              ? isCtrlPressed
+                ? "bg-red-50 border-red-200"
+                : "bg-blue-50 border-blue-200"
+              : "text-gray-800 border-transparent"
         }`}
-        title={`Instruction ${instructionIndex}: ${node.instruction}`}
+        title={`Instruction ${instructionIndex}: ${node.instruction} | Click to run to here | Ctrl+Click to run backwards to here`}
+        onClick={handleClick}
+        onMouseEnter={() => !isCurrentInstruction && setHoveredInstruction(instructionIndex)}
+        onMouseLeave={() => !isCurrentInstruction && setHoveredInstruction(null)}
       >
         {showNumbers && (
           <span className="text-gray-400 text-xs mr-1">
@@ -109,6 +159,13 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers }: Ren
                         currentIp={currentIp}
                         instructionMap={instructionMap}
                         showNumbers={showNumbers}
+                        scrollContainerRef={scrollContainerRef}
+                        onRunToInstruction={onRunToInstruction}
+                        onRunToInstructionBackwards={onRunToInstructionBackwards}
+                        currentStep={currentStep}
+                        isCtrlPressed={isCtrlPressed}
+                        hoveredInstruction={hoveredInstruction}
+                        setHoveredInstruction={setHoveredInstruction}
                       />
                     ))}
                   </div>
@@ -122,6 +179,13 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers }: Ren
                       currentIp={currentIp}
                       instructionMap={instructionMap}
                       showNumbers={showNumbers}
+                      scrollContainerRef={scrollContainerRef}
+                      onRunToInstruction={onRunToInstruction}
+                      onRunToInstructionBackwards={onRunToInstructionBackwards}
+                      currentStep={currentStep}
+                      isCtrlPressed={isCtrlPressed}
+                      hoveredInstruction={hoveredInstruction}
+                      setHoveredInstruction={setHoveredInstruction}
                     />
                   </div>
                 );
@@ -144,6 +208,13 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers }: Ren
             currentIp={currentIp}
             instructionMap={instructionMap}
             showNumbers={showNumbers}
+            scrollContainerRef={scrollContainerRef}
+            onRunToInstruction={onRunToInstruction}
+            onRunToInstructionBackwards={onRunToInstructionBackwards}
+            currentStep={currentStep}
+            isCtrlPressed={isCtrlPressed}
+            hoveredInstruction={hoveredInstruction}
+            setHoveredInstruction={setHoveredInstruction}
           />
         ))}
       </div>
@@ -153,8 +224,33 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers }: Ren
   return null;
 }
 
-export function CodeDisplay({ program, currentState }: CodeDisplayProps) {
+export function CodeDisplay({ program, currentState, onRunToInstruction, onRunToInstructionBackwards }: CodeDisplayProps) {
   const [showNumbers, setShowNumbers] = useState(false);
+  const [isCtrlPressed, setIsCtrlPressed] = useState(false);
+  const [hoveredInstruction, setHoveredInstruction] = useState<number | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        setIsCtrlPressed(true);
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!e.ctrlKey && !e.metaKey) {
+        setIsCtrlPressed(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
   
   if (!program) {
     return (
@@ -165,6 +261,7 @@ export function CodeDisplay({ program, currentState }: CodeDisplayProps) {
   }
 
   const currentIp = currentState?.ip ?? -1;
+  const currentStep = currentState?.step ?? BigInt(0);
   
   // Build instruction map once
   const instructionMap = new Map<AnnotatedKsplangTree, number>();
@@ -172,7 +269,7 @@ export function CodeDisplay({ program, currentState }: CodeDisplayProps) {
   buildInstructionMap(program, instructionMap, counter);
 
   return (
-    <div className="border rounded-lg bg-white overflow-auto h-screen">
+    <div ref={scrollContainerRef} className="border rounded-lg bg-white overflow-auto h-screen">
       <div className="p-4">
         <div className="flex items-center justify-between mb-4 text-gray-800 border-b pb-2">
           <h3 className="text-lg font-semibold">Program</h3>
@@ -191,6 +288,13 @@ export function CodeDisplay({ program, currentState }: CodeDisplayProps) {
             currentIp={currentIp}
             instructionMap={instructionMap}
             showNumbers={showNumbers}
+            scrollContainerRef={scrollContainerRef}
+            onRunToInstruction={onRunToInstruction}
+            onRunToInstructionBackwards={onRunToInstructionBackwards}
+            currentStep={currentStep}
+            isCtrlPressed={isCtrlPressed}
+            hoveredInstruction={hoveredInstruction}
+            setHoveredInstruction={setHoveredInstruction}
           />
         </div>
       </div>

@@ -69,6 +69,9 @@ components:
         - $ref: '#/components/schemas/SetProgram'
         - $ref: '#/components/schemas/SetStack'
         - $ref: '#/components/schemas/StepTo'
+        - $ref: '#/components/schemas/RunToEnd'
+        - $ref: '#/components/schemas/RunToInstruction'
+        - $ref: '#/components/schemas/RunToInstructionBackwards'
       discriminator: type
 
     SetProgram:
@@ -115,6 +118,54 @@ components:
           format: int64
           description: Target number of executed instructions (absolute)
       description: Step execution to a specific instruction count
+
+    RunToEnd:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: run_to_end
+      description: Run the program to the end
+
+    RunToInstruction:
+      type: object
+      required:
+        - type
+        - fromStep
+        - instructionIndex
+      properties:
+        type:
+          type: string
+          const: run_to_instruction
+        fromStep:
+          type: integer
+          format: int64
+          description: Step to start searching from
+        instructionIndex:
+          type: integer
+          description: Target instruction index to run to
+      description: Run the program forwards to a specific instruction index
+
+    RunToInstructionBackwards:
+      type: object
+      required:
+        - type
+        - fromStep
+        - instructionIndex
+      properties:
+        type:
+          type: string
+          const: run_to_instruction_backwards
+        fromStep:
+          type: integer
+          format: int64
+          description: Step to start searching from
+        instructionIndex:
+          type: integer
+          description: Target instruction index to run to (backwards)
+      description: Run the program backwards to a specific instruction index
 
     StateMessage:
       oneOf:
