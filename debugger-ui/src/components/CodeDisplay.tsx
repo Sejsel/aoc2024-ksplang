@@ -15,6 +15,8 @@ interface RenderNodeProps {
   currentIp: number;
   instructionMap: Map<AnnotatedKsplangTree, number>;
   showNumbers: boolean;
+  autoScroll: boolean;
+  previousIpRef: React.MutableRefObject<number>;
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   onRunToInstruction: (fromStep: bigint, instructionIndex: number) => void;
   onRunToInstructionBackwards: (fromStep: bigint, instructionIndex: number) => void;
@@ -33,7 +35,7 @@ function buildInstructionMap(node: AnnotatedKsplangTree, map: Map<AnnotatedKspla
   }
 }
 
-function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, scrollContainerRef, onRunToInstruction, onRunToInstructionBackwards, currentStep, isCtrlPressed, hoveredInstruction, setHoveredInstruction }: RenderNodeProps & { hoveredInstruction: number | null, setHoveredInstruction: (idx: number | null) => void }) {
+function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoScroll, previousIpRef, scrollContainerRef, onRunToInstruction, onRunToInstructionBackwards, currentStep, isCtrlPressed, hoveredInstruction, setHoveredInstruction }: RenderNodeProps & { hoveredInstruction: number | null, setHoveredInstruction: (idx: number | null) => void }) {
   // Rainbow colors for block hierarchy (faint versions)
   const rainbowColors = [
     'border-red-200',
@@ -81,13 +83,15 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, scrol
       <span
         data-instruction-idx={instructionIndex}
         ref={isCurrentInstruction ? (el) => {
-          if (el && scrollContainerRef && scrollContainerRef.current) {
+          // Only scroll if auto-scroll is enabled and the instruction actually changed
+          if (el && autoScroll && scrollContainerRef && scrollContainerRef.current && previousIpRef.current !== currentIp) {
             const container = scrollContainerRef.current;
             const containerRect = container.getBoundingClientRect();
             const elementRect = el.getBoundingClientRect();
             const elementTop = elementRect.top - containerRect.top + container.scrollTop;
             const elementCenter = elementTop - container.clientHeight / 2 + el.clientHeight / 2;
             container.scrollTo({ top: elementCenter, behavior: 'smooth' });
+            previousIpRef.current = currentIp;
           }
         } : undefined}
         className={`font-mono text-xs mr-1 px-1 py-0.5 rounded border cursor-pointer transition-colors ${
@@ -159,6 +163,8 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, scrol
                         currentIp={currentIp}
                         instructionMap={instructionMap}
                         showNumbers={showNumbers}
+                        autoScroll={autoScroll}
+                        previousIpRef={previousIpRef}
                         scrollContainerRef={scrollContainerRef}
                         onRunToInstruction={onRunToInstruction}
                         onRunToInstructionBackwards={onRunToInstructionBackwards}
@@ -179,6 +185,8 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, scrol
                       currentIp={currentIp}
                       instructionMap={instructionMap}
                       showNumbers={showNumbers}
+                      autoScroll={autoScroll}
+                      previousIpRef={previousIpRef}
                       scrollContainerRef={scrollContainerRef}
                       onRunToInstruction={onRunToInstruction}
                       onRunToInstructionBackwards={onRunToInstructionBackwards}
@@ -208,6 +216,8 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, scrol
             currentIp={currentIp}
             instructionMap={instructionMap}
             showNumbers={showNumbers}
+            autoScroll={autoScroll}
+            previousIpRef={previousIpRef}
             scrollContainerRef={scrollContainerRef}
             onRunToInstruction={onRunToInstruction}
             onRunToInstructionBackwards={onRunToInstructionBackwards}
@@ -226,9 +236,11 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, scrol
 
 export function CodeDisplay({ program, currentState, onRunToInstruction, onRunToInstructionBackwards }: CodeDisplayProps) {
   const [showNumbers, setShowNumbers] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(true);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [hoveredInstruction, setHoveredInstruction] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const previousIpRef = useRef<number>(-1);
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -255,7 +267,7 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
   if (!program) {
     return (
       <div className="p-4 border rounded-lg bg-gray-50">
-        <p className="text-gray-500">No program loaded</p>
+        <p className="text-gray-500">Start by connecting to the server</p>
       </div>
     );
   }
@@ -269,17 +281,26 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
   buildInstructionMap(program, instructionMap, counter);
 
   return (
-    <div ref={scrollContainerRef} className="border rounded-lg bg-white overflow-auto h-screen">
-      <div className="p-4">
+    <div ref={scrollContainerRef} className="border rounded-lg bg-white overflow-auto h-full">
+      <div className="p-4 pb-8">
         <div className="flex items-center justify-between mb-4 text-gray-800 border-b pb-2">
           <h3 className="text-lg font-semibold">Program</h3>
-          <label className="flex items-center text-sm text-gray-600 cursor-pointer gap-2">
-            <Checkbox 
-              checked={showNumbers}
-              onCheckedChange={(checked) => setShowNumbers(checked === true)}
-            />
-            Show numbers
-          </label>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center text-sm text-gray-600 cursor-pointer gap-2">
+              <Checkbox 
+                checked={autoScroll}
+                onCheckedChange={(checked) => setAutoScroll(checked === true)}
+              />
+              Auto-scroll
+            </label>
+            <label className="flex items-center text-sm text-gray-600 cursor-pointer gap-2">
+              <Checkbox 
+                checked={showNumbers}
+                onCheckedChange={(checked) => setShowNumbers(checked === true)}
+              />
+              Instruction numbers
+            </label>
+          </div>
         </div>
         <div className="space-y-1">
           <RenderNode 
@@ -288,6 +309,8 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
             currentIp={currentIp}
             instructionMap={instructionMap}
             showNumbers={showNumbers}
+            autoScroll={autoScroll}
+            previousIpRef={previousIpRef}
             scrollContainerRef={scrollContainerRef}
             onRunToInstruction={onRunToInstruction}
             onRunToInstructionBackwards={onRunToInstructionBackwards}

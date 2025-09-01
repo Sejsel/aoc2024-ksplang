@@ -6,6 +6,7 @@ import cz.sejsel.ksplang.builder.Ksplang
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.builder.toRunnableProgram
 import cz.sejsel.ksplang.dsl.core.call
+import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.doWhileZero
 import cz.sejsel.ksplang.dsl.core.program
 import cz.sejsel.ksplang.interpreter.PiDigits
@@ -245,10 +246,13 @@ fun testingProgram2(): Ksplang {
             call(double)
             call(double)
             // len*16
-            doWhileZero {
+            doWhileNonZero {
+                // i+1
                 dec()
+                // i
                 push(13)
                 swap2()
+                // 13 i
                 dup()
             }
         }

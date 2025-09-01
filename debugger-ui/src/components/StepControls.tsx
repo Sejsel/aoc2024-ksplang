@@ -111,12 +111,6 @@ export function StepControls({ currentState, connected, onStepTo, onRunToEnd, on
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-medium">Step:</span>
-          <Badge variant="outline" className="font-mono">
-            {currentState?.step?.toString() ?? 'N/A'}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-2">
           <span className="font-medium">Reversed:</span>
           <Badge variant={currentState?.reversed ? "default" : "secondary"}>
             {currentState?.reversed ? 'Yes' : 'No'}
@@ -124,7 +118,7 @@ export function StepControls({ currentState, connected, onStepTo, onRunToEnd, on
         </div>
         <div className="flex items-center gap-2">
           <span className="font-medium">Connection:</span>
-          <Badge variant={connected ? "default" : "destructive"}>
+          <Badge variant={connected ? "default" : "destructive"} className={connected ? "bg-green-50 text-green-700 border-green-200" : ""}>
             {connected ? 'Connected' : 'Disconnected'}
           </Badge>
         </div>
