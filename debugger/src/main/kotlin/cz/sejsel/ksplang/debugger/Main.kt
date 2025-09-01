@@ -80,15 +80,18 @@ fun main(args: Array<String>) {
                         when (val result = state.runNextOp()) {
                             is Either.Left<RunError> -> {
                                 lastError = result.value
+                                step = state.operationsRun()
                                 return
                             }
                             is Either.Right<Boolean> -> {
                                 val terminate = result.value
-                                if (terminate) return
+                                if (terminate) {
+                                    step = state.operationsRun()
+                                    return
+                                }
                             }
                         }
                     }
-                    step = state.operationsRun()
                 }
 
                 runToStep()
