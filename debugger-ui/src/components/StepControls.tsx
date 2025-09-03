@@ -16,7 +16,18 @@ interface StepControlsProps {
   onLoadProgramFromClipboard: () => Promise<void>;
 }
 
-export function StepControls({ currentState, connected, onStepTo, onRunToEnd, onRunToInstruction, onRunToInstructionBackwards, onRunToNextBreakpoint, onRunToPreviousBreakpoint, onClearBreakpoints, onLoadProgramFromClipboard }: StepControlsProps) {
+export function StepControls({ 
+  currentState, 
+  connected, 
+  onStepTo, 
+  onRunToEnd, 
+  onRunToInstruction: _onRunToInstruction, 
+  onRunToInstructionBackwards: _onRunToInstructionBackwards, 
+  onRunToNextBreakpoint, 
+  onRunToPreviousBreakpoint, 
+  onClearBreakpoints, 
+  onLoadProgramFromClipboard 
+}: StepControlsProps) {
   const currentStep = currentState?.step ?? BigInt(0);
   const breakpointCount = currentState?.breakpoints?.length ?? 0;
   const hasBreakpoints = breakpointCount > 0;

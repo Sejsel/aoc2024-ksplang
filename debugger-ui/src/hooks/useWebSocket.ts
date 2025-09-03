@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { StateMessage, DebuggerState, StepTo } from '../types/debugger';
+import type { DebuggerState, StepTo } from '../types/debugger';
 
 export function useWebSocket(url: string) {
   const [state, setState] = useState<DebuggerState>({
@@ -41,7 +41,7 @@ export function useWebSocket(url: string) {
     },
     ip: 1,
     step: BigInt(3),
-    stack: [BigInt(1), BigInt(2), BigInt(42)],
+    stack: [BigInt(1), BigInt(2), BigInt(42), BigInt("9223372036854775807"), BigInt("-9223372036854775808")],
     reversed: false,
     error: null,
     breakpoints: [2, 5] // Mock breakpoints at instruction indices 2 and 5
@@ -68,13 +68,33 @@ export function useWebSocket(url: string) {
 
       ws.current.onmessage = (event) => {
         try {
-          const message = JSON.parse(event.data) as StateMessage;
+          // Handle large integers by preprocessing the JSON string
+          // This prevents JSON.parse from converting large numbers to floats
+          let jsonString = event.data;
+          
+          // Replace large integer values with quoted strings to preserve precision
+          // This regex finds numbers that might lose precision in JSON.parse
+          jsonString = jsonString.replace(
+            /"(step|stack)":\s*(\[[\d\s,\-]+\]|\d+)/g,
+            (_match: string, key: string, value: string) => {
+              if (key === 'stack') {
+                // Handle array of numbers - wrap each number in quotes
+                const processedArray = value.replace(/(-?\d+)/g, '"$1"');
+                return `"${key}":${processedArray}`;
+              } else {
+                // Handle single number - wrap in quotes
+                return `"${key}":"${value}"`;
+              }
+            }
+          );
+          
+          const message = JSON.parse(jsonString) as any;
           
           if (message.type === 'state') {
             const stateWithBigInt = {
               ...message,
-              step: BigInt(message.step),
-              stack: message.stack.map(val => BigInt(val))
+              step: BigInt(message.step.toString()),
+              stack: message.stack.map((val: any) => BigInt(val.toString()))
             };
             
             setState(prev => ({ 
