@@ -2,6 +2,7 @@ package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
+import cz.sejsel.ksplang.dsl.core.buildFunction
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.whileNonZero
@@ -41,10 +42,12 @@ class WasmFunctionScope private constructor(
     }
 
 
-    private fun ComplexFunction.instruction(stackSizeChange: Int, block: ComplexFunction.() -> Unit) {
+    private fun ComplexFunction.instruction(name: String, stackSizeChange: Int, block: ComplexFunction.() -> Unit) {
         check(!localsPopped)
         intermediateStackValues += stackSizeChange
-        block()
+        complexFunction(name) {
+            block()
+        }
     }
 
 
@@ -54,19 +57,19 @@ class WasmFunctionScope private constructor(
         dupLocal(index)
     }
 
-    fun ComplexFunction.i32Add() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32Add() = instruction("i32Add", stackSizeChange = -1) {
         add()
 
         i32Mod()
     }
 
-    fun ComplexFunction.i32Sub() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32Sub() = instruction("i32Sub", stackSizeChange = -1) {
         sub()
 
         i32Mod()
     }
 
-    fun ComplexFunction.i32Mul() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32Mul() = instruction("i32Mul", stackSizeChange = -1) {
         // Unfortunately, we only have signed i64 multiplication, so we can overflow
         // even with multiplication of two i32 values.
 
@@ -79,7 +82,7 @@ class WasmFunctionScope private constructor(
         */
     }
 
-    fun ComplexFunction.i32DivSigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32DivSigned() = instruction("i32DivSigned", stackSizeChange = -1) {
         // a b
         i32ToSigned()
         // a b_s
@@ -91,14 +94,14 @@ class WasmFunctionScope private constructor(
         i32Mod()
     }
 
-    fun ComplexFunction.i32DivUnsigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32DivUnsigned() = instruction("i32DivUnsigned", stackSizeChange = -1) {
         swap2()
         div()
 
         i32Mod()
     }
 
-    fun ComplexFunction.i32RemSigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32RemSigned() = instruction("i32RemSigned", stackSizeChange = -1) {
         // a b
         i32ToSigned()
         // a b_s
@@ -110,14 +113,14 @@ class WasmFunctionScope private constructor(
         i32Mod()
     }
 
-    fun ComplexFunction.i32RemUnsigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32RemUnsigned() = instruction("i32RemUnsigned", stackSizeChange = -1) {
         swap2()
         REM()
 
         i32Mod()
     }
 
-    fun ComplexFunction.i32Shl() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32Shl() = instruction("i32Shl", stackSizeChange = -1) {
         // val by
         push(32)
         swap2()
@@ -128,7 +131,7 @@ class WasmFunctionScope private constructor(
         i32Mod()
     }
 
-    fun ComplexFunction.i32ShrUnsigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32ShrUnsigned() = instruction("i32ShrUnsigned", stackSizeChange = -1) {
         // val by
         push(32)
         swap2()
@@ -156,7 +159,7 @@ class WasmFunctionScope private constructor(
         // a>>by
     }
 
-    fun ComplexFunction.i32ShrSigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32ShrSigned() = instruction("i32ShrSigned", stackSizeChange = -1) {
         // We are using ((val+2^31)>>by) - (2^31>>by) from Hacker's Delight section 2.7
         // instead of (2^31>>by), we are using 1 << (31-by), which we can safely do because by is at most 31.
         // we need to convert val to signed representation for this to work as expected
@@ -209,7 +212,7 @@ class WasmFunctionScope private constructor(
         i32Mod()
     }
 
-    fun ComplexFunction.i32Rotl() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32Rotl() = instruction("i32Rotl", stackSizeChange = -1) {
         // a by
         push(32)
         swap2()
@@ -219,7 +222,7 @@ class WasmFunctionScope private constructor(
         i32RotateLeft()
     }
 
-    fun ComplexFunction.i32Rotr() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32Rotr() = instruction("i32Rotr", stackSizeChange = -1) {
         // a by
         push(32)
         swap2()
@@ -237,12 +240,12 @@ class WasmFunctionScope private constructor(
         i32RotateLeft()
     }
 
-    fun ComplexFunction.i32Eqz() = instruction(stackSizeChange = 0) {
+    fun ComplexFunction.i32Eqz() = instruction("i32Eqz", stackSizeChange = 0) {
         // a
         zeroNot()
     }
 
-    fun ComplexFunction.i32Eq() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32Eq() = instruction("i32Eq", stackSizeChange = -1) {
         // a b
         // unlike in i64, where we would need cmp(), we can do subabs as it cannot overflow
         subabs()
@@ -251,7 +254,7 @@ class WasmFunctionScope private constructor(
         // a==b?1:0
     }
 
-    fun ComplexFunction.i32Ne() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32Ne() = instruction("i32Ne", stackSizeChange = -1) {
         // a b
         // unlike in i64, where we would need cmp(), we can do subabs as it cannot overflow
         subabs()
@@ -284,11 +287,11 @@ class WasmFunctionScope private constructor(
         // res
     }
 
-    fun ComplexFunction.i32PopCnt() = instruction(stackSizeChange = 0) {
+    fun ComplexFunction.i32PopCnt() = instruction("i32PopCnt", stackSizeChange = 0) {
         i32CountSetBits()
     }
 
-    fun ComplexFunction.i32Clz() = instruction(stackSizeChange = 0) {
+    fun ComplexFunction.i32Clz() = instruction("i32Clz", stackSizeChange = 0) {
         ifZero {
             // 0
             push(32)
@@ -331,7 +334,7 @@ class WasmFunctionScope private constructor(
         }
     }
 
-    fun ComplexFunction.i32Ctz() = instruction(stackSizeChange = 0) {
+    fun ComplexFunction.i32Ctz() = instruction("i32Ctz", stackSizeChange = 0) {
         // a
         dup()
         // a a
@@ -379,11 +382,11 @@ class WasmFunctionScope private constructor(
         // 1 if a > b, 1 if a = b, 0 if a < b
     }
 
-    fun ComplexFunction.i32LtUnsigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32LtUnsigned() = instruction("i32LtUnsigned", stackSizeChange = -1) {
         i32Lt()
     }
 
-    fun ComplexFunction.i32LtSigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32LtSigned() = instruction("i32LtSigned", stackSizeChange = -1) {
         i32ToSigned()
         swap2()
         i32ToSigned()
@@ -391,11 +394,11 @@ class WasmFunctionScope private constructor(
         i32Gt() // we swapped the arguments, no swapping back (for perf)
     }
 
-    fun ComplexFunction.i32GtUnsigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32GtUnsigned() = instruction("i32GtUnsigned", stackSizeChange = -1) {
         i32Gt()
     }
 
-    fun ComplexFunction.i32GtSigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32GtSigned() = instruction("i32GtSigned", stackSizeChange = -1) {
         i32ToSigned()
         swap2()
         i32ToSigned()
@@ -403,11 +406,11 @@ class WasmFunctionScope private constructor(
         i32Lt() // we swapped the arguments, no swapping back (for perf)
     }
 
-    fun ComplexFunction.i32LeUnsigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32LeUnsigned() = instruction("i32LeUnsigned", stackSizeChange = -1) {
         i32Le()
     }
 
-    fun ComplexFunction.i32LeSigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32LeSigned() = instruction("i32LeSigned", stackSizeChange = -1) {
         i32ToSigned()
         swap2()
         i32ToSigned()
@@ -415,11 +418,11 @@ class WasmFunctionScope private constructor(
         i32Ge() // we swapped the arguments, no swapping back (for perf)
     }
 
-    fun ComplexFunction.i32GeUnsigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32GeUnsigned() = instruction("i32GeUnsigned", stackSizeChange = -1) {
         i32Ge()
     }
 
-    fun ComplexFunction.i32GeSigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i32GeSigned() = instruction("i32GeSigned", stackSizeChange = -1) {
         i32ToSigned()
         swap2()
         i32ToSigned()
@@ -427,17 +430,17 @@ class WasmFunctionScope private constructor(
         i32Le() // we swapped the arguments, no swapping back (for perf)
     }
 
-    fun ComplexFunction.bitAnd() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.bitAnd() = instruction("bitAnd", stackSizeChange = -1) {
         bitand()
         // No need to MOD as it cannot set any higher bits
     }
 
-    fun ComplexFunction.bitOr() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.bitOr() = instruction("bitOr", stackSizeChange = -1) {
         bitor()
         // No need to MOD as it cannot set any higher bits
     }
 
-    fun ComplexFunction.bitXor() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.bitXor() = instruction("bitXor", stackSizeChange = -1) {
         bitxor()
         // No need to MOD as it cannot set any higher bits
     }
@@ -493,11 +496,11 @@ class WasmFunctionScope private constructor(
         // (hi<<32)|lo
     }
 
-    fun ComplexFunction.i64Add() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i64Add() = instruction("i64Add", stackSizeChange = -1) {
         i64WrappingAdd()
     }
 
-    fun ComplexFunction.i64Sub() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i64Sub() = instruction("i64Sub", stackSizeChange = -1) {
         // a b
         dup()
         isMinRaw()
@@ -511,21 +514,21 @@ class WasmFunctionScope private constructor(
         i64WrappingAdd()
     }
 
-    fun ComplexFunction.i64DivSigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i64DivSigned() = instruction("i64DivSigned", stackSizeChange = -1) {
         // a b
         swap2()
         // b a
         div() // can only overflow in case when a is MIN and b is -1, which is undefined behavior in WASM
     }
 
-    fun ComplexFunction.i64RemSigned() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i64RemSigned() = instruction("i64RemSigned", stackSizeChange = -1) {
         // a b
         swap2()
         // b a
         REM()
     }
 
-    fun ComplexFunction.i64Shl() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i64Shl() = instruction("i64Shl", stackSizeChange = -1) {
         // val by
         push(64)
         swap2()
@@ -534,7 +537,7 @@ class WasmFunctionScope private constructor(
         bitshift()
     }
 
-    fun ComplexFunction.i64Eq() = instruction(stackSizeChange = -1) {
+    fun ComplexFunction.i64Eq() = instruction("i64Eq", stackSizeChange = -1) {
         cmp()
         zeroNot()
     }
@@ -546,9 +549,11 @@ class WasmFunctionScope private constructor(
             "Inconsistent stack size: expected ${returnTypes.size} values on top of locals, got $intermediateStackValues values"
         }
 
-        roll((localTypes.size + returnTypes.size).toLong(), returnTypes.size.toLong())
-        repeat(localTypes.size) {
-            pop()
+        complexFunction("popLocals(${localTypes.size},${returnTypes.size})") {
+            roll((localTypes.size + returnTypes.size).toLong(), returnTypes.size.toLong())
+            repeat(localTypes.size) {
+                pop()
+            }
         }
         localsPopped = true
     }
