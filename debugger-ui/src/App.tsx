@@ -17,7 +17,8 @@ function App() {
     toggleBreakpoint,
     runToNextBreakpoint,
     runToPreviousBreakpoint,
-    clearBreakpoints
+    clearBreakpoints,
+    loadProgramFromClipboard
   } = useWebSocket('ws://localhost:8080/ws');
 
   return (
@@ -51,6 +52,7 @@ function App() {
                 onRunToNextBreakpoint={runToNextBreakpoint}
                 onRunToPreviousBreakpoint={runToPreviousBreakpoint}
                 onClearBreakpoints={clearBreakpoints}
+                onLoadProgramFromClipboard={loadProgramFromClipboard}
               />
               </div>
               <div className="flex-1 min-h-0">

@@ -13,9 +13,10 @@ interface StepControlsProps {
   onRunToNextBreakpoint: () => void;
   onRunToPreviousBreakpoint: () => void;
   onClearBreakpoints: () => void;
+  onLoadProgramFromClipboard: () => Promise<void>;
 }
 
-export function StepControls({ currentState, connected, onStepTo, onRunToEnd, onRunToInstruction, onRunToInstructionBackwards, onRunToNextBreakpoint, onRunToPreviousBreakpoint, onClearBreakpoints }: StepControlsProps) {
+export function StepControls({ currentState, connected, onStepTo, onRunToEnd, onRunToInstruction, onRunToInstructionBackwards, onRunToNextBreakpoint, onRunToPreviousBreakpoint, onClearBreakpoints, onLoadProgramFromClipboard }: StepControlsProps) {
   const currentStep = currentState?.step ?? BigInt(0);
   const breakpointCount = currentState?.breakpoints?.length ?? 0;
   const hasBreakpoints = breakpointCount > 0;
@@ -34,6 +35,21 @@ export function StepControls({ currentState, connected, onStepTo, onRunToEnd, on
   return (
     <div className="border rounded-lg bg-white p-4">
       <h3 className="text-lg font-semibold mb-4">Step Controls</h3>
+      
+      {/* Program Loading */}
+      <div className="flex items-center gap-2 mb-4 pb-4 border-b">
+        <Button 
+          onClick={onLoadProgramFromClipboard}
+          disabled={!connected}
+          variant="outline"
+          size="sm"
+          title="Load program from clipboard (JSON)"
+          className="text-blue-600 hover:text-blue-700 hover:border-blue-300"
+        >
+          📋 Load Program
+        </Button>
+        <span className="text-xs text-gray-500">Load program from clipboard JSON</span>
+      </div>
       
       {/* Control Buttons */}
       <div className="flex items-center gap-2 mb-4">

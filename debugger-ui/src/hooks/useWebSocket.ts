@@ -214,6 +214,37 @@ export function useWebSocket(url: string) {
     });
   }, [sendMessage]);
 
+  const loadProgramFromClipboard = useCallback(async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      
+      // Try to parse as JSON
+      let program;
+      try {
+        program = JSON.parse(clipboardText);
+      } catch (parseError) {
+        alert('Clipboard does not contain valid JSON. Please copy a valid program to the clipboard.');
+        return;
+      }
+      
+      // Basic validation that it looks like a program structure
+      if (!program || typeof program !== 'object' || !program.type) {
+        alert('Clipboard does not contain a valid program. Expected a program object with a "type" field.');
+        return;
+      }
+      
+      // Send the set_program command
+      sendMessage({
+        type: 'set_program',
+        program: program,
+      });
+      
+    } catch (error) {
+      alert('Failed to read from clipboard. Please make sure you have clipboard access permissions.');
+      console.error('Clipboard read error:', error);
+    }
+  }, [sendMessage]);
+
   useEffect(() => {
     connect();
     
@@ -237,5 +268,6 @@ export function useWebSocket(url: string) {
     runToNextBreakpoint,
     runToPreviousBreakpoint,
     clearBreakpoints,
+    loadProgramFromClipboard,
   };
 }
