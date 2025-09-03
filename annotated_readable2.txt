@@ -1,0 +1,49 @@
+# rely on colors and other visual elements for nesting
+
+pushPaddedTo(29, 15)
+	CS CS lensum inc CS lensum CS inc tetr inc inc CS inc inc pop
+
+j
+
+fun_wrapper_double
+	pop2
+	roll(3, 1)
+        push(1)
+            CS CS lensum CS funkcia inc
+        push(3)
+            pushOn(1, 3)
+                CS inc inc
+        lroll
+    ksplang_program_function_double
+        mul(2)
+            push(2)
+                CS CS lensum inc CS lensum
+            mul
+                push(2)
+                    pushOn(2, 2)
+                        CS
+                u
+    roll(2, 1)
+        push(1)
+            CS CS lensum CS funkcia inc
+        push(2)
+            pushOn(1, 2)
+                CS inc
+        lroll
+    goto
+
+pop
+
+pushPaddedTo(16, 9)
+	CS CS lensum inc CS lensum CS inc bitshift
+
+call pop
+
+push(13)
+	CS CS lensum inc CS lensum inc CS inc funkcia inc
+
+add
+	push(0)
+		pushOn(13, 0)
+            CS CS REM
+    u

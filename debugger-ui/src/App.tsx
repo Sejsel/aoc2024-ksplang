@@ -13,7 +13,11 @@ function App() {
     stepTo,
     runToEnd,
     runToInstruction,
-    runToInstructionBackwards
+    runToInstructionBackwards,
+    toggleBreakpoint,
+    runToNextBreakpoint,
+    runToPreviousBreakpoint,
+    clearBreakpoints
   } = useWebSocket('ws://localhost:8080/ws');
 
   return (
@@ -27,6 +31,7 @@ function App() {
               currentState={currentState}
               onRunToInstruction={runToInstruction}
               onRunToInstructionBackwards={runToInstructionBackwards}
+              onToggleBreakpoint={toggleBreakpoint}
             />
           </Panel>
           
@@ -43,6 +48,9 @@ function App() {
                 onRunToEnd={runToEnd}
                 onRunToInstruction={runToInstruction}
                 onRunToInstructionBackwards={runToInstructionBackwards}
+                onRunToNextBreakpoint={runToNextBreakpoint}
+                onRunToPreviousBreakpoint={runToPreviousBreakpoint}
+                onClearBreakpoints={clearBreakpoints}
               />
               </div>
               <div className="flex-1 min-h-0">

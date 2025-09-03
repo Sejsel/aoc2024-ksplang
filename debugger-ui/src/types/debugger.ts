@@ -1,7 +1,7 @@
 // WebSocket message types based on AsyncAPI
 
 export interface FrontendRequest {
-  type: 'set_program' | 'set_stack' | 'step_to';
+  type: 'set_program' | 'set_stack' | 'step_to' | 'run_to_end' | 'run_to_instruction' | 'run_to_instruction_backwards' | 'run_to_next_breakpoint' | 'run_to_previous_breakpoint' | 'add_breakpoint' | 'remove_breakpoint' | 'clear_breakpoints';
 }
 
 export interface SetProgram extends FrontendRequest {
@@ -19,6 +19,28 @@ export interface StepTo extends FrontendRequest {
   executedInstructions: bigint;
 }
 
+export interface AddBreakpoint extends FrontendRequest {
+  type: 'add_breakpoint';
+  instructionIndex: number;
+}
+
+export interface RemoveBreakpoint extends FrontendRequest {
+  type: 'remove_breakpoint';
+  instructionIndex: number;
+}
+
+export interface RunToNextBreakpoint extends FrontendRequest {
+  type: 'run_to_next_breakpoint';
+}
+
+export interface RunToPreviousBreakpoint extends FrontendRequest {
+  type: 'run_to_previous_breakpoint';
+}
+
+export interface ClearBreakpoints extends FrontendRequest {
+  type: 'clear_breakpoints';
+}
+
 export interface StateMessage {
   type: 'state';
   program: AnnotatedKsplangTree;
@@ -27,6 +49,7 @@ export interface StateMessage {
   stack: bigint[];
   reversed: boolean;
   error: string | null;
+  breakpoints: number[];
 }
 
 // Program tree types

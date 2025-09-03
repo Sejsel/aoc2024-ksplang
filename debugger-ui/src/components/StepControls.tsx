@@ -10,10 +10,15 @@ interface StepControlsProps {
   onRunToEnd: () => void;
   onRunToInstruction: (fromStep: bigint, instructionIndex: number) => void;
   onRunToInstructionBackwards: (fromStep: bigint, instructionIndex: number) => void;
+  onRunToNextBreakpoint: () => void;
+  onRunToPreviousBreakpoint: () => void;
+  onClearBreakpoints: () => void;
 }
 
-export function StepControls({ currentState, connected, onStepTo, onRunToEnd, onRunToInstruction, onRunToInstructionBackwards }: StepControlsProps) {
+export function StepControls({ currentState, connected, onStepTo, onRunToEnd, onRunToInstruction, onRunToInstructionBackwards, onRunToNextBreakpoint, onRunToPreviousBreakpoint, onClearBreakpoints }: StepControlsProps) {
   const currentStep = currentState?.step ?? BigInt(0);
+  const breakpointCount = currentState?.breakpoints?.length ?? 0;
+  const hasBreakpoints = breakpointCount > 0;
 
   const handleStepTo = (step: bigint) => {
     onStepTo(step);
@@ -99,6 +104,47 @@ export function StepControls({ currentState, connected, onStepTo, onRunToEnd, on
           title="Run to end"
         >
           🏁
+        </Button>
+      </div>
+
+      {/* Breakpoint Navigation Controls */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-sm font-medium text-gray-700">Breakpoints:</span>
+        <Badge variant="secondary" className="text-xs">
+          {breakpointCount} set
+        </Badge>
+        
+        <Button 
+          onClick={onRunToPreviousBreakpoint}
+          disabled={!connected || !hasBreakpoints}
+          variant="outline"
+          size="sm"
+          title="Run to previous breakpoint"
+          className="text-red-600 hover:text-red-700 hover:border-red-300 disabled:text-gray-400"
+        >
+          ◀●
+        </Button>
+        
+        <Button 
+          onClick={onRunToNextBreakpoint}
+          disabled={!connected || !hasBreakpoints}
+          variant="outline"
+          size="sm"
+          title="Run to next breakpoint"
+          className="text-red-600 hover:text-red-700 hover:border-red-300 disabled:text-gray-400"
+        >
+          ●▶
+        </Button>
+        
+        <Button 
+          onClick={onClearBreakpoints}
+          disabled={!connected || !hasBreakpoints}
+          variant="outline"
+          size="sm"
+          title="Clear all breakpoints"
+          className="text-red-600 hover:text-red-700 hover:border-red-300 disabled:text-gray-400"
+        >
+          ✕
         </Button>
       </div>
 

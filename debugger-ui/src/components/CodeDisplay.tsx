@@ -7,6 +7,7 @@ interface CodeDisplayProps {
   currentState: StateMessage | null;
   onRunToInstruction: (fromStep: bigint, instructionIndex: number) => void;
   onRunToInstructionBackwards: (fromStep: bigint, instructionIndex: number) => void;
+  onToggleBreakpoint: (instructionIndex: number) => void;
 }
 
 interface RenderNodeProps {
@@ -20,8 +21,10 @@ interface RenderNodeProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   onRunToInstruction: (fromStep: bigint, instructionIndex: number) => void;
   onRunToInstructionBackwards: (fromStep: bigint, instructionIndex: number) => void;
+  onToggleBreakpoint: (instructionIndex: number) => void;
   currentStep: bigint;
   isCtrlPressed: boolean;
+  breakpoints: number[];
 }
 
 function buildInstructionMap(node: AnnotatedKsplangTree, map: Map<AnnotatedKsplangTree, number>, counter: { current: number }): void {
@@ -35,7 +38,7 @@ function buildInstructionMap(node: AnnotatedKsplangTree, map: Map<AnnotatedKspla
   }
 }
 
-function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoScroll, previousIpRef, scrollContainerRef, onRunToInstruction, onRunToInstructionBackwards, currentStep, isCtrlPressed, hoveredInstruction, setHoveredInstruction }: RenderNodeProps & { hoveredInstruction: number | null, setHoveredInstruction: (idx: number | null) => void }) {
+function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoScroll, previousIpRef, scrollContainerRef, onRunToInstruction, onRunToInstructionBackwards, onToggleBreakpoint, currentStep, isCtrlPressed, breakpoints, hoveredInstruction, setHoveredInstruction }: RenderNodeProps & { hoveredInstruction: number | null, setHoveredInstruction: (idx: number | null) => void }) {
   // Rainbow colors for block hierarchy (faint versions)
   const rainbowColors = [
     'border-red-200',
@@ -54,10 +57,16 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
     const instructionIndex = instructionMap.get(node) ?? -1;
     const isCurrentInstruction = instructionIndex === currentIp;
     const isHovered = hoveredInstruction === instructionIndex;
+    const isBreakpoint = breakpoints.includes(instructionIndex);
 
     const handleClick = (e: React.MouseEvent) => {
       e.preventDefault();
-      if (e.ctrlKey) {
+      if (e.shiftKey) {
+        e.stopPropagation();
+        // Prevent text selection on shift+click
+        window.getSelection()?.removeAllRanges();
+        onToggleBreakpoint(instructionIndex);
+      } else if (e.ctrlKey) {
         onRunToInstructionBackwards(currentStep, instructionIndex);
       } else {
         onRunToInstruction(currentStep, instructionIndex);
@@ -103,11 +112,14 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
                 : "bg-blue-50 border-blue-200"
               : "text-gray-800 border-transparent"
         }`}
-        title={`Instruction ${instructionIndex}: ${node.instruction} | Click to run to here | Ctrl+Click to run backwards to here`}
+        title={`Instruction ${instructionIndex}: ${node.instruction} | Click to run to here | Ctrl+Click to run backwards to here | Shift+Click to toggle breakpoint`}
         onClick={handleClick}
         onMouseEnter={() => !isCurrentInstruction && setHoveredInstruction(instructionIndex)}
         onMouseLeave={() => !isCurrentInstruction && setHoveredInstruction(null)}
       >
+        {isBreakpoint && (
+          <span className="inline-block w-2 h-2 bg-red-300 rounded-full mr-1" title="Breakpoint"></span>
+        )}
         {showNumbers && (
           <span className="text-gray-400 text-xs mr-1">
             {instructionIndex.toString().padStart(2, '0')}
@@ -168,8 +180,10 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
                         scrollContainerRef={scrollContainerRef}
                         onRunToInstruction={onRunToInstruction}
                         onRunToInstructionBackwards={onRunToInstructionBackwards}
+                        onToggleBreakpoint={onToggleBreakpoint}
                         currentStep={currentStep}
                         isCtrlPressed={isCtrlPressed}
+                        breakpoints={breakpoints}
                         hoveredInstruction={hoveredInstruction}
                         setHoveredInstruction={setHoveredInstruction}
                       />
@@ -190,8 +204,10 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
                       scrollContainerRef={scrollContainerRef}
                       onRunToInstruction={onRunToInstruction}
                       onRunToInstructionBackwards={onRunToInstructionBackwards}
+                      onToggleBreakpoint={onToggleBreakpoint}
                       currentStep={currentStep}
                       isCtrlPressed={isCtrlPressed}
+                      breakpoints={breakpoints}
                       hoveredInstruction={hoveredInstruction}
                       setHoveredInstruction={setHoveredInstruction}
                     />
@@ -221,8 +237,10 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
             scrollContainerRef={scrollContainerRef}
             onRunToInstruction={onRunToInstruction}
             onRunToInstructionBackwards={onRunToInstructionBackwards}
+            onToggleBreakpoint={onToggleBreakpoint}
             currentStep={currentStep}
             isCtrlPressed={isCtrlPressed}
+            breakpoints={breakpoints}
             hoveredInstruction={hoveredInstruction}
             setHoveredInstruction={setHoveredInstruction}
           />
@@ -234,7 +252,7 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
   return null;
 }
 
-export function CodeDisplay({ program, currentState, onRunToInstruction, onRunToInstructionBackwards }: CodeDisplayProps) {
+export function CodeDisplay({ program, currentState, onRunToInstruction, onRunToInstructionBackwards, onToggleBreakpoint }: CodeDisplayProps) {
   const [showNumbers, setShowNumbers] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
@@ -274,6 +292,7 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
 
   const currentIp = currentState?.ip ?? -1;
   const currentStep = currentState?.step ?? BigInt(0);
+  const breakpoints = currentState?.breakpoints ?? [];
   
   // Build instruction map once
   const instructionMap = new Map<AnnotatedKsplangTree, number>();
@@ -314,8 +333,10 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
             scrollContainerRef={scrollContainerRef}
             onRunToInstruction={onRunToInstruction}
             onRunToInstructionBackwards={onRunToInstructionBackwards}
+            onToggleBreakpoint={onToggleBreakpoint}
             currentStep={currentStep}
             isCtrlPressed={isCtrlPressed}
+            breakpoints={breakpoints}
             hoveredInstruction={hoveredInstruction}
             setHoveredInstruction={setHoveredInstruction}
           />

@@ -70,8 +70,13 @@ components:
         - $ref: '#/components/schemas/SetStack'
         - $ref: '#/components/schemas/StepTo'
         - $ref: '#/components/schemas/RunToEnd'
+        - $ref: '#/components/schemas/RunToNextBreakpoint'
+        - $ref: '#/components/schemas/RunToPreviousBreakpoint'
         - $ref: '#/components/schemas/RunToInstruction'
         - $ref: '#/components/schemas/RunToInstructionBackwards'
+        - $ref: '#/components/schemas/AddBreakpoint'
+        - $ref: '#/components/schemas/RemoveBreakpoint'
+        - $ref: '#/components/schemas/ClearBreakpoints'
       discriminator: type
 
     SetProgram:
@@ -129,6 +134,26 @@ components:
           const: run_to_end
       description: Run the program to the end
 
+    RunToNextBreakpoint:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: run_to_next_breakpoint
+      description: Run the program to the next breakpoint
+
+    RunToPreviousBreakpoint:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: run_to_previous_breakpoint
+      description: Run the program to the previous breakpoint
+
     RunToInstruction:
       type: object
       required:
@@ -167,6 +192,44 @@ components:
           description: Target instruction index to run to (backwards)
       description: Run the program backwards to a specific instruction index
 
+    AddBreakpoint:
+      type: object
+      required:
+        - type
+        - instructionIndex
+      properties:
+        type:
+          type: string
+          const: add_breakpoint
+        instructionIndex:
+          type: integer
+          description: Instruction index to add as a breakpoint
+      description: Add a breakpoint at the specified instruction index
+
+    RemoveBreakpoint:
+      type: object
+      required:
+        - type
+        - instructionIndex
+      properties:
+        type:
+          type: string
+          const: remove_breakpoint
+        instructionIndex:
+          type: integer
+          description: Instruction index to remove from breakpoints
+      description: Remove a breakpoint at the specified instruction index
+
+    ClearBreakpoints:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: clear_breakpoints
+      description: Clear all breakpoints
+
     StateMessage:
       oneOf:
         - $ref: '#/components/schemas/NewState'
@@ -181,6 +244,7 @@ components:
         - step
         - stack
         - reversed
+        - breakpoints
       properties:
         type:
           type: string
@@ -208,6 +272,11 @@ components:
           type: string
           nullable: true
           description: Error message if an error occurred during execution, null if no error
+        breakpoints:
+          type: array
+          items:
+            type: integer
+          description: List of instruction indices that are currently set as breakpoints
       description: Current state of the debugger
 
     AnnotatedKsplangTree:
@@ -216,9 +285,6 @@ components:
         - $ref: '#/components/schemas/KsplangBlock'
         - $ref: '#/components/schemas/KsplangRoot'
       discriminator: type
-      description: |
-        Annotated ksplang program tree structure that represents a parsed and annotated 
-        ksplang program ready for debugging. The tree can contain operations, blocks, or be a root node.
 
     KsplangOp:
       type: object
@@ -297,7 +363,6 @@ components:
         - $ref: '#/components/schemas/InlinedFunction'
         - $ref: '#/components/schemas/FunctionCall'
       discriminator: type
-      description: Type of code block in the ksplang program
 
     InlinedFunction:
       type: object

@@ -48,6 +48,7 @@ fun main(args: Array<String>) {
                 var stack = listOf(1L, 2L, 3L)
                 var program = testingProgram2().toAnnotatedTree()
                 var step = 0L
+                val breakpoints = mutableSetOf<Int>()
 
                 var lastError: RunError? = null
 
@@ -68,7 +69,8 @@ fun main(args: Array<String>) {
                             step = step,
                             stack = state.getStack(),
                             reversed = state.isReversed(),
-                            error = lastError?.toString()
+                            error = lastError?.toString(),
+                            breakpoints = breakpoints.toList(),
                         )
                     )
                 }
@@ -208,6 +210,91 @@ fun main(args: Array<String>) {
                             }
                             sendState()
                         }
+
+                        is FrontendRequest.AddBreakpoint -> {
+                            log.info("Adding breakpoint at ${request.instructionIndex}")
+                            breakpoints.add(request.instructionIndex)
+                            sendState()
+                        }
+
+                        is FrontendRequest.RemoveBreakpoint -> {
+                            log.info("Removing breakpoint at ${request.instructionIndex}")
+                            breakpoints.remove(request.instructionIndex)
+                            sendState()
+                        }
+
+                        FrontendRequest.RunToNextBreakpoint -> {
+                            log.info("Running to next breakpoint")
+                            lastError = null
+                            val originalStep = step
+                            state = initializeState()
+                            while (true) {
+                                if (breakpoints.contains(state.getCurrentIp()) && state.operationsRun() > originalStep) {
+                                    break
+                                }
+
+                                when (val result = state.runNextOp()) {
+                                    is Either.Left<RunError> -> {
+                                        lastError = result.value
+                                        step = state.operationsRun()
+                                        break
+                                    }
+
+                                    is Either.Right<Boolean> -> {
+                                        val terminate = result.value
+                                        if (terminate) {
+                                            step = state.operationsRun()
+                                            break
+                                        }
+                                    }
+                                }
+                                step = state.operationsRun()
+                            }
+                            sendState()
+                        }
+
+                        FrontendRequest.RunToPreviousBreakpoint -> {
+                            log.info("Running to previous breakpoint")
+                            val originalStep = step
+                            state = initializeState()
+                            lastError = null
+                            step = 0
+                            var lastStepAtTarget: Long? = null
+                            while (true) {
+                                if (breakpoints.contains(state.getCurrentIp()) && state.operationsRun() < originalStep) {
+                                    lastStepAtTarget = state.operationsRun()
+                                }
+                                if (state.operationsRun() >= originalStep) break
+                                when (val result = state.runNextOp()) {
+                                    is Either.Left<RunError> -> {
+                                        lastError = result.value
+                                        break
+                                    }
+
+                                    is Either.Right<Boolean> -> {
+                                        val terminate = result.value
+                                        if (terminate) break
+                                    }
+                                }
+                            }
+
+                            if (lastStepAtTarget != null) {
+                                log.info("... last occurrence at $lastStepAtTarget, rerunning")
+                                step = lastStepAtTarget
+                                runToStep()
+                            } else {
+                                log.info("... never occurred")
+                                step = originalStep
+                                runToStep()
+                            }
+                            sendState()
+                        }
+
+                        FrontendRequest.ClearBreakpoints -> {
+                            log.info("Clearing breakpoints")
+                            breakpoints.clear()
+                            sendState()
+                        }
                     }
                 }
             }
@@ -283,12 +370,32 @@ sealed interface FrontendRequest {
     object RunToEnd : FrontendRequest
 
     @Serializable
+    @SerialName("run_to_next_breakpoint")
+    object RunToNextBreakpoint : FrontendRequest
+
+    @Serializable
+    @SerialName("run_to_previous_breakpoint")
+    object RunToPreviousBreakpoint : FrontendRequest
+
+    @Serializable
     @SerialName("run_to_instruction")
     data class RunToInstruction(val fromStep: Long, val instructionIndex: Int) : FrontendRequest
 
     @Serializable
     @SerialName("run_to_instruction_backwards")
     data class RunToInstructionBackwards(val fromStep: Long, val instructionIndex: Int) : FrontendRequest
+
+    @Serializable
+    @SerialName("add_breakpoint")
+    data class AddBreakpoint(val instructionIndex: Int) : FrontendRequest
+
+    @Serializable
+    @SerialName("remove_breakpoint")
+    data class RemoveBreakpoint(val instructionIndex: Int) : FrontendRequest
+
+    @Serializable
+    @SerialName("clear_breakpoints")
+    data object ClearBreakpoints : FrontendRequest
 }
 
 @Serializable
@@ -301,6 +408,7 @@ sealed interface StateMessage {
         val step: Long,
         val stack: List<Long>,
         val reversed: Boolean,
+        var breakpoints: List<Int>,
         val error: String?,
     ) : StateMessage
 }

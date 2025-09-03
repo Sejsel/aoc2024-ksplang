@@ -43,7 +43,8 @@ export function useWebSocket(url: string) {
     step: BigInt(3),
     stack: [BigInt(1), BigInt(2), BigInt(42)],
     reversed: false,
-    error: null
+    error: null,
+    breakpoints: [2, 5] // Mock breakpoints at instruction indices 2 and 5
   };
 
   const connect = useCallback(() => {
@@ -172,6 +173,47 @@ export function useWebSocket(url: string) {
     });
   }, [sendMessage]);
 
+  const addBreakpoint = useCallback((instructionIndex: number) => {
+    sendMessage({
+      type: 'add_breakpoint',
+      instructionIndex: instructionIndex,
+    });
+  }, [sendMessage]);
+
+  const removeBreakpoint = useCallback((instructionIndex: number) => {
+    sendMessage({
+      type: 'remove_breakpoint',
+      instructionIndex: instructionIndex,
+    });
+  }, [sendMessage]);
+
+  const toggleBreakpoint = useCallback((instructionIndex: number) => {
+    const currentBreakpoints = state.currentState?.breakpoints || [];
+    if (currentBreakpoints.includes(instructionIndex)) {
+      removeBreakpoint(instructionIndex);
+    } else {
+      addBreakpoint(instructionIndex);
+    }
+  }, [state.currentState?.breakpoints, addBreakpoint, removeBreakpoint]);
+
+  const runToNextBreakpoint = useCallback(() => {
+    sendMessage({
+      type: 'run_to_next_breakpoint',
+    });
+  }, [sendMessage]);
+
+  const runToPreviousBreakpoint = useCallback(() => {
+    sendMessage({
+      type: 'run_to_previous_breakpoint',
+    });
+  }, [sendMessage]);
+
+  const clearBreakpoints = useCallback(() => {
+    sendMessage({
+      type: 'clear_breakpoints',
+    });
+  }, [sendMessage]);
+
   useEffect(() => {
     connect();
     
@@ -189,5 +231,11 @@ export function useWebSocket(url: string) {
     runToEnd,
     runToInstruction,
     runToInstructionBackwards,
+    addBreakpoint,
+    removeBreakpoint,
+    toggleBreakpoint,
+    runToNextBreakpoint,
+    runToPreviousBreakpoint,
+    clearBreakpoints,
   };
 }

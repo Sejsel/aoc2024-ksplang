@@ -1,0 +1,68 @@
+FuncStart(name=pushPaddedTo(29, 15), id=15)
+	Op(instruction=CS), Op(instruction=CS), Op(instruction=lensum), Op(instruction=inc), Op(instruction=CS), Op(instruction=lensum), Op(instruction=CS), Op(instruction=inc), Op(instruction=tetr), Op(instruction=inc), Op(instruction=inc), Op(instruction=CS), Op(instruction=inc), Op(instruction=inc), Op(instruction=pop)
+FuncEnd(id=15),
+
+Op(instruction=j),
+
+FuncStart(name=fun_wrapper_double, id=0)
+	Op(instruction=pop2),
+	FuncStart(name=roll(3, 1), id=1),
+        FuncStart(name=push(1), id=2)
+            Op(instruction=CS), Op(instruction=CS), Op(instruction=lensum), Op(instruction=CS), Op(instruction=funkcia), Op(instruction=inc),
+        FuncEnd(id=2),
+        FuncStart(name=push(3), id=3),
+            FuncStart(name=pushOn(1, 3), id=4),
+                Op(instruction=CS), Op(instruction=inc), Op(instruction=inc)
+            FuncEnd(id=4),
+        FuncEnd(id=3),
+        Op(instruction=lroll)
+    FuncEnd(id=1),
+    FuncStart(name=ksplang_program_function_double, id=5),
+        FuncStart(name=mul(2), id=6),
+            FuncStart(name=push(2), id=7),
+                Op(instruction=CS), Op(instruction=CS), Op(instruction=lensum), Op(instruction=inc), Op(instruction=CS), Op(instruction=lensum),
+            FuncEnd(id=7),
+            FuncStart(name=mul, id=8),
+                FuncStart(name=push(2), id=9),
+                    FuncStart(name=pushOn(2, 2), id=10),
+                        Op(instruction=CS),
+                    FuncEnd(id=10),
+                FuncEnd(id=9),
+                Op(instruction=u),
+            FuncEnd(id=8),
+        FuncEnd(id=6),
+    FuncEnd(id=5),
+    FuncStart(name=roll(2, 1), id=11),
+        FuncStart(name=push(1), id=12),
+            Op(instruction=CS), Op(instruction=CS), Op(instruction=lensum), Op(instruction=CS), Op(instruction=funkcia), Op(instruction=inc),
+        FuncEnd(id=12),
+        FuncStart(name=push(2), id=13),
+            FuncStart(name=pushOn(1, 2), id=14),
+                Op(instruction=CS), Op(instruction=inc),
+            FuncEnd(id=14),
+        FuncEnd(id=13),
+        Op(instruction=lroll),
+    FuncEnd(id=11),
+    Op(instruction=goto),
+FuncEnd(id=0),
+
+Op(instruction=pop),
+
+FuncStart(name=pushPaddedTo(16, 9), id=20),
+	Op(instruction=CS), Op(instruction=CS), Op(instruction=lensum), Op(instruction=inc), Op(instruction=CS), Op(instruction=lensum), Op(instruction=CS), Op(instruction=inc), Op(instruction=bitshift)
+FuncEnd(id=20),
+
+Op(instruction=call), Op(instruction=pop),
+
+FuncStart(name=push(13), id=16),
+	Op(instruction=CS), Op(instruction=CS), Op(instruction=lensum), Op(instruction=inc), Op(instruction=CS), Op(instruction=lensum), Op(instruction=inc), Op(instruction=CS), Op(instruction=inc), Op(instruction=funkcia), Op(instruction=inc)
+FuncEnd(id=16),
+
+FuncStart(name=add, id=17)
+	FuncStart(name=push(0), id=18)
+		FuncStart(name=pushOn(13, 0), id=19)
+            Op(instruction=CS), Op(instruction=CS), Op(instruction=REM)
+		FuncEnd(id=19)
+	FuncEnd(id=18),
+	Op(instruction=u)
+FuncEnd(id=17)
