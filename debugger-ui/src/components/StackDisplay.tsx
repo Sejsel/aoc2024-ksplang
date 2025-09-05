@@ -2,9 +2,21 @@ import { useState } from 'react';
 import type { StateMessage } from '../types/debugger';
 import { Badge } from './ui/badge';
 import { Checkbox } from './ui/checkbox';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
 
 interface StackDisplayProps {
   currentState: StateMessage | null;
+  onSetStack?: (stack: bigint[]) => void;
 }
 
 // Special values for 64-bit signed integers
@@ -47,9 +59,35 @@ function formatStackValue(value: bigint, displayMode: DisplayMode): string {
   }
 }
 
-export function StackDisplay({ currentState }: StackDisplayProps) {
+export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>('compact');
   const [alignNumbers, setAlignNumbers] = useState(true);
+  const [stackInput, setStackInput] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const parseStackInput = (input: string): bigint[] => {
+    // Split by any non-digit characters except minus sign
+    // This allows separation by whitespace, commas, or any other non-numeric characters
+    // Examples: "1 2 3", "1,2,3", "1;2;3", "1|2|3", "1    2    3" all work
+    return input
+      .split(/[^\d-]+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && s !== '-') // Filter out empty strings and standalone minus signs
+      .map(s => BigInt(s));
+  };
+
+  const handleSetStack = () => {
+    if (!onSetStack) return;
+    
+    try {
+      const values = parseStackInput(stackInput);
+      onSetStack(values);
+      setStackInput(''); // Clear input after successful set
+      setDialogOpen(false); // Close dialog
+    } catch (error) {
+      alert('Invalid stack values. Please enter space or comma-separated integers.');
+    }
+  };
   
   return (
     <div className="border rounded-lg bg-white p-4 flex flex-col h-full">
@@ -59,6 +97,46 @@ export function StackDisplay({ currentState }: StackDisplayProps) {
           <Badge variant="secondary">
             {currentState?.stack.length || 0} items
           </Badge>
+          {/* Set Stack Button */}
+          {onSetStack && (
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="text-xs">
+                  Set
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Set Initial Stack</DialogTitle>
+                  <DialogDescription>
+                    Enter integers separated by spaces, commas, or any other characters.
+                    Example: "1 2 3" or "1, 2, 3" or "1;2;3"
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <Input
+                    value={stackInput}
+                    onChange={(e) => setStackInput(e.target.value)}
+                    placeholder="1 2 3 4 -5 9223372036854775807"
+                    className="font-mono"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSetStack();
+                      }
+                    }}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button 
+                    onClick={handleSetStack}
+                    disabled={!stackInput.trim()}
+                  >
+                    Set Stack
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
           <select 
             value={displayMode}
             onChange={(e) => setDisplayMode(e.target.value as DisplayMode)}

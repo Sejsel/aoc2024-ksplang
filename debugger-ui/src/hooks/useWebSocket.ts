@@ -234,6 +234,13 @@ export function useWebSocket(url: string) {
     });
   }, [sendMessage]);
 
+  const setStack = useCallback((stack: bigint[]) => {
+    sendMessage({
+      type: 'set_stack',
+      stack: stack.map(val => val.toString()), // Convert BigInt to string for JSON
+    });
+  }, [sendMessage]);
+
   const loadProgramFromClipboard = useCallback(async () => {
     try {
       const clipboardText = await navigator.clipboard.readText();
@@ -288,6 +295,7 @@ export function useWebSocket(url: string) {
     runToNextBreakpoint,
     runToPreviousBreakpoint,
     clearBreakpoints,
+    setStack,
     loadProgramFromClipboard,
   };
 }

@@ -18,6 +18,7 @@ function App() {
     runToNextBreakpoint,
     runToPreviousBreakpoint,
     clearBreakpoints,
+    setStack,
     loadProgramFromClipboard
   } = useWebSocket('ws://localhost:8080/ws');
 
@@ -58,6 +59,7 @@ function App() {
               <div className="flex-1 min-h-0">
                 <StackDisplay
                   currentState={currentState}
+                  onSetStack={setStack}
                 />
               </div>
             </div>
