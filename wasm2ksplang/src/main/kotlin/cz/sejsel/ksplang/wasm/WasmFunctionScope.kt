@@ -473,13 +473,12 @@ class WasmFunctionScope private constructor(
         roll(4, 2)
         // lo+ lo_carry a b
         push(32)
-        // TODO: We just can't do this for i64, -1 / by something is just zero, we need a i64Shr
-        u63Shr() // doing this may result in sign extension, but we are getting rid of that with i32Mod
+        u64Shr()
         i32Mod()
         // lo+ lo_carry a b_hi
         swap2()
         push(32)
-        u63Shr() // doing this may result in sign extension, but we are getting rid of that with i32Mod
+        u64Shr()
         i32Mod()
         // lo+ lo_carry b_hi a_hi
         add() // result may be 33-bit
