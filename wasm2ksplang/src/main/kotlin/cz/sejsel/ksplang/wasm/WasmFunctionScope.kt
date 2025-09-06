@@ -1,8 +1,8 @@
 package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.types.ValType
+import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
-import cz.sejsel.ksplang.dsl.core.buildFunction
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.whileNonZero
@@ -137,17 +137,19 @@ class WasmFunctionScope private constructor(
         swap2()
         modulo()
         // val by%32
-        u32Shr()
+        u63Shr()
 
         i32Mod()
     }
 
     /**
      * Unsigned shift right. Do not use with by > 63, it would fail with division by zero.
-     * Does not do sign extension (hence it is unsigned)
-     * a by -> a>>by
+     * Does not do sign extension (hence it is unsigned).
+     * Cannot handle negative values (MSB set), hence it is u63Shr and not u64Shr.
+     *
+     * Signature: `a by -> a>>by`
      */
-    private fun ComplexFunction.u32Shr() {
+    private fun ComplexBlock.u63Shr() {
         push(1)
         swap2()
         // a 1 by
@@ -178,7 +180,7 @@ class WasmFunctionScope private constructor(
         add(2147483648) // cannot overflow if val is 32-bit
         dupSecond()
         // by val+2^31 by
-        u32Shr()
+        u63Shr()
         // by (val+2^31)>>by
 
         push(1)
@@ -204,7 +206,7 @@ class WasmFunctionScope private constructor(
         dup()
         // a<<by a<<by
         push(32)
-        u32Shr()
+        u63Shr()
         // a<<by (a<<by)>>32
         bitor()
         // (a<<by) | ((a<<by)>>32)
@@ -466,17 +468,18 @@ class WasmFunctionScope private constructor(
         dup()
         // a b lo+ lo+
         push(32)
-        u32Shr()
+        u63Shr()
         // a b lo+ lo_carry   -- either 0 or 1
         roll(4, 2)
         // lo+ lo_carry a b
         push(32)
-        u32Shr() // doing this may result in sign extension, but we are getting rid of that with i32Mod
+        // TODO: We just can't do this for i64, -1 / by something is just zero, we need a i64Shr
+        u63Shr() // doing this may result in sign extension, but we are getting rid of that with i32Mod
         i32Mod()
         // lo+ lo_carry a b_hi
         swap2()
         push(32)
-        u32Shr() // doing this may result in sign extension, but we are getting rid of that with i32Mod
+        u63Shr() // doing this may result in sign extension, but we are getting rid of that with i32Mod
         i32Mod()
         // lo+ lo_carry b_hi a_hi
         add() // result may be 33-bit
@@ -535,6 +538,65 @@ class WasmFunctionScope private constructor(
         modulo()
         // val by%64
         bitshift()
+    }
+
+    /**
+     * Unsigned shift right. Do not use with by > 63, it would fail with division by zero.
+     * Does not do sign extension (hence it is unsigned).
+     *
+     * Signature: `a by -> a>>by`
+     */
+    private fun ComplexFunction.u64Shr() = complexFunction {
+        // We have two cases to handle:
+        // - if the MSB is not set, we can just use u63Shr (standard division)
+        // - if the MSB is set, we need to mask out the bit, use u63Shr, and then put the bit back (shifted obviously)
+        // a by
+        dupSecond()
+        // a by a
+        push(Long.MIN_VALUE) // just msb set
+        bitand()
+        // a by a&(1<<63)
+        ifZero {
+            // a by 0
+            pop()
+            // a by
+            u63Shr()
+            // a>>by
+        } otherwise {
+            // a by 1<<63           -- the min negative value
+            inc()
+            negate()
+            // a by 0x7FFF...FFF    -- the max positive value
+            roll(3, 2)
+            // by 0x7FFF...FFF a
+            bitand()
+            // by a&(0x7FFF...FFF)  -- a with MSB masked out
+            dupSecond()
+            // by a&(0x7FFF...FFF) by
+            u63Shr()
+            // by a&(0x7FFF...FFF)>>by
+            swap2()
+            // a&(0x7FFF...FFF)>>by by
+            push(63)
+            subabs()
+            // a&(0x7FFF...FFF)>>by 63-by
+            push(1)
+            swap2()
+            // a&(0x7FFF...FFF)>>by 1 63-by
+            bitshift()
+            // a&(0x7FFF...FFF)>>by 1<<(63-by)
+            bitor()
+            // a>>by
+        }
+    }
+
+    fun ComplexFunction.i64ShrUnsigned() = instruction("i64Shr", stackSizeChange = -1) {
+        // a by
+        push(64)
+        swap2()
+        modulo()
+        // a by%64
+        u64Shr()
     }
 
     fun ComplexFunction.i64Eq() = instruction("i64Eq", stackSizeChange = -1) {
