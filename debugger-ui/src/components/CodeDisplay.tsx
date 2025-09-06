@@ -39,16 +39,16 @@ function buildInstructionMap(node: AnnotatedKsplangTree, map: Map<AnnotatedKspla
 }
 
 function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoScroll, previousIpRef, scrollContainerRef, onRunToInstruction, onRunToInstructionBackwards, onToggleBreakpoint, currentStep, isCtrlPressed, breakpoints, hoveredInstruction, setHoveredInstruction }: RenderNodeProps & { hoveredInstruction: number | null, setHoveredInstruction: (idx: number | null) => void }) {
-  // Rainbow colors for block hierarchy (faint versions)
+  // Subtle colors for block hierarchy (very faint, theme-aware)
   const rainbowColors = [
-    'border-red-200',
-    'border-orange-200', 
-    'border-yellow-200',
-    'border-green-200',
-    'border-blue-200',
-    'border-indigo-200',
-    'border-purple-200',
-    'border-pink-200'
+    'border-gray-200 dark:border-gray-700',
+    'border-slate-200 dark:border-slate-700', 
+    'border-zinc-200 dark:border-zinc-700',
+    'border-neutral-200 dark:border-neutral-700',
+    'border-stone-200 dark:border-stone-700',
+    'border-gray-300 dark:border-gray-600',
+    'border-slate-300 dark:border-slate-600',
+    'border-zinc-300 dark:border-zinc-600'
   ];
   
   const borderColor = rainbowColors[depth % rainbowColors.length];
@@ -78,11 +78,11 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
         const el = document.querySelector(`[data-instruction-idx='${instructionIndex}']`);
         if (el) {
           if (isCtrlPressed) {
-            el.classList.add('bg-red-50', 'border-red-200');
-            el.classList.remove('bg-blue-50', 'border-blue-200');
+            el.classList.add('bg-rose-50', 'border-rose-200', 'dark:bg-rose-950', 'dark:border-rose-800');
+            el.classList.remove('bg-slate-50', 'border-slate-200', 'dark:bg-slate-950', 'dark:border-slate-800');
           } else {
-            el.classList.add('bg-blue-50', 'border-blue-200');
-            el.classList.remove('bg-red-50', 'border-red-200');
+            el.classList.add('bg-slate-50', 'border-slate-200', 'dark:bg-slate-950', 'dark:border-slate-800');
+            el.classList.remove('bg-rose-50', 'border-rose-200', 'dark:bg-rose-950', 'dark:border-rose-800');
           }
         }
       }
@@ -105,12 +105,12 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
         } : undefined}
         className={`font-mono text-xs mr-1 px-1 py-0.5 rounded border cursor-pointer transition-colors ${
           isCurrentInstruction
-            ? "bg-yellow-100 border-yellow-500 font-semibold text-yellow-800"
+            ? "bg-amber-50 border-amber-300 font-semibold text-amber-800 dark:bg-amber-950 dark:border-amber-700 dark:text-amber-200"
             : isHovered
               ? isCtrlPressed
-                ? "bg-red-50 border-red-200"
-                : "bg-blue-50 border-blue-200"
-              : "text-gray-800 border-transparent"
+                ? "bg-rose-50 border-rose-200 dark:bg-rose-950 dark:border-rose-800"
+                : "bg-slate-50 border-slate-200 dark:bg-slate-950 dark:border-slate-800"
+              : "text-foreground border-transparent"
         }`}
         title={`Instruction ${instructionIndex}: ${node.instruction} | Click to run to here | Ctrl+Click to run backwards to here | Shift+Click to toggle breakpoint`}
         onClick={handleClick}
@@ -121,7 +121,7 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
           <span className="inline-block w-2 h-2 bg-red-300 rounded-full mr-1" title="Breakpoint"></span>
         )}
         {showNumbers && (
-          <span className="text-gray-400 text-xs mr-1">
+          <span className="text-muted-foreground text-xs mr-1">
             {instructionIndex.toString().padStart(2, '0')}
           </span>
         )}
@@ -136,7 +136,7 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
     const emoji = isFunction ? ' 📞' : '';    
     return (
       <div className="mb-2 ml-2">
-        <div className="text-xs text-gray-500 mb-1 font-medium">
+        <div className="text-xs text-muted-foreground mb-1 font-medium">
           {displayName}{emoji}
         </div>
         <div className={`border-l-2 ${borderColor} pl-2`}>
@@ -284,8 +284,8 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
   
   if (!program) {
     return (
-      <div className="p-4 border rounded-lg bg-gray-50">
-        <p className="text-gray-500">Start by connecting to the server</p>
+      <div className="p-4 border rounded-lg bg-muted">
+        <p className="text-muted-foreground">Start by connecting to the server</p>
       </div>
     );
   }
@@ -300,19 +300,19 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
   buildInstructionMap(program, instructionMap, counter);
 
   return (
-    <div ref={scrollContainerRef} className="border rounded-lg bg-white overflow-auto h-full">
+    <div ref={scrollContainerRef} className="border rounded-lg bg-card overflow-auto h-full">
       <div className="p-4 pb-8">
-        <div className="flex items-center justify-between mb-4 text-gray-800 border-b pb-2">
+        <div className="flex items-center justify-between mb-4 text-foreground border-b pb-2">
           <h3 className="text-lg font-semibold">Program</h3>
           <div className="flex items-center gap-4">
-            <label className="flex items-center text-sm text-gray-600 cursor-pointer gap-2">
+            <label className="flex items-center text-sm text-muted-foreground cursor-pointer gap-2">
               <Checkbox 
                 checked={autoScroll}
                 onCheckedChange={(checked) => setAutoScroll(checked === true)}
               />
               Auto-scroll
             </label>
-            <label className="flex items-center text-sm text-gray-600 cursor-pointer gap-2">
+            <label className="flex items-center text-sm text-muted-foreground cursor-pointer gap-2">
               <Checkbox 
                 checked={showNumbers}
                 onCheckedChange={(checked) => setShowNumbers(checked === true)}

@@ -90,7 +90,7 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
   };
   
   return (
-    <div className="border rounded-lg bg-white p-4 flex flex-col h-full">
+    <div className="border rounded-lg bg-card p-4 flex flex-col h-full">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold">Stack</h3>
         <div className="flex items-center gap-2">
@@ -101,7 +101,7 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
           {onSetStack && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="text-xs">
+                <Button variant="outline" size="sm" className="text-xs h-8">
                   Set
                 </Button>
               </DialogTrigger>
@@ -140,7 +140,7 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
           <select 
             value={displayMode}
             onChange={(e) => setDisplayMode(e.target.value as DisplayMode)}
-            className="text-xs border rounded px-2 py-1 bg-white text-gray-700"
+            className="text-xs border rounded px-2 py-1 bg-background text-foreground h-8"
           >
             <option value="full">Full</option>
             <option value="compact">Compact</option>
@@ -152,7 +152,7 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
               onCheckedChange={(checked) => setAlignNumbers(checked === true)}
               className="h-4 w-4"
             />
-            <span className="text-xs text-gray-600">Align</span>
+            <span className="text-xs text-muted-foreground">Align</span>
           </label>
         </div>
       </div>
@@ -169,7 +169,7 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
                 
                 return (
                   <div key={rowIndex} className="flex items-center mb-2">
-                    <div className="w-8 text-gray-500 text-right mr-2 text-xs">
+                    <div className="w-8 text-muted-foreground text-right mr-2 text-xs">
                       {startIndex}:
                     </div>
                     <div className={`flex-1 grid gap-1 ${displayMode === 'binary' ? 'grid-cols-2' : 'grid-cols-8'}`}>
@@ -178,7 +178,7 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
                         return (
                           <div 
                             key={startIndex + colIndex} 
-                            className={`text-center text-xs px-1 py-1 bg-gray-50 rounded overflow-hidden ${displayMode === 'binary' ? 'font-mono text-[10px]' : ''}`}
+                            className={`text-center text-xs px-1 py-1 bg-muted rounded overflow-hidden ${displayMode === 'binary' ? 'font-mono text-[10px]' : ''}`}
                             title={`${value.toString()} (${displayMode === 'binary' ? 'binary' : 'decimal'})`}
                           >
                             <div className="truncate">
@@ -199,7 +199,7 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
                   return (
                     <div 
                       key={index} 
-                      className={`text-xs px-2 py-1 bg-gray-50 rounded border ${displayMode === 'binary' ? 'font-mono text-[10px]' : ''}`}
+                      className={`text-xs px-2 py-1 bg-muted rounded border ${displayMode === 'binary' ? 'font-mono text-[10px]' : ''}`}
                       title={`${index}: ${value.toString()} (${displayMode === 'binary' ? 'binary' : 'decimal'})`}
                     >
                       {formattedValue}
@@ -210,7 +210,7 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
             )}
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-muted-foreground">
             Empty Stack
           </div>
         )}
