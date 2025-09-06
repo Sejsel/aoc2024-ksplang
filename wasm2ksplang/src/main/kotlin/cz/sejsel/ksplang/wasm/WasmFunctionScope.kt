@@ -603,6 +603,10 @@ class WasmFunctionScope private constructor(
         zeroNot()
     }
 
+    fun ComplexFunction.i64Eqz() = instruction("i64Eqz", stackSizeChange = 0) {
+        zeroNot()
+    }
+
     fun ComplexFunction.popLocals() {
         check(!localsPopped) { "Locals have already been popped in this scope" }
         // There should be only return values + locals on the stack now.
