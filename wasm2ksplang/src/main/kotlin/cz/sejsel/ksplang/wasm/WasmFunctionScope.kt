@@ -631,38 +631,74 @@ class WasmFunctionScope private constructor(
     }
 
     fun ComplexFunction.i64ShrSigned() = instruction("i64ShrSigned", stackSizeChange = -1) {
-        // We are using ((val+2^63)>>by) - (2^63>>by) from Hacker's Delight section 2.7
-        // instead of (2^63>>by), we are using 1 << (63-by), which we can safely do because by is at most 63.
-        // unlike i32 implementation, we do not need to do sign extension because we are using native i64
+        // Approach: handle negative and positive values separately
 
         // val by
         push(64)
         swap2()
         modulo()
         // val by%64
-        // val by    (for simplification, but it is mod 64)
-        swap2()
-        // by val
-        push(Long.MIN_VALUE)
-        i64WrappingAdd() // TODO: This can be optimized, we are just flipping the MSB
-        // by val+2^63
-        dupSecond()
-        // by val+2^63 by
-        u64Shr()
-        // by (val+2^63)>>by
+        ifZero {
+            // val 0
+            pop()
+        } otherwise {
+            // val by    -- by is in [1,63]
+            swap2()
+            // by val
+            dup()
+            push(Long.MIN_VALUE)
+            bitand()
+            // by val val_MSB
+            ifZero {
+                // by val 0
+                // this is a positive number, we can safely do unsigned shift
+                pop()
+                swap2()
+                // val by val
+                u64Shr()
+            } otherwise {
+                // do unsigned shift; then we do sign extension
 
-        push(1)
-        // by (val+2^63)>>by 1
-        roll(3, 2)
-        // (val+2^63)>>by 1 by
-        push(63)
-        subabs()
-        // (val+2^63)>>by 1 63-by
-        bitshift()
-        // (val+2^63)>>by 1<<63-by
-        // (val+2^63)>>by 2^63>>by
-        i64WrappingSub()
-        // ((val+2^63)>>by)-(2^63>>by)
+                // unlike for i32, we do not have high-performance ops we could use with Hacker's Delight
+                // unsigned shift-right formulas, we would have to fall back to i64WrappingAdd, and that is way too slow
+                // instead we just do a sign extension using (x & 2^(by-1)) - (x & (2^(by-1)-1))
+
+                // by val 1<<63
+                pop()
+                // by val
+                dupSecond()
+                // by val by
+                u64Shr()
+                // by val>>by
+                swap2()
+                // val>>by by
+                // by is in [1,63], so we can safely do 63-by without modulo
+                push(63)
+                subabs()
+                // val>>by 63-by  -- 63-by is in [0,62]
+                dupAb()
+                // val>>by 63-by val>>by 63-by
+                push(1)
+                swap2()
+                bitshift()
+                // val>>by 63-by val>>by 1<<(63-by)
+                bitand()
+                // val>>by 63-by ((val>>by)&(1<<(63-by)))
+                roll(3, 1)
+                // ((val>>by)&(1<<(63-by))) val>>by 63-by
+                push(1)
+                swap2()
+                bitshift()
+                // ((val>>by)&(1<<(63-by))) val>>by 1<<(63-by)
+                dec()
+                // ((val>>by)&(1<<(63-by))) val>>by (1<<(63-by)-1)
+                bitand()
+                // ((val>>by)&(1<<(63-by))) (val>>by&(1<<(63-by)-1))
+                swap2()
+                sub() // This should be safe because MSB cannot be set (we subtracting two positive numbers)
+                // ((val>>by)&(1<<(63-by)))-(val>>by&(1<<(63-by)-1))
+            }
+        }
     }
 
     private fun ComplexBlock.i64RotateLeft() {
