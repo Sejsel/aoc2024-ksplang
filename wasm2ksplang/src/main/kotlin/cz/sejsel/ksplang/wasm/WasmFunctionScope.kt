@@ -323,7 +323,7 @@ class WasmFunctionScope private constructor(
     fun ComplexFunction.i32Clz() = instruction("i32Clz", stackSizeChange = 0) {
         ifZero {
             // 0
-            push(32)
+            pushOn(0, 32)
             // 0 32
             pop2()
             // 32
@@ -624,6 +624,50 @@ class WasmFunctionScope private constructor(
         // a by%64
         u64Shr()
     }
+
+    fun ComplexFunction.i64Clz() = instruction("i64Clz", stackSizeChange = 0) {
+        ifZero {
+            // 0
+            pushOn(0, 64)
+            // 0 64
+            pop2()
+            // 64
+        } otherwise {
+            // a
+            push(0)
+            // a res
+            swap2()
+            // res a
+            dup()
+            push(Long.MIN_VALUE)
+            bitand()
+            // res a a_MSB
+            zeroNot()
+            whileNonZero {
+                // res-1 a check
+                pop()
+                // res-1 a
+                swap2()
+                inc()
+                swap2()
+                // res a
+
+                push(1)
+                bitshift()
+                // res a<<1
+                dup()
+                // res a<<1 a<<1
+                push(Long.MIN_VALUE)
+                bitand()
+                // res a<<1 (0 if MSB is not set)
+                zeroNot()
+                // res a<<1 (1 if MSB is not set)
+            }
+            // res a<<clz
+            pop()
+        }
+    }
+
 
     fun ComplexFunction.i64PopCnt() = instruction("i64PopCnt", stackSizeChange = 0) {
         i64CountSetBits()
