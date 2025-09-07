@@ -299,7 +299,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I64_SHL -> i64Shl()
                         OpCode.I64_SHR_S -> TODO()
                         OpCode.I64_SHR_U -> i64ShrUnsigned()
-                        OpCode.I64_ROTL -> TODO() // TODO: Hacker's Delight 2.15
+                        OpCode.I64_ROTL -> i64Rotl()
                         OpCode.I64_ROTR -> TODO()
                         OpCode.F32_ABS -> TODO()
                         OpCode.F32_NEG -> TODO()

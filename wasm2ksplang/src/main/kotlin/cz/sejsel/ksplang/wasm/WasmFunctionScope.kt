@@ -625,6 +625,32 @@ class WasmFunctionScope private constructor(
         u64Shr()
     }
 
+    fun ComplexFunction.i64Rotl() = instruction("i64Rotl", stackSizeChange = -1) {
+        // a by
+        push(64)
+        swap2()
+        modulo()
+        // a by%64
+        // a by    (for simplification)
+        dupAb()
+        // a by a by
+        bitshift()
+        // a by a<<by
+        roll(3, 1)
+        // a<<by a by
+        push(64)
+        subabs()
+        // a<<by a 64-by
+        push(64)
+        swap2()
+        modulo() // if we don't do this, by = zero will cause this to be 64, which u64Shr cannot handle
+        // a<<by a (64-by)%64
+        u64Shr()
+        // a<<by a>>(64-by)
+        bitor()
+        // a<<by|a>>(64-by)
+    }
+
     fun ComplexFunction.i64Ctz() = instruction("i64Ctz", stackSizeChange = 0) {
         // a
         dup()
