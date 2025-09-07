@@ -71,6 +71,9 @@ fun Block.push(n: Long): SimpleFunction {
             repeat(n.toInt()) {
                 inc()
             }
+        } else if (n > 0 && (n + 1) in ShortPushes.sequencesByNumber) {
+            push(n + 1)
+            dec()
         } else if (n > 0) {
             val bitLength = Long.SIZE_BITS - n.countLeadingZeroBits()
             var numsToAdd = 0
