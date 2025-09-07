@@ -2,9 +2,6 @@ package cz.sejsel.ksplang.wasm.chicorycomparison
 
 import com.dylibso.chicory.runtime.ExportFunction
 import com.dylibso.chicory.runtime.Store
-import com.dylibso.chicory.tools.wasm.Wat2Wasm
-import com.dylibso.chicory.wasm.Parser
-import com.dylibso.chicory.wasm.WasmModule
 import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.call

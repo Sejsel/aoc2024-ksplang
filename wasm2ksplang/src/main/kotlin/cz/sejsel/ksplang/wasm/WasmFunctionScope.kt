@@ -233,13 +233,14 @@ class WasmFunctionScope private constructor(
         // a by    (for simplification)
         ifZero {
             // a 0
+            pop()
+            // a
         } otherwise {
             push(32)
             subabs()
             // a 32-by
+            i32RotateLeft()
         }
-        // a 32-by
-        i32RotateLeft()
     }
 
     fun ComplexFunction.i32Eqz() = instruction("i32Eqz", stackSizeChange = 0) {
