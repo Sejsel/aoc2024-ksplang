@@ -36,7 +36,7 @@ class WasmFunctionScope private constructor(
         // ((a+2^31)&(0xFFFFFFFF))-2^31
     }
 
-    private fun ComplexFunction.i32Mod() {
+    private fun ComplexBlock.i32Mod() {
         push(4294967295)
         bitand()
     }
@@ -70,16 +70,52 @@ class WasmFunctionScope private constructor(
     }
 
     fun ComplexFunction.i32Mul() = instruction("i32Mul", stackSizeChange = -1) {
-        // Unfortunately, we only have signed i64 multiplication, so we can overflow
+        // Unfortunately, we only have signed i64 multiplication natively, so we can overflow
         // even with multiplication of two i32 values.
+        // The input here is always positive (thanks to i32 bit layout invariant there are at least 32 leading zeroes),
+        // so overflow occurs iff the result would need to set the MSB (bit 63).
 
-        TODO("Not yet implemented due to overflows") // See Hacker's delight TABLE 2–2. OVERFLOW TEST FOR SIGNED MULTIPLICATION onwards, we can have a fast case
+        // If 32-bit MSB is NOT set on either a or b, there cannot be 64-bit signed overflow.
+        // If both are set, there may be, so we fallback to a slower approach in that case.
 
-        /*
-        mul()
-
-        i32Mod()
-        */
+        // a b
+        dupAb()
+        // a b a b
+        push(2147483648) // 1<<31 (32-bit MSB)
+        bitand()
+        zeroNotPositive()
+        // a b a b_32MSB?0:1
+        swap2()
+        push(2147483648) // 1<<31 (32-bit MSB)
+        bitand()
+        zeroNotPositive()
+        // a b b_32MSB?0:1 a_32MSB?0:1
+        add()
+        // a b (b_32MSB?0:1)+(a_32MSB?0:1) -- 0 if both MSB are set, 1 or 2 otherwise
+        ifZero {
+            // a b 0
+            // mask out the MSB on b, multiply, then add a << 31 (wrapping i64)
+            pop()
+            push(2147483647) // (1<<31)-1
+            bitand()
+            // a b&0x7FFF...FFF
+            dupSecond()
+            // a b&0x7FFF...FFF a
+            push(31)
+            bitshift()
+            // a b&0x7FFF...FFF a<<31
+            roll(3, 1)
+            // a<<31 a b&0x7FFF...FFF
+            mul()
+            // a<<31 a*b&0x7FFF...FFF
+            i64WrappingAdd()
+            // (a<<31)+(a*(b&0x7FFF...FFF))
+        } otherwise {
+            // a b 1/2
+            pop()
+            mul()
+            // a*b
+        }
     }
 
     fun ComplexFunction.i32DivSigned() = instruction("i32DivSigned", stackSizeChange = -1) {
@@ -321,7 +357,7 @@ class WasmFunctionScope private constructor(
         i63CountSetBits()
     }
 
-    fun ComplexFunction.i32Clz() = instruction("i32Clz", stackSizeChange = 0) {
+    private fun ComplexBlock.i32CountLeadingZeros() = complexFunction {
         ifZero {
             // 0
             pushOn(0, 32)
@@ -362,6 +398,10 @@ class WasmFunctionScope private constructor(
             // res a<<clz
             pop()
         }
+    }
+
+    fun ComplexFunction.i32Clz() = instruction("i32Clz", stackSizeChange = 0) {
+        i32CountLeadingZeros()
     }
 
     fun ComplexFunction.i32Ctz() = instruction("i32Ctz", stackSizeChange = 0) {
@@ -475,7 +515,7 @@ class WasmFunctionScope private constructor(
         // No need to MOD as it cannot set any higher bits
     }
 
-    private fun ComplexFunction.i64WrappingAdd() {
+    private fun ComplexBlock.i64WrappingAdd() {
         // We must avoid SIGNED addition overflow here. Note that this is different from UNSIGNED overflow
         // for example 0xFF...FF + 1 would be unsigned overflow, but is NOT signed overflow.
 
@@ -546,6 +586,21 @@ class WasmFunctionScope private constructor(
 
     fun ComplexFunction.i64Sub() = instruction("i64Sub", stackSizeChange = -1) {
         i64WrappingSub()
+    }
+
+    private fun ComplexBlock.i64WrappingMul() = complexFunction("i64WrappingMul") {
+        // TODO: Can we do this?
+        // We can do multiplication via splitting into 4 32-bit parts:
+        // (a_hi*2^32 + a_lo) * (b_hi*2^32 + b_lo) =
+        // a_hi*b_hi*2^64 + (a_hi*b_lo + a_lo*b_hi)*2^32 + a_lo*b_lo
+        // The first part is discarded as it is always 0 in 64-bit arithmetic
+        // The second part may overflow, but that is fine, we just need to add it correctly
+        // The third part may overflow, but that is also fine, we just need to add it correctly
+    }
+
+    fun ComplexFunction.i64Mul() = instruction("i64Mul", stackSizeChange = -1) {
+        // TODO: Specialize with small inputs (no overflow) for a significant speedup
+        // This is one problematic instruction
     }
 
     fun ComplexFunction.i64DivSigned() = instruction("i64DivSigned", stackSizeChange = -1) {

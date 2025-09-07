@@ -40,8 +40,8 @@ class I32ChicoryTests : FunSpec({
             }
         }
 
-        val ksplang = builder.build(program)
-        return Pair(func, ksplang)
+        val ksplang = builder.buildAnnotated(program)
+        return Pair(func, ksplang.toRunnableProgram())
     }
 
     fun checkIntResultUnary(
