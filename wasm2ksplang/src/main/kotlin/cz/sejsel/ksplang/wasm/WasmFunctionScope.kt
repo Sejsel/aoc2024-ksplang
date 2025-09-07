@@ -526,11 +526,7 @@ class WasmFunctionScope private constructor(
         // (hi<<32)|lo
     }
 
-    fun ComplexFunction.i64Add() = instruction("i64Add", stackSizeChange = -1) {
-        i64WrappingAdd()
-    }
-
-    fun ComplexFunction.i64Sub() = instruction("i64Sub", stackSizeChange = -1) {
+    private fun ComplexFunction.i64WrappingSub() {
         // a b
         dup()
         isMinRaw()
@@ -542,6 +538,14 @@ class WasmFunctionScope private constructor(
             // a -b
         }
         i64WrappingAdd()
+    }
+
+    fun ComplexFunction.i64Add() = instruction("i64Add", stackSizeChange = -1) {
+        i64WrappingAdd()
+    }
+
+    fun ComplexFunction.i64Sub() = instruction("i64Sub", stackSizeChange = -1) {
+        i64WrappingSub()
     }
 
     fun ComplexFunction.i64DivSigned() = instruction("i64DivSigned", stackSizeChange = -1) {
@@ -624,6 +628,41 @@ class WasmFunctionScope private constructor(
         modulo()
         // a by%64
         u64Shr()
+    }
+
+    fun ComplexFunction.i64ShrSigned() = instruction("i64ShrSigned", stackSizeChange = -1) {
+        // We are using ((val+2^63)>>by) - (2^63>>by) from Hacker's Delight section 2.7
+        // instead of (2^63>>by), we are using 1 << (63-by), which we can safely do because by is at most 63.
+        // unlike i32 implementation, we do not need to do sign extension because we are using native i64
+
+        // val by
+        push(64)
+        swap2()
+        modulo()
+        // val by%64
+        // val by    (for simplification, but it is mod 64)
+        swap2()
+        // by val
+        push(Long.MIN_VALUE)
+        i64WrappingAdd() // TODO: This can be optimized, we are just flipping the MSB
+        // by val+2^63
+        dupSecond()
+        // by val+2^63 by
+        u64Shr()
+        // by (val+2^63)>>by
+
+        push(1)
+        // by (val+2^63)>>by 1
+        roll(3, 2)
+        // (val+2^63)>>by 1 by
+        push(63)
+        subabs()
+        // (val+2^63)>>by 1 63-by
+        bitshift()
+        // (val+2^63)>>by 1<<63-by
+        // (val+2^63)>>by 2^63>>by
+        i64WrappingSub()
+        // ((val+2^63)>>by)-(2^63>>by)
     }
 
     private fun ComplexBlock.i64RotateLeft() {
