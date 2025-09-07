@@ -625,6 +625,35 @@ class WasmFunctionScope private constructor(
         u64Shr()
     }
 
+    fun ComplexFunction.i64Ctz() = instruction("i64Ctz", stackSizeChange = 0) {
+        // a
+        dup()
+        isMinRaw()
+        // a is_min?0:nonzero
+        ifZero {
+            // a 0
+            pushOn(0, 63)
+            // a 0 63
+            pop2(); pop2()
+            // 63
+        } otherwise {
+            // a nonzero
+            pop()
+            // a
+            dup()
+            dec() // this is why we need to handle -2^63 in a special way
+            // a a-1
+            swap2()
+            // a-1 a
+            bitnot()
+            // a-1 ~a
+            bitand()
+            // (a-1)&(~a)
+            i64CountSetBits() // a is not MIN, but (a-1)&(~a) can be MIN when a = 0
+            // ctz
+        }
+    }
+
     fun ComplexFunction.i64Clz() = instruction("i64Clz", stackSizeChange = 0) {
         ifZero {
             // 0
