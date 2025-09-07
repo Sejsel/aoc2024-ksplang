@@ -152,7 +152,7 @@ export function StepControls({
 
       {/* Breakpoint Navigation Controls */}
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-sm font-medium text-muted-foreground">Breakpoints:</span>
+        <span className="text-sm font-medium text-foreground/80">Breakpoints:</span>
         <Badge variant="secondary" className="text-xs">
           {breakpointCount} set
         </Badge>

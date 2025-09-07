@@ -39,16 +39,16 @@ function buildInstructionMap(node: AnnotatedKsplangTree, map: Map<AnnotatedKspla
 }
 
 function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoScroll, previousIpRef, scrollContainerRef, onRunToInstruction, onRunToInstructionBackwards, onToggleBreakpoint, currentStep, isCtrlPressed, breakpoints, hoveredInstruction, setHoveredInstruction }: RenderNodeProps & { hoveredInstruction: number | null, setHoveredInstruction: (idx: number | null) => void }) {
-  // Subtle colors for block hierarchy (very faint, theme-aware)
+  // Rainbow colors for light mode, subtle grays for dark mode
   const rainbowColors = [
-    'border-gray-200 dark:border-gray-700',
-    'border-slate-200 dark:border-slate-700', 
-    'border-zinc-200 dark:border-zinc-700',
-    'border-neutral-200 dark:border-neutral-700',
-    'border-stone-200 dark:border-stone-700',
-    'border-gray-300 dark:border-gray-600',
-    'border-slate-300 dark:border-slate-600',
-    'border-zinc-300 dark:border-zinc-600'
+    'border-red-200 dark:border-gray-700',
+    'border-orange-200 dark:border-slate-700', 
+    'border-yellow-200 dark:border-zinc-700',
+    'border-green-200 dark:border-neutral-700',
+    'border-blue-200 dark:border-stone-700',
+    'border-indigo-200 dark:border-gray-600',
+    'border-purple-200 dark:border-slate-600',
+    'border-pink-200 dark:border-zinc-600'
   ];
   
   const borderColor = rainbowColors[depth % rainbowColors.length];
@@ -136,7 +136,7 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
     const emoji = isFunction ? ' 📞' : '';    
     return (
       <div className="mb-2 ml-2">
-        <div className="text-xs text-muted-foreground mb-1 font-medium">
+        <div className="text-xs text-blue-600 dark:text-blue-400 mb-1 font-semibold bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded">
           {displayName}{emoji}
         </div>
         <div className={`border-l-2 ${borderColor} pl-2`}>

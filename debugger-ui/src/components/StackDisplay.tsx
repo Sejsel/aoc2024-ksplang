@@ -152,7 +152,7 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
               onCheckedChange={(checked) => setAlignNumbers(checked === true)}
               className="h-4 w-4"
             />
-            <span className="text-xs text-muted-foreground">Align</span>
+            <span className="text-xs text-foreground/70">Align</span>
           </label>
         </div>
       </div>
