@@ -603,6 +603,12 @@ class WasmFunctionScope private constructor(
         zeroNot()
     }
 
+    fun ComplexFunction.i64Ne() = instruction("i64Ne", stackSizeChange = -1) {
+        cmp()
+        zeroNot()
+        zeroNotPositive()
+    }
+
     fun ComplexFunction.i64Eqz() = instruction("i64Eqz", stackSizeChange = 0) {
         zeroNot()
     }
