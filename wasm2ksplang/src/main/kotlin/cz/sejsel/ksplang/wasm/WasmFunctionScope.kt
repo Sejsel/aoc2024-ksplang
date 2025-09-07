@@ -603,7 +603,7 @@ class WasmFunctionScope private constructor(
         zeroNot()
     }
 
-    fun ComplexFunction.i64Ne() = instruction("i64Ne", stackSizeChange = -1) {
+    fun ComplexFunction.i64Ne() = instruction("i64", stackSizeChange = -1) {
         cmp()
         zeroNot()
         zeroNotPositive()
@@ -612,6 +612,176 @@ class WasmFunctionScope private constructor(
     fun ComplexFunction.i64Eqz() = instruction("i64Eqz", stackSizeChange = 0) {
         zeroNot()
     }
+
+    private fun ComplexFunction.i64Lt() {
+        i64Ge()
+        zeroNotPositive()
+    }
+
+    private fun ComplexFunction.i64Gt() {
+        i64Le()
+        zeroNotPositive()
+    }
+
+    private fun ComplexFunction.i64Le() {
+        // a b
+        cmp()
+        // sgn(a-b)
+        // 1 if a > b, 0 if a = b, -1 if a < b
+        zeroNotPositive()
+        // 0 if a > b, 1 if a = b, 1 if a < b
+    }
+
+    private fun ComplexFunction.i64Ge() {
+        // a b
+        cmp()
+        // sgn(a-b)
+        // 1 if a > b, 0 if a = b, -1 if a < b
+        negate()
+        // -1 if a > b, 0 if a = b, 1 if a < b
+        zeroNotPositive()
+        // 1 if a > b, 1 if a = b, 0 if a < b
+    }
+
+    private fun ComplexFunction.u64Lt() {
+        u64Ge()
+        zeroNotPositive()
+    }
+
+    private fun ComplexFunction.u64Gt() {
+        u64Le()
+        zeroNotPositive()
+    }
+
+    private fun ComplexFunction.u64Le() {
+        // a b
+        cmpAsUnsigned()
+        // sgn(a-b)
+        // 1 if a > b, 0 if a = b, -1 if a < b
+        zeroNotPositive()
+        // 0 if a > b, 1 if a = b, 1 if a < b
+    }
+
+    private fun ComplexFunction.u64Ge() {
+        // a b
+        cmpAsUnsigned()
+        // sgn(a-b)
+        // 1 if a > b, 0 if a = b, -1 if a < b
+        negate()
+        // -1 if a > b, 0 if a = b, 1 if a < b
+        zeroNotPositive()
+        // 1 if a > b, 1 if a = b, 0 if a < b
+    }
+
+    private fun ComplexBlock.cmpAsUnsigned() = complexFunction("cmpAsUnsigned") {
+        // a b
+        dupSecond()
+        // a b a
+        push(Long.MIN_VALUE) // just msb set
+        bitand()
+        // a b a_MSB
+        dupSecond()
+        // a b a_MSB b
+        push(Long.MIN_VALUE) // just msb set
+        bitand()
+        // a b a_MSB b_MSB
+        ifZero {
+            // a b a_MSB 0
+            pop()
+            // a b a_MSB
+            ifZero {
+                // a b 0
+                pop()
+                // this is two positive numbers, we can safely sgn(a-b)
+                // a b
+                negate()
+                add()
+                sgn()
+                // sgn(a-b)
+            } otherwise {
+                // a b 1<<63
+                // a > b
+                push(1)
+                // a b 1<<63 1
+                pop2(); pop2(); pop2()
+                // 1
+            }
+        } otherwise {
+            // a b a_MSB 1<<63
+            pop()
+            // a b a_MSB
+            ifZero {
+                // a b 0
+                // a < b
+                push(-1)
+                // a b 0 -1
+                pop2(); pop2(); pop2()
+                // -1
+            } otherwise {
+                // a b 1<<63
+                // we need to mask out the MSB on both, then we can do sgn(a-b)
+                inc()
+                negate()
+                // a b 0x7FFF...FFF
+                bitand()
+                // a b&0x7FFF...FFF
+                swap2()
+                // b&0x7FFF...FFF a
+                push(Long.MAX_VALUE) // 0x7FFF...FFF
+                bitand()
+                // b&0x7FFF...FFF a&0x7FFF...FFF
+                swap2()
+                // a&0x7FFF...FFF b&0x7FFF...FFF
+                negate()
+                add()
+                // a&0x7FFF...FFF-b&0x7FFF...FFF
+                sgn()
+                // sgn(a&0x7FFF...FFF-b&0x7FFF...FFF)
+                // sgn(b-a)
+            }
+        }
+    }
+
+    fun ComplexFunction.i64LtUnsigned() = instruction("i64LtUnsigned", stackSizeChange = -1) {
+        u64Lt()
+    }
+
+    fun ComplexFunction.i64LtSigned() = instruction("i64LtSigned", stackSizeChange = -1) {
+        swap2()
+        // b a
+        i64Gt() // we swapped the arguments, no swapping back (for perf)
+    }
+
+    fun ComplexFunction.i64GtUnsigned() = instruction("i64GtUnsigned", stackSizeChange = -1) {
+        u64Gt()
+    }
+
+    fun ComplexFunction.i64GtSigned() = instruction("i64GtSigned", stackSizeChange = -1) {
+        swap2()
+        // b a
+        i64Lt() // we swapped the arguments, no swapping back (for perf)
+    }
+
+    fun ComplexFunction.i64LeUnsigned() = instruction("i64LeUnsigned", stackSizeChange = -1) {
+        u64Le()
+    }
+
+    fun ComplexFunction.i64LeSigned() = instruction("i64LeSigned", stackSizeChange = -1) {
+        swap2()
+        // b a
+        i64Ge() // we swapped the arguments, no swapping back (for perf)
+    }
+
+    fun ComplexFunction.i64GeUnsigned() = instruction("i64GeUnsigned", stackSizeChange = -1) {
+        u64Ge()
+    }
+
+    fun ComplexFunction.i64GeSigned() = instruction("i64GeSigned", stackSizeChange = -1) {
+        swap2()
+        // b a
+        i64Le() // we swapped the arguments, no swapping back (for perf)
+    }
+
 
     fun ComplexFunction.popLocals() {
         check(!localsPopped) { "Locals have already been popped in this scope" }
