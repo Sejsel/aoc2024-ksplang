@@ -572,7 +572,7 @@ class WasmFunctionScope private constructor(
      *
      * Signature: `a by -> a>>by`
      */
-    private fun ComplexFunction.u64Shr() = complexFunction {
+    private fun ComplexBlock.u64Shr() = complexFunction {
         // We have two cases to handle:
         // - if the MSB is not set, we can just use u63Shr (standard division)
         // - if the MSB is set, we need to mask out the bit, use u63Shr, and then put the bit back (shifted obviously)
@@ -625,13 +625,8 @@ class WasmFunctionScope private constructor(
         u64Shr()
     }
 
-    fun ComplexFunction.i64Rotl() = instruction("i64Rotl", stackSizeChange = -1) {
+    private fun ComplexBlock.i64RotateLeft() {
         // a by
-        push(64)
-        swap2()
-        modulo()
-        // a by%64
-        // a by    (for simplification)
         dupAb()
         // a by a by
         bitshift()
@@ -649,6 +644,35 @@ class WasmFunctionScope private constructor(
         // a<<by a>>(64-by)
         bitor()
         // a<<by|a>>(64-by)
+    }
+
+    fun ComplexFunction.i64Rotl() = instruction("i64Rotl", stackSizeChange = -1) {
+        // a by
+        push(64)
+        swap2()
+        modulo()
+        // a by%64
+        i64RotateLeft()
+    }
+
+    fun ComplexFunction.i64Rotr() = instruction("i64Rotr", stackSizeChange = -1) {
+        // a by
+        push(64)
+        swap2()
+        modulo()
+        // a by%64
+        // a by    (for simplification)
+        ifZero {
+            // a 0
+            pop()
+            // a
+        } otherwise {
+            // a by
+            push(64)
+            subabs()
+            // a 64-by
+            i64RotateLeft()
+        }
     }
 
     fun ComplexFunction.i64Ctz() = instruction("i64Ctz", stackSizeChange = 0) {
