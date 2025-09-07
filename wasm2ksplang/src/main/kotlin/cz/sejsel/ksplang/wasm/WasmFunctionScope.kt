@@ -69,7 +69,10 @@ class WasmFunctionScope private constructor(
         i32Mod()
     }
 
-    fun ComplexFunction.i32Mul() = instruction("i32Mul", stackSizeChange = -1) {
+    /**
+     * Multiplies two 32-bit (!) unsigned integers, producing a 64-bit result.
+     */
+    private fun ComplexBlock.u32Mul() = complexFunction("u32Mul") {
         // Unfortunately, we only have signed i64 multiplication natively, so we can overflow
         // even with multiplication of two i32 values.
         // The input here is always positive (thanks to i32 bit layout invariant there are at least 32 leading zeroes),
@@ -116,6 +119,11 @@ class WasmFunctionScope private constructor(
             mul()
             // a*b
         }
+    }
+
+    fun ComplexFunction.i32Mul() = instruction("i32Mul", stackSizeChange = -1) {
+        u32Mul()
+        i32Mod()
     }
 
     fun ComplexFunction.i32DivSigned() = instruction("i32DivSigned", stackSizeChange = -1) {
@@ -589,18 +597,55 @@ class WasmFunctionScope private constructor(
     }
 
     private fun ComplexBlock.i64WrappingMul() = complexFunction("i64WrappingMul") {
-        // TODO: Can we do this?
-        // We can do multiplication via splitting into 4 32-bit parts:
-        // (a_hi*2^32 + a_lo) * (b_hi*2^32 + b_lo) =
-        // a_hi*b_hi*2^64 + (a_hi*b_lo + a_lo*b_hi)*2^32 + a_lo*b_lo
-        // The first part is discarded as it is always 0 in 64-bit arithmetic
-        // The second part may overflow, but that is fine, we just need to add it correctly
-        // The third part may overflow, but that is also fine, we just need to add it correctly
+        // We split the calculation into 4 32-bit multiplications and add them up:
+        // - a_lo * b_lo   -- there is carry here which also gets added up
+        // - (a_hi * b_lo) << 32
+        // - (b_hi * a_lo) << 32
+        // - (a_hi * b_hi) << 64 (always zero, so we skip it)
+
+        // a b
+        dupAb()
+        dupAb()
+        // a b a b a b
+        i32Mod()
+        swap2()
+        i32Mod()
+        // a b a b b_lo a_lo
+        u32Mul()
+        // a b a b b_lo*a_lo
+        roll(5, 1)
+        // b_lo*a_lo a b a b
+        i32Mod()
+        // b_lo*a_lo a b a b_lo
+        swap2()
+        // b_lo*a_lo a b b_lo a
+        push(32); u64Shr()
+        i32Mod()
+        // b_lo*a_lo a b b_lo a_hi
+        u32Mul()
+        // b_lo*a_lo a b b_lo*a_hi
+        push(32); bitshift()
+        // b_lo*a_lo a b (b_lo*a_hi)<<32
+        roll(4, 1)
+        // (b_lo*a_hi)<<32 b_lo*a_lo a b
+        push(32); u64Shr()
+        i32Mod()
+        // (b_lo*a_hi)<<32 b_lo*a_lo a b_hi
+        swap2()
+        i32Mod()
+        // (b_lo*a_hi)<<32 b_lo*a_lo b_hi a_lo
+        u32Mul()
+        // (b_lo*a_hi)<<32 b_lo*a_lo b_hi*a_lo
+        push(32); bitshift()
+        // (b_lo*a_hi)<<32 b_lo*a_lo (b_hi*a_lo)<<32
+        i64WrappingAdd()
+        i64WrappingAdd()
+        // ((b_lo*a_hi)<<32)+(b_lo*a_lo)+((b_hi*a_lo)<<32)
     }
 
     fun ComplexFunction.i64Mul() = instruction("i64Mul", stackSizeChange = -1) {
         // TODO: Specialize with small inputs (no overflow) for a significant speedup
-        // This is one problematic instruction
+        i64WrappingMul()
     }
 
     fun ComplexFunction.i64DivSigned() = instruction("i64DivSigned", stackSizeChange = -1) {
