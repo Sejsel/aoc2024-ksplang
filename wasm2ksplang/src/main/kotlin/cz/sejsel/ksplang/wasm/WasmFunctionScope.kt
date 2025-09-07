@@ -267,7 +267,10 @@ class WasmFunctionScope private constructor(
         // a==b?0:1
     }
 
-    private fun ComplexFunction.i32CountSetBits() {
+    /**
+     * Counts set bits, but does not work with -2^63.
+     */
+    private fun ComplexBlock.i63CountSetBits() {
         // a
         push(0)
         // a res
@@ -289,8 +292,32 @@ class WasmFunctionScope private constructor(
         // res
     }
 
+    private fun ComplexFunction.i64CountSetBits() {
+        // a
+        dup()
+        push(Long.MIN_VALUE)
+        bitand()
+        // a a_MSB
+        ifZero {
+            // a 0
+            pop()
+            i63CountSetBits()
+        } otherwise {
+            // a 1<<63
+            inc()
+            negate()
+            // a 0x7FFF...FFF
+            bitand()
+            // a&0x7FFF...FFF
+            i63CountSetBits()
+            // popcnt-1
+            inc()
+            // popcnt
+        }
+    }
+
     fun ComplexFunction.i32PopCnt() = instruction("i32PopCnt", stackSizeChange = 0) {
-        i32CountSetBits()
+        i63CountSetBits()
     }
 
     fun ComplexFunction.i32Clz() = instruction("i32Clz", stackSizeChange = 0) {
@@ -349,7 +376,7 @@ class WasmFunctionScope private constructor(
         bitand()
         // (a-1)&(~a)
         i32Mod()
-        i32CountSetBits()
+        i63CountSetBits()
     }
 
     private fun ComplexFunction.i32Lt() {
@@ -598,12 +625,16 @@ class WasmFunctionScope private constructor(
         u64Shr()
     }
 
+    fun ComplexFunction.i64PopCnt() = instruction("i64PopCnt", stackSizeChange = 0) {
+        i64CountSetBits()
+    }
+
     fun ComplexFunction.i64Eq() = instruction("i64Eq", stackSizeChange = -1) {
         cmp()
         zeroNot()
     }
 
-    fun ComplexFunction.i64Ne() = instruction("i64", stackSizeChange = -1) {
+    fun ComplexFunction.i64Ne() = instruction("i64Ne", stackSizeChange = -1) {
         cmp()
         zeroNot()
         zeroNotPositive()
