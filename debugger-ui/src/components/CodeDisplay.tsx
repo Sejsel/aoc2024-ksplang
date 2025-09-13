@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import type { AnnotatedKsplangTree, StateMessage } from '../types/debugger';
 import { Checkbox } from './ui/checkbox';
 
@@ -29,41 +29,41 @@ interface RenderNodeProps {
 
 function buildInstructionMap(node: AnnotatedKsplangTree, map: Map<AnnotatedKsplangTree, number>, counter: { current: number }): void {
   if (node.type === 'op') {
-    map.set(node, counter.current);
-    counter.current++;
+    map.set(node, counter.current++);
   } else if (node.type === 'block' || node.type === 'root') {
-    for (const child of node.children) {
-      buildInstructionMap(child, map, counter);
+    for (let i = 0; i < node.children.length; i++) {
+      buildInstructionMap(node.children[i], map, counter);
     }
   }
 }
 
-function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoScroll, previousIpRef, scrollContainerRef, onRunToInstruction, onRunToInstructionBackwards, onToggleBreakpoint, currentStep, isCtrlPressed, breakpoints, hoveredInstruction, setHoveredInstruction }: RenderNodeProps & { hoveredInstruction: number | null, setHoveredInstruction: (idx: number | null) => void }) {
-  // Rainbow colors for light mode, subtle grays for dark mode
-  const rainbowColors = [
-    'border-red-200 dark:border-gray-700',
-    'border-orange-200 dark:border-slate-700', 
-    'border-yellow-200 dark:border-zinc-700',
-    'border-green-200 dark:border-neutral-700',
-    'border-blue-200 dark:border-stone-700',
-    'border-indigo-200 dark:border-gray-600',
-    'border-purple-200 dark:border-slate-600',
-    'border-pink-200 dark:border-zinc-600'
-  ];
-  
-  const borderColor = rainbowColors[depth % rainbowColors.length];
+// Rainbow colors for light mode, subtle grays for dark mode
+const RAINBOW_COLORS = [
+  'border-red-200 dark:border-gray-700',
+  'border-orange-200 dark:border-slate-700', 
+  'border-yellow-200 dark:border-zinc-700',
+  'border-green-200 dark:border-neutral-700',
+  'border-blue-200 dark:border-stone-700',
+  'border-indigo-200 dark:border-gray-600',
+  'border-purple-200 dark:border-slate-600',
+  'border-pink-200 dark:border-zinc-600'
+];
+
+// Simple, fast RenderNode without hover state
+function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoScroll, previousIpRef, scrollContainerRef, onRunToInstruction, onRunToInstructionBackwards, onToggleBreakpoint, currentStep, isCtrlPressed, breakpoints }: RenderNodeProps) {
+  const borderColor = RAINBOW_COLORS[depth % RAINBOW_COLORS.length];
 
   if (node.type === 'op') {
     const instructionIndex = instructionMap.get(node) ?? -1;
     const isCurrentInstruction = instructionIndex === currentIp;
-    const isHovered = hoveredInstruction === instructionIndex;
-    const isBreakpoint = breakpoints.includes(instructionIndex);
+    
+    // Only check breakpoints if we need to display them or in hover logic
+    const isBreakpoint = breakpoints.length > 0 ? breakpoints.includes(instructionIndex) : false;
 
     const handleClick = (e: React.MouseEvent) => {
       e.preventDefault();
       if (e.shiftKey) {
         e.stopPropagation();
-        // Prevent text selection on shift+click
         window.getSelection()?.removeAllRanges();
         onToggleBreakpoint(instructionIndex);
       } else if (e.ctrlKey) {
@@ -73,27 +73,11 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
       }
     };
 
-    useEffect(() => {
-      if (!isCurrentInstruction && isHovered) {
-        const el = document.querySelector(`[data-instruction-idx='${instructionIndex}']`);
-        if (el) {
-          if (isCtrlPressed) {
-            el.classList.add('bg-rose-50', 'border-rose-200', 'dark:bg-rose-950', 'dark:border-rose-800');
-            el.classList.remove('bg-slate-50', 'border-slate-200', 'dark:bg-slate-950', 'dark:border-slate-800');
-          } else {
-            el.classList.add('bg-slate-50', 'border-slate-200', 'dark:bg-slate-950', 'dark:border-slate-800');
-            el.classList.remove('bg-rose-50', 'border-rose-200', 'dark:bg-rose-950', 'dark:border-rose-800');
-          }
-        }
-      }
-    }, [isCtrlPressed, isHovered, isCurrentInstruction, instructionIndex]);
-
     return (
       <span
         data-instruction-idx={instructionIndex}
         ref={isCurrentInstruction ? (el) => {
-          // Only scroll if auto-scroll is enabled and the instruction actually changed
-          if (el && autoScroll && scrollContainerRef && scrollContainerRef.current && previousIpRef.current !== currentIp) {
+          if (el && autoScroll && scrollContainerRef?.current && previousIpRef.current !== currentIp) {
             const container = scrollContainerRef.current;
             const containerRect = container.getBoundingClientRect();
             const elementRect = el.getBoundingClientRect();
@@ -106,16 +90,10 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
         className={`font-mono text-xs mr-1 px-1 py-0.5 rounded border cursor-pointer transition-colors ${
           isCurrentInstruction
             ? "bg-amber-50 border-amber-300 font-semibold text-amber-800 dark:bg-amber-950 dark:border-amber-700 dark:text-amber-200"
-            : isHovered
-              ? isCtrlPressed
-                ? "bg-rose-50 border-rose-200 dark:bg-rose-950 dark:border-rose-800"
-                : "bg-slate-50 border-slate-200 dark:bg-slate-950 dark:border-slate-800"
-              : "text-foreground border-transparent"
-        }`}
-        title={`Instruction ${instructionIndex}: ${node.instruction} | Click to run to here | Ctrl+Click to run backwards to here | Shift+Click to toggle breakpoint`}
+            : "text-foreground border-transparent hover:bg-slate-50 hover:border-slate-200 dark:hover:bg-slate-950 dark:hover:border-slate-800"
+        } ${isCtrlPressed ? "hover:bg-rose-50 hover:border-rose-200 dark:hover:bg-rose-950 dark:hover:border-rose-800" : ""}`}
+        title={`${instructionIndex}`}
         onClick={handleClick}
-        onMouseEnter={() => !isCurrentInstruction && setHoveredInstruction(instructionIndex)}
-        onMouseLeave={() => !isCurrentInstruction && setHoveredInstruction(null)}
       >
         {isBreakpoint && (
           <span className="inline-block w-2 h-2 bg-red-300 rounded-full mr-1" title="Breakpoint"></span>
@@ -133,14 +111,14 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
   if (node.type === 'block') {
     const displayName = node.name || `[${node.blockType.type}]`;
     const isFunction = node.blockType.type === 'function_call';
-    const emoji = isFunction ? ' 📞' : '';    
+    const emoji = isFunction ? ' 📞' : '';
+    
     return (
       <div className="mb-2 ml-2">
         <div className="text-xs text-blue-600 dark:text-blue-400 mb-1 font-semibold bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded">
           {displayName}{emoji}
         </div>
         <div className={`border-l-2 ${borderColor} pl-2`}>
-          {/* Group consecutive operations and preserve order */}
           {(() => {
             const groups: Array<{ type: 'ops'; items: AnnotatedKsplangTree[] } | { type: 'block'; item: AnnotatedKsplangTree }> = [];
             let currentGroup: AnnotatedKsplangTree[] = [];
@@ -149,7 +127,6 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
               if (child.type === 'op') {
                 currentGroup.push(child);
               } else {
-                // Non-op node encountered, finalize current group
                 if (currentGroup.length > 0) {
                   groups.push({ type: 'ops', items: currentGroup });
                   currentGroup = [];
@@ -158,7 +135,6 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
               }
             }
             
-            // Don't forget the last group
             if (currentGroup.length > 0) {
               groups.push({ type: 'ops', items: currentGroup });
             }
@@ -169,7 +145,7 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
                   <div key={`ops-${groupIndex}`} className="flex flex-wrap gap-1 items-center mb-1">
                     {group.items.map((opNode, opIndex) => (
                       <RenderNode 
-                        key={`op-${groupIndex}-${opIndex}`}
+                        key={`${groupIndex}-${opIndex}`}
                         node={opNode} 
                         depth={0} 
                         currentIp={currentIp}
@@ -184,8 +160,6 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
                         currentStep={currentStep}
                         isCtrlPressed={isCtrlPressed}
                         breakpoints={breakpoints}
-                        hoveredInstruction={hoveredInstruction}
-                        setHoveredInstruction={setHoveredInstruction}
                       />
                     ))}
                   </div>
@@ -208,8 +182,6 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
                       currentStep={currentStep}
                       isCtrlPressed={isCtrlPressed}
                       breakpoints={breakpoints}
-                      hoveredInstruction={hoveredInstruction}
-                      setHoveredInstruction={setHoveredInstruction}
                     />
                   </div>
                 );
@@ -241,8 +213,6 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
             currentStep={currentStep}
             isCtrlPressed={isCtrlPressed}
             breakpoints={breakpoints}
-            hoveredInstruction={hoveredInstruction}
-            setHoveredInstruction={setHoveredInstruction}
           />
         ))}
       </div>
@@ -256,9 +226,17 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
   const [showNumbers, setShowNumbers] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
-  const [hoveredInstruction, setHoveredInstruction] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const previousIpRef = useRef<number>(-1);
+  
+  // Memoize instruction map to avoid rebuilding it on every render
+  const instructionMap = useMemo(() => {
+    if (!program) return new Map<AnnotatedKsplangTree, number>();
+    const map = new Map<AnnotatedKsplangTree, number>();
+    const counter = { current: 0 };
+    buildInstructionMap(program, map, counter);
+    return map;
+  }, [program]);
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -293,11 +271,6 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
   const currentIp = currentState?.ip ?? -1;
   const currentStep = currentState?.step ?? BigInt(0);
   const breakpoints = currentState?.breakpoints ?? [];
-  
-  // Build instruction map once
-  const instructionMap = new Map<AnnotatedKsplangTree, number>();
-  const counter = { current: 0 };
-  buildInstructionMap(program, instructionMap, counter);
 
   return (
     <div ref={scrollContainerRef} className="border rounded-lg bg-card overflow-auto h-full">
@@ -337,8 +310,6 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
             currentStep={currentStep}
             isCtrlPressed={isCtrlPressed}
             breakpoints={breakpoints}
-            hoveredInstruction={hoveredInstruction}
-            setHoveredInstruction={setHoveredInstruction}
           />
         </div>
       </div>
