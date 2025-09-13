@@ -574,7 +574,7 @@ class WasmFunctionScope private constructor(
         // (hi<<32)|lo
     }
 
-    private fun ComplexFunction.i64WrappingSub() {
+    private fun ComplexBlock.i64WrappingSub() {
         // a b
         dup()
         isMinRaw()
@@ -644,7 +644,7 @@ class WasmFunctionScope private constructor(
     }
 
     fun ComplexFunction.i64Mul() = instruction("i64Mul", stackSizeChange = -1) {
-        // TODO: Specialize with small inputs (no overflow) for a significant speedup
+        // TODO: Try specialization with small inputs (no overflow) for a significant speedup (push mask + bitand + ifzero)
         i64WrappingMul()
     }
 
@@ -653,6 +653,109 @@ class WasmFunctionScope private constructor(
         swap2()
         // b a
         div() // can only overflow in case when a is MIN and b is -1, which is undefined behavior in WASM
+    }
+
+    fun ComplexFunction.i64DivUnsigned() = instruction("i64DivUnsigned", stackSizeChange = -1) {
+        // Here we need to implement 64-bit unsigned division,
+        // but we only have 63-bit unsigned division available (by masking out MSB)
+
+        // a b
+        swap2()
+        // b a
+        dup()
+        // b a a
+        push(Long.MIN_VALUE)
+        bitand()
+        // b a a_MSB
+        ifZero {
+            // b a 0
+            pop()
+            // b a
+            dupSecond()
+            push(Long.MIN_VALUE)
+            bitand()
+            // b a b_MSB
+            ifZero {
+                // b a 0
+                pop()
+                div()
+            } otherwise {
+                // b > a, result is 0
+
+                // b a 1<<63
+                push(0)
+                pop2()
+                pop2()
+                pop2()
+                // 0
+            }
+        } otherwise {
+            // b a 1<<63
+            dupThird()
+            // b a 1<<63 b
+            bitand()
+            // b a b_MSB
+            ifZero {
+                // b a 0     -- b is positive, a is negative
+                pop()
+                // b a
+                // we calculate
+                //  q = ((a>>1)/b)*2
+                //  r = a - qb
+                //  if r >= b (unsigned) then q++
+                //  q is result
+                // source: Hacker's Delight Chapter 9.3 Using Signed Short Division
+                dupAb()
+                // b a b a
+                push(1)
+                u64ShrForNegativeNumbers()
+                // b a b a>>1
+                div()
+                // b a a>>1/b
+                push(1)
+                bitshift()
+                // b a ((a>>1)/b)*2
+                // b a q
+                dup()
+                // b a q q
+                dupFourth()
+                // b a q q b
+                i64WrappingMul()
+                // b a q qb
+                permute("b a q qb", "q b a qb")
+                // q b a qb
+                i64WrappingSub()
+                // q b a-qb
+                // q b r
+                u64Le()
+                // q b<=r?1:0
+                // q r>=b?1:0
+                ifZero {
+                    // q 0
+                    pop()
+                } otherwise {
+                    // q 0
+                    pop()
+                    inc()
+                    // q+1
+                }
+                // q
+            } otherwise {
+                // since a and b both have MSB set, the only result can be 0 or 1
+                // b a 1<<63
+                pop()
+                // b a
+                cmp() // unfortunately, we can have a = MIN, so we cannot just do sgn(b-a) (negating a would overflow)
+                // sgn(b-a)  - note this is signed and on negative numbers, so it inverted from unsigned result
+                //    1 if a < b (unsigned)
+                //    0 if a == b (unsigned)
+                //   -1 if a > b (unsigned)
+                zeroNotPositive()
+                // 0 if a < b
+                // 1 if a >= b
+                // that is also our division result
+            }
+        }
     }
 
     fun ComplexFunction.i64RemSigned() = instruction("i64RemSigned", stackSizeChange = -1) {
@@ -669,6 +772,50 @@ class WasmFunctionScope private constructor(
         modulo()
         // val by%64
         bitshift()
+    }
+
+    /**
+     * Unsigned shift right for use with values with MSB set.
+     * Skips the check for the optimized non-MSB-set path in [u64Shr].
+     * Do not use with by > 63, it would fail with division by zero.
+     * Does not do sign extension (hence it is unsigned).
+     *
+     * Signature: `a by -> a>>by`
+     */
+    private fun ComplexBlock.u64ShrForNegativeNumbers() = complexFunction {
+        push(Long.MAX_VALUE)
+        u64ShrInner()
+    }
+
+    /**
+     * Unsigned shift right, expects 2^63-1 on top of the parameters.
+     * Do not use with by > 63, it would fail with division by zero.
+     * Does not do sign extension (hence it is unsigned).
+     *
+     * Signature: `a by 2^63-1 -> a>>by`
+     */
+    private fun ComplexBlock.u64ShrInner() = complexFunction {
+        // a by 0x7FFF...FFF    -- the max positive value
+        roll(3, 2)
+        // by 0x7FFF...FFF a
+        bitand()
+        // by a&(0x7FFF...FFF)  -- a with MSB masked out
+        dupSecond()
+        // by a&(0x7FFF...FFF) by
+        u63Shr()
+        // by a&(0x7FFF...FFF)>>by
+        swap2()
+        // a&(0x7FFF...FFF)>>by by
+        push(63)
+        subabs()
+        // a&(0x7FFF...FFF)>>by 63-by
+        push(1)
+        swap2()
+        // a&(0x7FFF...FFF)>>by 1 63-by
+        bitshift()
+        // a&(0x7FFF...FFF)>>by 1<<(63-by)
+        bitor()
+        // a>>by
     }
 
     /**
@@ -698,26 +845,7 @@ class WasmFunctionScope private constructor(
             inc()
             negate()
             // a by 0x7FFF...FFF    -- the max positive value
-            roll(3, 2)
-            // by 0x7FFF...FFF a
-            bitand()
-            // by a&(0x7FFF...FFF)  -- a with MSB masked out
-            dupSecond()
-            // by a&(0x7FFF...FFF) by
-            u63Shr()
-            // by a&(0x7FFF...FFF)>>by
-            swap2()
-            // a&(0x7FFF...FFF)>>by by
-            push(63)
-            subabs()
-            // a&(0x7FFF...FFF)>>by 63-by
-            push(1)
-            swap2()
-            // a&(0x7FFF...FFF)>>by 1 63-by
-            bitshift()
-            // a&(0x7FFF...FFF)>>by 1<<(63-by)
-            bitor()
-            // a>>by
+            u64ShrInner()
         }
     }
 
@@ -943,17 +1071,17 @@ class WasmFunctionScope private constructor(
         zeroNot()
     }
 
-    private fun ComplexFunction.i64Lt() {
+    private fun ComplexBlock.i64Lt() {
         i64Ge()
         zeroNotPositive()
     }
 
-    private fun ComplexFunction.i64Gt() {
+    private fun ComplexBlock.i64Gt() {
         i64Le()
         zeroNotPositive()
     }
 
-    private fun ComplexFunction.i64Le() {
+    private fun ComplexBlock.i64Le() {
         // a b
         cmp()
         // sgn(a-b)
@@ -962,7 +1090,7 @@ class WasmFunctionScope private constructor(
         // 0 if a > b, 1 if a = b, 1 if a < b
     }
 
-    private fun ComplexFunction.i64Ge() {
+    private fun ComplexBlock.i64Ge() {
         // a b
         cmp()
         // sgn(a-b)
@@ -973,17 +1101,17 @@ class WasmFunctionScope private constructor(
         // 1 if a > b, 1 if a = b, 0 if a < b
     }
 
-    private fun ComplexFunction.u64Lt() {
+    private fun ComplexBlock.u64Lt() {
         u64Ge()
         zeroNotPositive()
     }
 
-    private fun ComplexFunction.u64Gt() {
+    private fun ComplexBlock.u64Gt() {
         u64Le()
         zeroNotPositive()
     }
 
-    private fun ComplexFunction.u64Le() {
+    private fun ComplexBlock.u64Le() {
         // a b
         cmpAsUnsigned()
         // sgn(a-b)
@@ -992,7 +1120,7 @@ class WasmFunctionScope private constructor(
         // 0 if a > b, 1 if a = b, 1 if a < b
     }
 
-    private fun ComplexFunction.u64Ge() {
+    private fun ComplexBlock.u64Ge() {
         // a b
         cmpAsUnsigned()
         // sgn(a-b)

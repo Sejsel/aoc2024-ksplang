@@ -290,7 +290,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I64_SUB -> i64Sub()
                         OpCode.I64_MUL -> i64Mul()
                         OpCode.I64_DIV_S -> i64DivSigned()
-                        OpCode.I64_DIV_U -> TODO()
+                        OpCode.I64_DIV_U -> i64DivUnsigned()
                         OpCode.I64_REM_S -> i64RemSigned()
                         OpCode.I64_REM_U -> TODO()
                         OpCode.I64_AND -> bitAnd()

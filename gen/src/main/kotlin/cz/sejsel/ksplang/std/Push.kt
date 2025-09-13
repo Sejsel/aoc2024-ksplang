@@ -83,7 +83,7 @@ fun Block.push(n: Long): SimpleFunction {
                     push(1)
                     if (i == 1) {
                         // We can duplicate the 1 by using m or CS
-                        m()
+                        CS()
                     } else {
                         push(i.toLong())
                     }
