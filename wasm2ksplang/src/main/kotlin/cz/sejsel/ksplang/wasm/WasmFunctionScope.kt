@@ -24,6 +24,14 @@ class WasmFunctionScope private constructor(
         intermediateStackValues++
     }
 
+    fun ComplexFunction.i32Const(const: Long) = instruction("i32Const($const)", stackSizeChange = 1) {
+        push(const)
+    }
+
+    fun ComplexFunction.i64Const(const: Long) = instruction("i64Const($const)", stackSizeChange = 1) {
+        push(const)
+    }
+
     private fun ComplexFunction.i32ToSigned() {
         // Based on Hacker's Delight Chapter 2.6 - Sign Extension
 
