@@ -291,7 +291,7 @@ fun Block.setNth() = function("setNth") {
 
 /**
  * Sets the *k*-th element from the top of the stack to a new value.
- * 1-indexed, not counting the top value. **Requires *x* to be 1 or bigger.**
+ * 1-indexed, not counting the top value. **Requires *k* to be 1 or bigger.**
  *
  * Example: `1 2 3 4 42 -> 1 2 42 4` (*k* was 2)
  *
@@ -301,7 +301,7 @@ fun Block.setKth(k: Int) = setKth(k.toLong())
 
 /**
  * Sets the *k*-th element from the top of the stack to a new value.
- * 1-indexed, not counting the top value. **Requires *x* to be 1 or bigger.**
+ * 1-indexed, not counting the top value. **Requires *k* to be 1 or bigger.**
  *
  * Example: `1 2 3 4 42 -> 1 2 42 4` (*k* was 2)
  *

@@ -196,7 +196,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.SELECT_T -> unsupportedReferenceTypes()
                         OpCode.TRY_TABLE -> unsupportedExceptionHandling()
                         OpCode.LOCAL_GET -> getLocal(instruction.operands()[0].toInt())
-                        OpCode.LOCAL_SET -> TODO()
+                        OpCode.LOCAL_SET -> setLocal(instruction.operands()[0].toInt())
                         OpCode.LOCAL_TEE -> TODO()
                         OpCode.GLOBAL_GET -> TODO()
                         OpCode.GLOBAL_SET -> TODO()
