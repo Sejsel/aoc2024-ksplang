@@ -89,6 +89,13 @@ class WasmFunctionScope private constructor(
         setLocalValue(index)
     }
 
+    fun ComplexFunction.teeLocal(index: Int) = instruction("teeLocal($index)", stackSizeChange = 0) {
+        dup()
+         // At this point, setLocalValue is not aware of the new intermediate value,
+        // so we are adding - 1 to the index.
+        setLocalValue(index - 1)
+    }
+
     fun ComplexFunction.i32Add() = instruction("i32Add", stackSizeChange = -1) {
         add()
 

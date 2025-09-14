@@ -128,7 +128,7 @@ class MiscTests : FunSpec({
         }
     }
 
-    context("setLocal") {
+    context("local.set") {
         test("chicory result should equal ksplang result - changes local") {
             val program = $$"""
                 (module (func $fun (export "fun") (param $a i64) (param $b i64) (result i64)
@@ -152,6 +152,60 @@ class MiscTests : FunSpec({
                     local.get $a
                     local.set $b
                     local.get $a
+                ))""".trimIndent()
+            val (func, ksplang) = prepareModule(program, "fun")
+            checkAll<Long, Long> { a, b, ->
+                val input = listOf(a, b)
+
+                val expected = func.apply(*input.toLongArray()).single()
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe expected
+            }
+        }
+    }
+
+    context("local.tee") {
+        test("chicory result should equal ksplang result - keeps value on stack") {
+            val program = $$"""
+                (module (func $fun (export "fun") (param $a i64) (param $b i64) (result i64)
+                    local.get $a
+                    local.tee $b
+                ))""".trimIndent()
+            val (func, ksplang) = prepareModule(program, "fun")
+            checkAll<Long, Long> { a, b, ->
+                val input = listOf(a, b)
+
+                val expected = func.apply(*input.toLongArray()).single()
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe expected
+            }
+        }
+
+        test("chicory result should equal ksplang result - other local not changed") {
+            val program = $$"""
+                (module (func $fun (export "fun") (param $a i64) (param $b i64) (result i64)
+                    local.get $a
+                    local.tee $b
+                    drop
+                    local.get $a
+                ))""".trimIndent()
+            val (func, ksplang) = prepareModule(program, "fun")
+            checkAll<Long, Long> { a, b, ->
+                val input = listOf(a, b)
+
+                val expected = func.apply(*input.toLongArray()).single()
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe expected
+            }
+        }
+
+        test("chicory result should equal ksplang result - local changed") {
+            val program = $$"""
+                (module (func $fun (export "fun") (param $a i64) (param $b i64) (result i64)
+                    local.get $a
+                    local.tee $b
+                    drop
+                    local.get $b
                 ))""".trimIndent()
             val (func, ksplang) = prepareModule(program, "fun")
             checkAll<Long, Long> { a, b, ->
