@@ -765,6 +765,121 @@ class WasmFunctionScope private constructor(
         REM()
     }
 
+    fun ComplexFunction.i64RemUnsigned() = instruction("i64RemUnsigned", stackSizeChange = -1) {
+        // Here we need to implement 64-bit unsigned division,
+        // but we only have 63-bit unsigned division available (by masking out MSB)
+
+        // a b
+        swap2()
+        // b a
+        dup()
+        // b a a
+        push(Long.MIN_VALUE)
+        bitand()
+        // b a a_MSB
+        ifZero {
+            // b a 0
+            pop()
+            // b a
+            dupSecond()
+            push(Long.MIN_VALUE)
+            bitand()
+            // b a b_MSB
+            ifZero {
+                // b a 0
+                pop()
+                REM() // both b and a are positive, so we can use native REM
+            } otherwise {
+                // b > a, result is a
+                // b a 1<<63
+                pop()
+                // b a
+                pop2()
+                // a
+            }
+        } otherwise {
+            // b a 1<<63
+            dupThird()
+            // b a 1<<63 b
+            bitand()
+            // b a b_MSB
+            ifZero {
+                // b a 0     -- b is positive, a is negative
+                pop()
+                // b a
+                // we calculate
+                //  q = ((a>>1)/b)*2
+                //  r = a - qb
+                //  r is the reminder, but it may be >= b, so we need to mod by b
+                // source: Hacker's Delight Chapter 9.3 Using Signed Short Division
+                dupAb()
+                // b a b a
+                push(1)
+                u64ShrForNegativeNumbers()
+                // b a b a>>1
+                div()
+                // b a a>>1/b
+                push(1)
+                bitshift()
+                // b a ((a>>1)/b)*2
+                // b a q
+                dupFourth()
+                // b a q b
+                i64WrappingMul()
+                // b a qb
+                i64WrappingSub()
+                // b a-qb
+                // b r
+                // Now we need an unsigned REM, yet again
+                dupAb()
+                // b r b r
+                u64Le()
+                // b r r>=b?1:0
+                ifZero {
+                    // b r 0
+                    pop()
+                    pop2()
+                    // r
+                } otherwise {
+                    // b r 0
+                    pop()
+                    swap2()
+                    // r b
+                    i64WrappingSub()
+                    // r-b
+                }
+                // r%b
+            } otherwise {
+                // since a and b both have MSB set, the only div result can be 0 or 1, which we can use to choose the rem
+                // b a 1<<63
+                pop()
+                // b a
+                dupAb()
+                // b a b a
+                cmp() // unfortunately, we can have a = MIN, so we cannot just do sgn(b-a) (negating a would overflow)
+                // sgn(b-a)  - note this is signed and on negative numbers, so it inverted from unsigned result
+                //    1 if a < b (unsigned)
+                //    0 if a == b (unsigned)
+                //   -1 if a > b (unsigned)
+                zeroNotPositive()
+                // 0 if a < b (unsigned) - result is a
+                // 1 if a >= b - result is unsigned b-a
+                ifZero {
+                    // b a 0
+                    pop()
+                    pop2()
+                    // a
+                } otherwise {
+                    // b a 1
+                    pop()
+                    swap2()
+                    // a b
+                    i64WrappingSub()
+                }
+            }
+        }
+    }
+
     fun ComplexFunction.i64Shl() = instruction("i64Shl", stackSizeChange = -1) {
         // val by
         push(64)
