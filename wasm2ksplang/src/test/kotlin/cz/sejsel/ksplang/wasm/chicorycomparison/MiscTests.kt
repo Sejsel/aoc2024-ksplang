@@ -41,7 +41,7 @@ class MiscTests : FunSpec({
         test("chicory result should equal ksplang result - int") {
             checkAll<Int> { a ->
                 val program = $$"""
-                (module (func $add (export "fun") (result i32)
+                (module (func $fun (export "fun") (result i32)
                     i32.const $$a
                 ))""".trimIndent()
                 val (func, ksplang) = prepareModule(program, "fun")
@@ -57,7 +57,7 @@ class MiscTests : FunSpec({
         test("chicory result should equal ksplang result - uint") {
             checkAll<UInt> { a ->
                 val program = $$"""
-                (module (func $add (export "fun") (result i32)
+                (module (func $fun (export "fun") (result i32)
                     i32.const $$a
                 ))""".trimIndent()
                 val (func, ksplang) = prepareModule(program, "fun")
@@ -75,12 +75,31 @@ class MiscTests : FunSpec({
         test("chicory result should equal ksplang result - long") {
             checkAll<Long> { a ->
                 val program = $$"""
-                (module (func $add (export "fun") (result i64)
+                (module (func $fun (export "fun") (result i64)
                     i64.const $$a
                 ))""".trimIndent()
                 val (func, ksplang) = prepareModule(program, "fun")
 
                 val input = listOf(a)
+
+                val expected = func.apply(*input.toLongArray()).single()
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe expected
+            }
+        }
+    }
+
+    context("drop") {
+        test("chicory result should equal ksplang result - long") {
+            val program = $$"""
+                (module (func $fun (export "fun") (param $a i64) (param $b i64) (result i64)
+                    local.get $a
+                    local.get $b
+                    drop
+                ))""".trimIndent()
+            val (func, ksplang) = prepareModule(program, "fun")
+            checkAll<Long, Long> { a, b ->
+                val input = listOf(a, b)
 
                 val expected = func.apply(*input.toLongArray()).single()
                 val result = runner.run(ksplang, input)

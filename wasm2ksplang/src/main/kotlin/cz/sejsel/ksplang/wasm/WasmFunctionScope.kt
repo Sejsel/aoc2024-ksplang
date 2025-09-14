@@ -24,6 +24,10 @@ class WasmFunctionScope private constructor(
         intermediateStackValues++
     }
 
+    fun ComplexFunction.drop() = instruction("drop", stackSizeChange = -1) {
+        pop()
+    }
+
     fun ComplexFunction.i32Const(const: Long) = instruction("i32Const($const)", stackSizeChange = 1) {
         push(const)
     }

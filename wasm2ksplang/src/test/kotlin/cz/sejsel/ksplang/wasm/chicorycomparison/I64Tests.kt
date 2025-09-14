@@ -89,7 +89,7 @@ class I64ChicoryTests : FunSpec({
 
     fun prepareI64toI64UnaryFunModule(instructionName: String) = prepareModule(
         wat = $$"""
-                (module (func $add (export "fun") (param $a i64) (result i64)
+                (module (func $fun (export "fun") (param $a i64) (result i64)
                     local.get $a
                     $$instructionName
                 ))""".trimIndent(),
@@ -98,7 +98,7 @@ class I64ChicoryTests : FunSpec({
 
     fun prepareI64toI32UnaryFunModule(instructionName: String) = prepareModule(
         wat = $$"""
-                (module (func $add (export "fun") (param $a i64) (result i32)
+                (module (func $fun (export "fun") (param $a i64) (result i32)
                     local.get $a
                     $$instructionName
                 ))""".trimIndent(),
@@ -107,7 +107,7 @@ class I64ChicoryTests : FunSpec({
 
     fun prepareI64toI64BinaryFunModule(instructionName: String) = prepareModule(
         wat = $$"""
-                (module (func $add (export "fun") (param $a i64) (param $b i64) (result i64)
+                (module (func $fun (export "fun") (param $a i64) (param $b i64) (result i64)
                     local.get $a
                     local.get $b
                     $$instructionName
@@ -117,7 +117,7 @@ class I64ChicoryTests : FunSpec({
 
     fun prepareI64toI32BinaryFunModule(instructionName: String) = prepareModule(
         wat = $$"""
-                (module (func $add (export "fun") (param $a i64) (param $b i64) (result i32)
+                (module (func $fun (export "fun") (param $a i64) (param $b i64) (result i32)
                     local.get $a
                     local.get $b
                     $$instructionName

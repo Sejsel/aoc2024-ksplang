@@ -191,7 +191,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.RETURN_CALL_INDIRECT -> unsupportedTailCall()
                         OpCode.CALL_REF -> unsupportedTypedFunctionReferenceTypes()
                         OpCode.RETURN_CALL_REF -> unsupportedTypedFunctionReferenceTypes()
-                        OpCode.DROP -> TODO()
+                        OpCode.DROP -> drop()
                         OpCode.SELECT -> TODO()
                         OpCode.SELECT_T -> TODO()
                         OpCode.TRY_TABLE -> unsupportedExceptionHandling()

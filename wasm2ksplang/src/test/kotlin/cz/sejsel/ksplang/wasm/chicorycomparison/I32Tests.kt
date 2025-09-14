@@ -148,7 +148,7 @@ class I32ChicoryTests : FunSpec({
 
     fun prepareI32UnaryFunModule(instructionName: String) = prepareModule(
         wat = $$"""
-                (module (func $add (export "fun") (param $a i32) (result i32)
+                (module (func $fun (export "fun") (param $a i32) (result i32)
                     local.get $a
                     $$instructionName
                 ))""".trimIndent(),
@@ -157,7 +157,7 @@ class I32ChicoryTests : FunSpec({
 
     fun prepareI32BinaryFunModule(instructionName: String) = prepareModule(
         wat = $$"""
-                (module (func $add (export "fun") (param $a i32) (param $b i32) (result i32)
+                (module (func $fun (export "fun") (param $a i32) (param $b i32) (result i32)
                     local.get $a
                     local.get $b
                     $$instructionName
