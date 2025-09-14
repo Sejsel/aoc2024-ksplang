@@ -18,10 +18,7 @@ class WasmFunctionScope private constructor(
     private var localsPopped: Boolean = false
 
     private fun ComplexFunction.dupLocal(index: Int) {
-        check(!localsPopped)
-        push(localTypes.size + intermediateStackValues - index)
-        dupNth()
-        intermediateStackValues++
+        dupKthZeroIndexed(localTypes.size + intermediateStackValues - index - 1)
     }
 
     fun ComplexFunction.drop() = instruction("drop", stackSizeChange = -1) {
@@ -72,16 +69,15 @@ class WasmFunctionScope private constructor(
 
     private fun ComplexFunction.instruction(name: String, stackSizeChange: Int, block: ComplexFunction.() -> Unit) {
         check(!localsPopped)
-        intermediateStackValues += stackSizeChange
         complexFunction(name) {
             block()
         }
+        intermediateStackValues += stackSizeChange
     }
 
 
     // TODO: Find last local usage in function, and instead of duplicating, we can consume it.
-    fun ComplexFunction.getLocal(index: Int) {
-        check(!localsPopped)
+    fun ComplexFunction.getLocal(index: Int) = instruction("getLocal($index)", stackSizeChange = 1) {
         dupLocal(index)
     }
 

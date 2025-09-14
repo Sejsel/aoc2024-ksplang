@@ -69,9 +69,9 @@ fun Block.dupAb() = function("dup_ab") {
 /**
  * Duplicates the *k*-th element on the stack, indexed from zero.
  *
- * dupKthZeroIndexed(0) = a -> a a
- * dupKthZeroIndexed(1) = a b -> a b a
- * dupKthZeroIndexed(2) = a b c -> a b c a
+ * - `dupKthZeroIndexed(0) = a -> a a`
+ * - `dupKthZeroIndexed(1) = a b -> a b a`
+ * - `dupKthZeroIndexed(2) = a b c -> a b c a`
  */
 fun Block.dupKthZeroIndexed(k: Int) = dupKthZeroIndexed(k.toLong())
 
@@ -79,9 +79,9 @@ fun Block.dupKthZeroIndexed(k: Int) = dupKthZeroIndexed(k.toLong())
  *
  * Duplicates the *k*-th element on the stack, indexed from zero.
  *
- * dupKthZeroIndexed(0) = a -> a a
- * dupKthZeroIndexed(1) = a b -> a b a
- * dupKthZeroIndexed(2) = a b c -> a b c a
+ * - `dupKthZeroIndexed(0) = a -> a a`
+ * - `dupKthZeroIndexed(1) = a b -> a b a`
+ * - `dupKthZeroIndexed(2) = a b c -> a b c a`
  */
 fun Block.dupKthZeroIndexed(k: Long) = function("dup_kth_zero_indexed($k)") {
     assert(k >= 0)
