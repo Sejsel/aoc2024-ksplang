@@ -107,4 +107,24 @@ class MiscTests : FunSpec({
             }
         }
     }
+
+    context("select") {
+        test("chicory result should equal ksplang result - long") {
+            val program = $$"""
+                (module (func $fun (export "fun") (param $a i64) (param $b i64) (param $c i32) (result i64)
+                    local.get $a
+                    local.get $b
+                    local.get $c
+                    select
+                ))""".trimIndent()
+            val (func, ksplang) = prepareModule(program, "fun")
+            checkAll<Long, Long, Int> { a, b, c ->
+                val input = listOf(a, b, c.bitsToLong())
+
+                val expected = func.apply(*input.toLongArray()).single()
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe expected
+            }
+        }
+    }
 })

@@ -28,6 +28,22 @@ class WasmFunctionScope private constructor(
         pop()
     }
 
+    fun ComplexFunction.select() = instruction("select", stackSizeChange = -2) {
+        // this is defined on i32, but we can support any value (also because of validation)
+        // a b cond
+        ifZero {
+            // a b 0
+            pop()
+            pop2()
+            // b
+        } otherwise {
+            // a b nonzero
+            pop()
+            pop()
+            // a
+        }
+    }
+
     fun ComplexFunction.i32Const(const: Long) = instruction("i32Const($const)", stackSizeChange = 1) {
         push(const)
     }
