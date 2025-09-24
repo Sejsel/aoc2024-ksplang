@@ -22,8 +22,3 @@ dependencies {
 kotlin {
     jvmToolchain(21)
 }
-
-tasks.test {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
-}

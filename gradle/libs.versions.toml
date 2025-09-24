@@ -1,14 +1,15 @@
 [versions]
-kotest = "5.9.1"
+kotest = "6.0.3"
 chicory = "1.4.0"
 arrow = "2.1.0"
 kotlin = "2.2.0"
 ktor = "3.2.3"
 logback = "1.5.18"
+mockk = "1.14.5"
 
 [libraries]
-kotest-runner = { module ="io.kotest:kotest-runner-junit5", version.ref = "kotest" }
-kotest-framework-datatest = { module ="io.kotest:kotest-framework-datatest", version.ref = "kotest" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+kotest-framework-engine = { module ="io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 guava = { module = "com.google.guava:guava", version = "33.4.0-jre" }
 arrow = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -23,6 +24,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 [plugins]
+kotest = { id = "io.kotest", version.ref = "kotest" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }

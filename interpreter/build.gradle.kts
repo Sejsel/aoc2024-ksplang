@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotest)
 }
 
 repositories {
@@ -11,15 +12,10 @@ dependencies {
     implementation(libs.guava)
     api(libs.arrow)
 
-    testImplementation(libs.kotest.runner)
-    testImplementation(libs.kotest.framework.datatest)
+    testImplementation(libs.kotest.framework.engine)
+    testImplementation(libs.kotest.property)
 }
 
 kotlin {
     jvmToolchain(21)
-}
-
-tasks.test {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
 }

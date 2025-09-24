@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.kotest)
 }
 
 repositories {
@@ -11,8 +12,7 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation(libs.kotlinx.serialization.json)
 
-    testImplementation(libs.kotest.runner)
-    testImplementation(libs.kotest.framework.datatest)
+    testImplementation(libs.kotest.framework.engine)
     testImplementation(project(":interpreter"))
 }
 
@@ -25,9 +25,4 @@ kotlin {
             )
         )
     }
-}
-
-tasks.test {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
 }
