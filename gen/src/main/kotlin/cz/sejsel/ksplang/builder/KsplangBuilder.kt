@@ -366,10 +366,15 @@ class KsplangBuilder(
                             state.program.add(listOf(AnnotatedKsplangSegment.BlockStart("call_${block.calledFunction.name}", blockId, BlockType.FunctionCall)))
 
                             val functionState = state.getFunctionState(block.calledFunction.name)
-                            // Because of function calls in functions (recursion, or calling functions not defined yet),
-                            // we need to prepare this push instead of eagerly expanding it.
-                            val callPush = preparePaddedPush()
-                            functionState.pendingCalls.add(callPush)
+                            functionState.callIndex?.let { callIndex ->
+                                // This function is already emitted, we can just push its address
+                                e(extract { push(callIndex) })
+                            } ?: run {
+                                // Because of function calls in functions (recursion, or calling functions not defined yet),
+                                // we need to prepare this push instead of eagerly expanding it.
+                                val callPush = preparePaddedPush()
+                                functionState.pendingCalls.add(callPush)
+                            }
                             e(call)
                             e(pop)
 
@@ -378,13 +383,12 @@ class KsplangBuilder(
 
                         is PushFunctionAddress -> {
                             val functionState = state.getFunctionState(block.calledFunction.name)
-                            if (block.guaranteedEmittedAlready) {
-                                check(functionState.callIndex != null) {
-                                    "Function ${block.calledFunction.name} is not emitted yet, cannot push its address"
-                                }
-
-                                e(extract { push(functionState.callIndex!!) })
-                            } else {
+                            functionState.callIndex?.let { callIndex ->
+                                // This function is already emitted, we can just push its address
+                                e(extract { push(callIndex) })
+                            } ?: run {
+                                // This function is not yet emitted, we need to prepare this push
+                                // instead of eagerly expanding it.
                                 val callPush = preparePaddedPush()
                                 functionState.pendingCalls.add(callPush)
                             }
@@ -437,17 +441,17 @@ class KsplangBuilder(
                 check(state.functionStates.size == functions.size) { "Not all functions were expanded, expected ${functions.size}, got ${state.functionStates.size}" }
                 check(state.functionStates.all { it.value.callIndex != null }) { "Not all functions have a call index set, some functions may not have been expanded properly." }
 
-                programTree.children.forEachIndexed { i, block ->
-                    val isLast = i == programTree.children.size - 1
-                    expand(block, isLast)
-                }
-
-                // We can now expand all prepared function calls
+                // We can now expand all prepared function calls within functions
                 for (function in state.functionStates) {
                     val functionState = function.value
                     functionState.pendingCalls.forEach {
                         it.set(functionState.callIndex!!)
                     }
+                }
+
+                programTree.children.forEachIndexed { i, block ->
+                    val isLast = i == programTree.children.size - 1
+                    expand(block, isLast)
                 }
 
                 if (state.earlyExitPushes.isNotEmpty()) {

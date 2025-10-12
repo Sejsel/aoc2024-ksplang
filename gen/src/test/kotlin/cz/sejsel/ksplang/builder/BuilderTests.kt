@@ -201,7 +201,7 @@ class FunctionTests: FunSpec({
         runner.run(ksplang, listOf(8)) shouldBe listOf(40320)
     }
 
-    test("push address of - padded") {
+    test("push address of") {
         // There is no good way to write a test for this, so we just assume the first function ends up on index 16,
         // which is the most sane default index.
         // If this test fails when adjusting function generation, feel free to update the expected value.
@@ -219,35 +219,23 @@ class FunctionTests: FunSpec({
         runner.run(ksplang, listOf(8, 4, 0)) shouldBe listOf(8, 4, 0, 16)
     }
 
-    test("push address of - emitted already") {
+    test("push address of self") {
+        // There is no good way to write a test for this, so we just assume the first function ends up on index 16,
+        // which is the most sane default index.
+        // If this test fails when adjusting function generation, feel free to update the expected value.
         val program = program {
-            val max = function("max", 2, 1) {
-                max2()
+            val pushSelf = function("pushSelf", 0, 1)
+
+            pushSelf.setBody {
+                pushAddressOf(pushSelf)
             }
             body {
-                pushAddressOf(max, guaranteedEmittedAlready = true)
+                call(pushSelf)
             }
         }
 
         val ksplang = builder.build(program)
 
         runner.run(ksplang, listOf(8, 4, 0)) shouldBe listOf(8, 4, 0, 16)
-    }
-
-    test("push address of - emitted already - throws if not emitted already") {
-        val program = program {
-            val max = function("max", 2, 1)
-            max.setBody {
-                max2()
-                pushAddressOf(max, guaranteedEmittedAlready = true)
-            }
-            body {
-                call(max)
-            }
-        }
-
-        shouldThrow<IllegalStateException> {
-            builder.build(program)
-        }
     }
 })

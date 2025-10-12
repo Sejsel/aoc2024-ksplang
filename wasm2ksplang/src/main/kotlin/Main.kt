@@ -257,7 +257,7 @@ private fun ComplexBlock.initializeSingleMemoryWasmRuntimeData(runtimeData: Runt
     // [input] 0 inputlen [globals]
     runtimeData.funTable.forEach {
         if (it != null) {
-            pushAddressOf(it, guaranteedEmittedAlready = true)
+            pushAddressOf(it)
         } else {
             push(-1)
         }

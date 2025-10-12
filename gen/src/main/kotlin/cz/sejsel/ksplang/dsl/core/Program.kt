@@ -1502,13 +1502,9 @@ fun ComplexBlock.call(function: ProgramFunctionBase): FunctionCall {
 
 /**
  * Push the address of a function onto the stack.
- *
- * @param guaranteedEmittedAlready If true, indicates that the function being referenced is guaranteed to have been emitted,
- * so we can push the address directly. If false, we need to use a padded prepared push, which will be less efficient.
- * If this is violated, an exception is thrown at program generation time.
  */
 @KsplangMarker
-data class PushFunctionAddress(val calledFunction: ProgramFunctionBase, val guaranteedEmittedAlready: Boolean) : ComplexBlock {
+data class PushFunctionAddress(val calledFunction: ProgramFunctionBase) : ComplexBlock {
     // This is quite ugly API-wise
     override var children: MutableList<Block>
         get() = error("PushFunctionAddress does not have children.")
@@ -1519,8 +1515,8 @@ data class PushFunctionAddress(val calledFunction: ProgramFunctionBase, val guar
     }
 }
 
-fun ComplexBlock.pushAddressOf(function: ProgramFunctionBase, guaranteedEmittedAlready: Boolean = false): PushFunctionAddress {
-    val f = PushFunctionAddress(function, guaranteedEmittedAlready)
+fun ComplexBlock.pushAddressOf(function: ProgramFunctionBase): PushFunctionAddress {
+    val f = PushFunctionAddress(function)
     this@pushAddressOf.children.add(f)
     return f
 }
