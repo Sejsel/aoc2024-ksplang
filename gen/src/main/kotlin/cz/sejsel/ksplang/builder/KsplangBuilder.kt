@@ -375,6 +375,20 @@ class KsplangBuilder(
 
                             state.program.add(listOf(AnnotatedKsplangSegment.BlockEnd(blockId)))
                         }
+
+                        is PushFunctionAddress -> {
+                            val functionState = state.getFunctionState(block.calledFunction.name)
+                            if (block.guaranteedEmittedAlready) {
+                                check(functionState.callIndex != null) {
+                                    "Function ${block.calledFunction.name} is not emitted yet, cannot push its address"
+                                }
+
+                                e(extract { push(functionState.callIndex!!) })
+                            } else {
+                                val callPush = preparePaddedPush()
+                                functionState.pendingCalls.add(callPush)
+                            }
+                        }
                     }
                 }
 

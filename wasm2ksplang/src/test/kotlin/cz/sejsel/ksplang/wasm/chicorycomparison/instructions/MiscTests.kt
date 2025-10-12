@@ -1,4 +1,4 @@
-package cz.sejsel.ksplang.wasm.chicorycomparison
+package cz.sejsel.ksplang.wasm.chicorycomparison.instructions
 
 import com.dylibso.chicory.runtime.ExportFunction
 import com.dylibso.chicory.runtime.Store
@@ -8,6 +8,7 @@ import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.program
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.bitsToLong
+import cz.sejsel.ksplang.wasm.chicorycomparison.createWasmModuleFromWat
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.checkAll
@@ -19,7 +20,7 @@ class MiscTests : FunSpec({
 
     fun prepareModule(wat: String, exportedFunctionName: String): Pair<ExportFunction, String> {
         val chicoryModule = createWasmModuleFromWat(wat)
-        val ksplangModule = translator.translate("test", chicoryModule, Store())
+        val ksplangModule = translator.translate("test", chicoryModule)
 
         val store = Store()
         val func = store.instantiate("mod", chicoryModule).export(exportedFunctionName)!!

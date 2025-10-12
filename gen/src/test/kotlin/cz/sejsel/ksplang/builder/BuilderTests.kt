@@ -9,12 +9,14 @@ import cz.sejsel.ksplang.dsl.core.doWhileZero
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.program
+import cz.sejsel.ksplang.dsl.core.pushAddressOf
 import cz.sejsel.ksplang.dsl.core.whileNonZero
 import cz.sejsel.ksplang.std.dec
 import cz.sejsel.ksplang.std.dup
 import cz.sejsel.ksplang.std.mul
 import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.swap2
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
@@ -197,5 +199,55 @@ class FunctionTests: FunSpec({
 
         runner.run(ksplang, listOf(3)) shouldBe listOf(6)
         runner.run(ksplang, listOf(8)) shouldBe listOf(40320)
+    }
+
+    test("push address of - padded") {
+        // There is no good way to write a test for this, so we just assume the first function ends up on index 16,
+        // which is the most sane default index.
+        // If this test fails when adjusting function generation, feel free to update the expected value.
+        val program = program {
+            val max = function("max", 2, 1) {
+                max2()
+            }
+            body {
+                pushAddressOf(max)
+            }
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4, 0)) shouldBe listOf(8, 4, 0, 16)
+    }
+
+    test("push address of - emitted already") {
+        val program = program {
+            val max = function("max", 2, 1) {
+                max2()
+            }
+            body {
+                pushAddressOf(max, guaranteedEmittedAlready = true)
+            }
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4, 0)) shouldBe listOf(8, 4, 0, 16)
+    }
+
+    test("push address of - emitted already - throws if not emitted already") {
+        val program = program {
+            val max = function("max", 2, 1)
+            max.setBody {
+                max2()
+                pushAddressOf(max, guaranteedEmittedAlready = true)
+            }
+            body {
+                call(max)
+            }
+        }
+
+        shouldThrow<IllegalStateException> {
+            builder.build(program)
+        }
     }
 })

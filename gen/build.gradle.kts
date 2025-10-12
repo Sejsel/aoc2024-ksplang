@@ -13,6 +13,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.kotest.framework.engine)
+    testImplementation(libs.kotest.assertions.core)
     testImplementation(project(":interpreter"))
 }
 

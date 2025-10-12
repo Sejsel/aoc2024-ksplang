@@ -1490,7 +1490,7 @@ data class FunctionCall(val calledFunction: ProgramFunctionBase) : ComplexBlock 
         set(_) = error("FunctionCall does not have children.")
 
     override fun addChild(block: SimpleBlock) {
-        throw UnsupportedOperationException("Instructions cannot contain other blocks.")
+        throw UnsupportedOperationException("Calls cannot contain other blocks.")
     }
 }
 
@@ -1499,6 +1499,32 @@ fun ComplexBlock.call(function: ProgramFunctionBase): FunctionCall {
     this@call.children.add(f)
     return f
 }
+
+/**
+ * Push the address of a function onto the stack.
+ *
+ * @param guaranteedEmittedAlready If true, indicates that the function being referenced is guaranteed to have been emitted,
+ * so we can push the address directly. If false, we need to use a padded prepared push, which will be less efficient.
+ * If this is violated, an exception is thrown at program generation time.
+ */
+@KsplangMarker
+data class PushFunctionAddress(val calledFunction: ProgramFunctionBase, val guaranteedEmittedAlready: Boolean) : ComplexBlock {
+    // This is quite ugly API-wise
+    override var children: MutableList<Block>
+        get() = error("PushFunctionAddress does not have children.")
+        set(_) = error("PushFunctionAddress does not have children.")
+
+    override fun addChild(block: SimpleBlock) {
+        throw UnsupportedOperationException("Pushes of addresses cannot contain other blocks.")
+    }
+}
+
+fun ComplexBlock.pushAddressOf(function: ProgramFunctionBase, guaranteedEmittedAlready: Boolean = false): PushFunctionAddress {
+    val f = PushFunctionAddress(function, guaranteedEmittedAlready)
+    this@pushAddressOf.children.add(f)
+    return f
+}
+
 
 // Oh the joys of type safety.
 

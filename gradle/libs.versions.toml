@@ -9,6 +9,7 @@ mockk = "1.14.5"
 
 [libraries]
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-framework-engine = { module ="io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 guava = { module = "com.google.guava:guava", version = "33.4.0-jre" }

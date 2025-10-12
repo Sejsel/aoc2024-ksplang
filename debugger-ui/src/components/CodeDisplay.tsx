@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, memo, useCallback } from 'react';
 import type { AnnotatedKsplangTree, StateMessage } from '../types/debugger';
 import { Checkbox } from './ui/checkbox';
 
@@ -37,6 +37,30 @@ function buildInstructionMap(node: AnnotatedKsplangTree, map: Map<AnnotatedKspla
   }
 }
 
+// Memoized function to build groups from children
+function buildChildrenGroups(children: AnnotatedKsplangTree[]): Array<{ type: 'ops'; items: AnnotatedKsplangTree[] } | { type: 'block'; item: AnnotatedKsplangTree }> {
+  const groups: Array<{ type: 'ops'; items: AnnotatedKsplangTree[] } | { type: 'block'; item: AnnotatedKsplangTree }> = [];
+  let currentGroup: AnnotatedKsplangTree[] = [];
+  
+  for (const child of children) {
+    if (child.type === 'op') {
+      currentGroup.push(child);
+    } else {
+      if (currentGroup.length > 0) {
+        groups.push({ type: 'ops', items: currentGroup });
+        currentGroup = [];
+      }
+      groups.push({ type: 'block', item: child });
+    }
+  }
+  
+  if (currentGroup.length > 0) {
+    groups.push({ type: 'ops', items: currentGroup });
+  }
+  
+  return groups;
+}
+
 // Rainbow colors for light mode, subtle grays for dark mode
 const RAINBOW_COLORS = [
   'border-red-200 dark:border-gray-700',
@@ -49,30 +73,35 @@ const RAINBOW_COLORS = [
   'border-pink-200 dark:border-zinc-600'
 ];
 
-// Simple, fast RenderNode without hover state
-function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoScroll, previousIpRef, scrollContainerRef, onRunToInstruction, onRunToInstructionBackwards, onToggleBreakpoint, currentStep, isCtrlPressed, breakpoints }: RenderNodeProps) {
+// Memoized RenderNode component to prevent unnecessary re-renders
+const RenderNode = memo(function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoScroll, previousIpRef, scrollContainerRef, onRunToInstruction, onRunToInstructionBackwards, onToggleBreakpoint, currentStep, isCtrlPressed, breakpoints }: RenderNodeProps) {
   const borderColor = RAINBOW_COLORS[depth % RAINBOW_COLORS.length];
 
+  // Move all hooks to the top - they must be called unconditionally
+  const instructionIndex = useMemo(() => instructionMap.get(node) ?? -1, [instructionMap, node]);
+  const isCurrentInstruction = currentIp === instructionIndex;
+  const isBreakpoint = useMemo(() => breakpoints.length > 0 ? breakpoints.includes(instructionIndex) : false, [breakpoints, instructionIndex]);
+  
+  // Memoize groups building for block nodes (will be undefined for non-block nodes)
+  const groups = useMemo(() => {
+    return node.type === 'block' ? buildChildrenGroups(node.children) : undefined;
+  }, [node]);
+  
+  // Memoize click handler to prevent recreation on every render
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    if (e.shiftKey) {
+      e.stopPropagation();
+      window.getSelection()?.removeAllRanges();
+      onToggleBreakpoint(instructionIndex);
+    } else if (e.ctrlKey) {
+      onRunToInstructionBackwards(currentStep, instructionIndex);
+    } else {
+      onRunToInstruction(currentStep, instructionIndex);
+    }
+  }, [instructionIndex, currentStep, onToggleBreakpoint, onRunToInstructionBackwards, onRunToInstruction]);
+
   if (node.type === 'op') {
-    const instructionIndex = instructionMap.get(node) ?? -1;
-    const isCurrentInstruction = instructionIndex === currentIp;
-    
-    // Only check breakpoints if we need to display them or in hover logic
-    const isBreakpoint = breakpoints.length > 0 ? breakpoints.includes(instructionIndex) : false;
-
-    const handleClick = (e: React.MouseEvent) => {
-      e.preventDefault();
-      if (e.shiftKey) {
-        e.stopPropagation();
-        window.getSelection()?.removeAllRanges();
-        onToggleBreakpoint(instructionIndex);
-      } else if (e.ctrlKey) {
-        onRunToInstructionBackwards(currentStep, instructionIndex);
-      } else {
-        onRunToInstruction(currentStep, instructionIndex);
-      }
-    };
-
     return (
       <span
         data-instruction-idx={instructionIndex}
@@ -119,57 +148,15 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
           {displayName}{emoji}
         </div>
         <div className={`border-l-2 ${borderColor} pl-2`}>
-          {(() => {
-            const groups: Array<{ type: 'ops'; items: AnnotatedKsplangTree[] } | { type: 'block'; item: AnnotatedKsplangTree }> = [];
-            let currentGroup: AnnotatedKsplangTree[] = [];
-            
-            for (const child of node.children) {
-              if (child.type === 'op') {
-                currentGroup.push(child);
-              } else {
-                if (currentGroup.length > 0) {
-                  groups.push({ type: 'ops', items: currentGroup });
-                  currentGroup = [];
-                }
-                groups.push({ type: 'block', item: child });
-              }
-            }
-            
-            if (currentGroup.length > 0) {
-              groups.push({ type: 'ops', items: currentGroup });
-            }
-            
-            return groups.map((group, groupIndex) => {
-              if (group.type === 'ops') {
-                return (
-                  <div key={`ops-${groupIndex}`} className="flex flex-wrap gap-1 items-center mb-1">
-                    {group.items.map((opNode, opIndex) => (
-                      <RenderNode 
-                        key={`${groupIndex}-${opIndex}`}
-                        node={opNode} 
-                        depth={0} 
-                        currentIp={currentIp}
-                        instructionMap={instructionMap}
-                        showNumbers={showNumbers}
-                        autoScroll={autoScroll}
-                        previousIpRef={previousIpRef}
-                        scrollContainerRef={scrollContainerRef}
-                        onRunToInstruction={onRunToInstruction}
-                        onRunToInstructionBackwards={onRunToInstructionBackwards}
-                        onToggleBreakpoint={onToggleBreakpoint}
-                        currentStep={currentStep}
-                        isCtrlPressed={isCtrlPressed}
-                        breakpoints={breakpoints}
-                      />
-                    ))}
-                  </div>
-                );
-              } else {
-                return (
-                  <div key={`block-${groupIndex}`} className="mb-1">
+          {groups!.map((group, groupIndex) => {
+            if (group.type === 'ops') {
+              return (
+                <div key={`ops-${groupIndex}`} className="flex flex-wrap gap-1 items-center mb-1">
+                  {group.items.map((opNode, opIndex) => (
                     <RenderNode 
-                      node={group.item} 
-                      depth={depth + 1} 
+                      key={`${groupIndex}-${opIndex}`}
+                      node={opNode} 
+                      depth={0} 
                       currentIp={currentIp}
                       instructionMap={instructionMap}
                       showNumbers={showNumbers}
@@ -183,11 +170,32 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
                       isCtrlPressed={isCtrlPressed}
                       breakpoints={breakpoints}
                     />
-                  </div>
-                );
-              }
-            });
-          })()}
+                  ))}
+                </div>
+              );
+            } else {
+              return (
+                <div key={`block-${groupIndex}`} className="mb-1">
+                  <RenderNode 
+                    node={group.item} 
+                    depth={depth + 1} 
+                    currentIp={currentIp}
+                    instructionMap={instructionMap}
+                    showNumbers={showNumbers}
+                    autoScroll={autoScroll}
+                    previousIpRef={previousIpRef}
+                    scrollContainerRef={scrollContainerRef}
+                    onRunToInstruction={onRunToInstruction}
+                    onRunToInstructionBackwards={onRunToInstructionBackwards}
+                    onToggleBreakpoint={onToggleBreakpoint}
+                    currentStep={currentStep}
+                    isCtrlPressed={isCtrlPressed}
+                    breakpoints={breakpoints}
+                  />
+                </div>
+              );
+            }
+          })}
         </div>
       </div>
     );
@@ -220,7 +228,7 @@ function RenderNode({ node, depth, currentIp, instructionMap, showNumbers, autoS
   }
   
   return null;
-}
+});
 
 export function CodeDisplay({ program, currentState, onRunToInstruction, onRunToInstructionBackwards, onToggleBreakpoint }: CodeDisplayProps) {
   const [showNumbers, setShowNumbers] = useState(false);
@@ -237,6 +245,14 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
     buildInstructionMap(program, map, counter);
     return map;
   }, [program]);
+
+  // Memoize callback functions to prevent unnecessary re-renders
+  const memoizedOnRunToInstruction = useCallback(onRunToInstruction, [onRunToInstruction]);
+  const memoizedOnRunToInstructionBackwards = useCallback(onRunToInstructionBackwards, [onRunToInstructionBackwards]);
+  const memoizedOnToggleBreakpoint = useCallback(onToggleBreakpoint, [onToggleBreakpoint]);
+
+  // Memoize breakpoints array to prevent unnecessary re-renders
+  const breakpoints = useMemo(() => currentState?.breakpoints ?? [], [currentState?.breakpoints]);
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -270,7 +286,6 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
 
   const currentIp = currentState?.ip ?? -1;
   const currentStep = currentState?.step ?? BigInt(0);
-  const breakpoints = currentState?.breakpoints ?? [];
 
   return (
     <div ref={scrollContainerRef} className="border rounded-lg bg-card overflow-auto h-full">
@@ -304,9 +319,9 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
             autoScroll={autoScroll}
             previousIpRef={previousIpRef}
             scrollContainerRef={scrollContainerRef}
-            onRunToInstruction={onRunToInstruction}
-            onRunToInstructionBackwards={onRunToInstructionBackwards}
-            onToggleBreakpoint={onToggleBreakpoint}
+            onRunToInstruction={memoizedOnRunToInstruction}
+            onRunToInstructionBackwards={memoizedOnRunToInstructionBackwards}
+            onToggleBreakpoint={memoizedOnToggleBreakpoint}
             currentStep={currentStep}
             isCtrlPressed={isCtrlPressed}
             breakpoints={breakpoints}

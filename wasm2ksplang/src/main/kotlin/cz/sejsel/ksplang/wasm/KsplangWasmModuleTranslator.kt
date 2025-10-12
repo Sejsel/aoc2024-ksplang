@@ -95,12 +95,17 @@ import cz.sejsel.ksplang.wasm.WasmFunctionScope.Companion.initialize as initiali
 
 class TranslatedWasmModule(
     val programFunctions: List<ProgramFunctionBase>,
+    val chicoryModule: WasmModule,
     private val exportedFunctions: Map<String, ProgramFunctionBase>,
 ) {
     fun KsplangProgramBuilder.installFunctions() {
         programFunctions.forEach {
             installFunction(it)
         }
+    }
+
+    fun getFunction(index: Int): ProgramFunctionBase? {
+        return programFunctions.getOrNull(index)
     }
 
     fun KsplangProgramBuilder.getExportedFunction(name: String): ProgramFunctionBase? {
@@ -116,7 +121,7 @@ class KsplangWasmModuleTranslator() {
     // TODO: Forward function declaration
     // TODO: Memory
     // TODO: Start function
-    fun translate(moduleName: String, module: WasmModule, store: Store): TranslatedWasmModule {
+    fun translate(moduleName: String, module: WasmModule): TranslatedWasmModule {
         val functions = mutableListOf<ProgramFunctionBase>()
         for (functionIndex in 0..<module.functionSection().functionCount()) {
             val function = functionToKsplang(module, functionIndex, moduleName)
@@ -125,13 +130,14 @@ class KsplangWasmModuleTranslator() {
 
         return TranslatedWasmModule(
             programFunctions = functions,
+            chicoryModule = module,
             exportedFunctions = associateExportedFunctions(module, functions)
         )
     }
 
-    fun translate(moduleName: String, path: Path, store: Store): TranslatedWasmModule {
+    fun translate(moduleName: String, path: Path): TranslatedWasmModule {
         val module = Parser.parse(path)
-        return translate(moduleName, module, store)
+        return translate(moduleName, module)
     }
 
     private fun associateExportedFunctions(
@@ -150,6 +156,11 @@ class KsplangWasmModuleTranslator() {
         val localTypes = code.localTypes()
         val paramCount = functionType.params().size
         val returnCount = functionType.returns().size
+
+        // There may be a name in the name custom section
+        val declaredName = module.nameSection()?.nameOfFunction(index) ?: "anonymous"
+
+        val name = "wasm_${moduleName}_${index}_$declaredName"
 
         val body = buildComplexFunction {
             val scope = initializeScope(
@@ -624,7 +635,6 @@ class KsplangWasmModuleTranslator() {
             }
         }
 
-        val name = "wasm_${moduleName}_$index"
         return when (paramCount) {
             0 -> when (returnCount) {
                 0 -> ProgramFunction0To0(name, body)
