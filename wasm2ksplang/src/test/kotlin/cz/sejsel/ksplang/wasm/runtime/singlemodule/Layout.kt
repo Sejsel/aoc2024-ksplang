@@ -1,4 +1,4 @@
-package cz.sejsel.ksplang.wasm.singlemodule
+package cz.sejsel.ksplang.wasm.runtime.singlemodule
 
 import com.dylibso.chicory.runtime.Store
 import cz.sejsel.buildSingleModuleProgram
@@ -6,6 +6,7 @@ import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction2To1
 import cz.sejsel.ksplang.dsl.core.call
+import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.instantiateModuleFromWat
 import io.kotest.core.spec.style.FunSpec
@@ -17,7 +18,7 @@ class LayoutTests : FunSpec({
     val builder = KsplangBuilder()
     val translator = KsplangWasmModuleTranslator()
 
-    context("add with no memory or table") {
+    context("add with no memory or table or globals") {
         val wat = $$"""
                 (module (func $fun (export "add") (param $a i32) (param $b i32) (result i32)
                     local.get $a
@@ -45,14 +46,69 @@ class LayoutTests : FunSpec({
             result.last() shouldBe 42L
         }
 
+        val emptyProgram = buildSingleModuleProgram(module) {}
+        val ksplang = builder.buildAnnotated(emptyProgram).toRunnableProgram()
+
         test("first value is zero") {
-            TODO()
+            val result = runner.run(ksplang, listOf(40, 2).map { it.toLong() })
+            result.first() shouldBe 0L
         }
-        test("input layout") {
-            TODO()
+
+        context("second value is input size") {
+            withData(listOf(1, 2, 3, 42, 100)) { it ->
+                val stack = List(it) { index -> index.toLong() }
+                val result = runner.run(ksplang, stack)
+                result[1] shouldBe it.toLong()
+            }
         }
-        test("input size on stack matches") {
-            TODO()
+
+        test("input starts right after input len") {
+            val result = runner.run(ksplang, listOf(1, 2, 3, 4, 5))
+            result.subList(2, result.size) shouldBe listOf(1L, 2L, 3L, 4L, 5L)
+            result.takeLast(5) shouldBe listOf(1L, 2L, 3L, 4L, 5L)
+        }
+
+        context("getInputSize returns input size") {
+            withData(listOf(1, 2, 3, 42, 100)) { it ->
+                val input = List(it) { index -> index.toLong() }
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        getInputSize()
+                    }
+                }
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input.size
+            }
+        }
+
+        context("yoinkInput - dynamic") {
+            withData(listOf(0, 1, 2)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        push(index)
+                        yoinkInput()
+                    }
+                }
+                val input = listOf(40L, 41L, 42L)
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input[index]
+            }
+        }
+
+        context("yoinkInput - static") {
+            withData(listOf(0, 1, 2)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        yoinkInput(index)
+                    }
+                }
+                val input = listOf(40L, 41L, 42L)
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input[index]
+            }
         }
     }
 
@@ -141,6 +197,49 @@ class LayoutTests : FunSpec({
             val result = runner.run(ksplang, listOf(1, 2, 3, 4, 5))
             result.subList(12 + 65536 - 8, result.size) shouldBe listOf(1L, 2L, 3L, 4L, 5L)
             result.takeLast(5) shouldBe listOf(1L, 2L, 3L, 4L, 5L)
+        }
+
+        context("getInputSize returns input size") {
+            withData(listOf(1, 2, 3, 42, 100)) { it ->
+                val input = List(it) { index -> index.toLong() }
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        getInputSize()
+                    }
+                }
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input.size
+            }
+        }
+
+        context("yoinkInput - dynamic") {
+            withData(listOf(0, 1, 2)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        push(index)
+                        yoinkInput()
+                    }
+                }
+                val input = listOf(40L, 41L, 42L)
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input[index]
+            }
+        }
+
+        context("yoinkInput - static") {
+            withData(listOf(0, 1, 2)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        yoinkInput(index)
+                    }
+                }
+                val input = listOf(40L, 41L, 42L)
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input[index]
+            }
         }
     }
 })

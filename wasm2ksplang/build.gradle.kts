@@ -12,6 +12,7 @@ dependencies {
     implementation(libs.chicory.runtime)
     implementation(libs.chicory.wasm.tools)
     implementation(project(":gen"))
+
     testImplementation(libs.kotest.framework.engine)
     testImplementation(libs.kotest.property)
     testImplementation(libs.mockk)

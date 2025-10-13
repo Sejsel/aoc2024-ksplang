@@ -23,6 +23,7 @@ import cz.sejsel.ksplang.std.auto.*
 import cz.sejsel.ksplang.std.dec
 import cz.sejsel.ksplang.std.dup
 import cz.sejsel.ksplang.std.dupKthZeroIndexed
+import cz.sejsel.ksplang.std.mul
 import cz.sejsel.ksplang.std.negate
 import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.roll
@@ -136,7 +137,7 @@ fun main() {
  */
 fun buildSingleModuleProgram(
     module: InstantiatedKsplangWasmModule,
-    block: ((SingleModuleWasmBuilder).() -> Unit)
+    block: ((WasmBuilder).() -> Unit)
 ): KsplangProgram {
     return program {
         // Add functions from WASM module to the program
@@ -144,40 +145,67 @@ fun buildSingleModuleProgram(
 
         body {
             // TODO: Ensure we ran start before this!
-            val indices = initializeSingleMemoryWasmRuntimeData(module.toRuntimeData())
 
-            // The stack now starts with
-            // 0 input_len [globals] [fun_table] [mem_size mem_max_size [mem_pages]] [input]
+            val runtimeData = module.toRuntimeData()
+            val builder: WasmBuilder = if (runtimeData.memory.size == 0) {
+                val indices = initializeNoMemoryWasmRuntimeData(runtimeData)
+                NoMemoryWasmBuilder(
+                    builder = this@program,
+                    body = this,
+                    indices = indices,
+                    module = module
+                )
+            } else if (runtimeData.memory.size == 1) {
+                val indices = initializeSingleMemoryWasmRuntimeData(runtimeData)
 
-            val builder = SingleModuleWasmBuilder(
-                builder = this@program,
-                body = this,
-                indices = indices,
-                module = module
-            )
+                // The stack now starts with
+                // 0 input_len [globals] [fun_table] [mem_size mem_max_size [mem_pages]] [input]
+
+                SingleModuleWasmBuilder(
+                    builder = this@program,
+                    body = this,
+                    indices = indices,
+                    module = module
+                )
+            } else {
+                error("Multiple memories not supported")
+            }
+
             builder.block()
         }
     }
 }
 
-class SingleModuleWasmBuilder(
+interface WasmBuilder {
+    fun getExportedFunction(name: String): ProgramFunctionBase?
+
+    fun body(block: ComplexFunction.() -> Unit)
+
+    fun ComplexFunction.getInputSize(): ComplexFunction
+    fun ComplexFunction.yoinkInput(): ComplexFunction
+    fun ComplexFunction.yoinkInput(k: Int): ComplexFunction
+
+    fun build(): KsplangProgram
+}
+
+class NoMemoryWasmBuilder(
     private val module: InstantiatedKsplangWasmModule,
     private val builder: KsplangProgramBuilder,
     private val body: ComplexFunction,
-    val indices: SingleMemoryRuntimeIndexes,
-) {
+    val indices: NoMemoryRuntimeIndexes,
+) : WasmBuilder {
     private var bodyCalled = false
 
-    fun getExportedFunction(name: String): ProgramFunctionBase? = module.getExportedFunction(builder, name)
+    override fun getExportedFunction(name: String): ProgramFunctionBase? = module.getExportedFunction(builder, name)
 
-    fun body(block: ComplexFunction.() -> Unit) {
-        check(bodyCalled == false) { "Body can only be set once" }
+    override fun body(block: ComplexFunction.() -> Unit) {
+        check(!bodyCalled) { "Body can only be set once" }
         bodyCalled = true
 
         block(body)
     }
 
-    fun ComplexFunction.getInputSize() = complexFunction("input_size") {
+    override fun ComplexFunction.getInputSize() = complexFunction("inputSize") {
         push(indices.inputLenIndex)
         yoink()
     }
@@ -185,11 +213,89 @@ class SingleModuleWasmBuilder(
     /**
      * Signature: ```i -> input[i]```
      */
-    fun ComplexFunction.yoinkInput() = complexFunction("yoink_input") {
-        TODO()
+    override fun ComplexFunction.yoinkInput() = complexFunction("yoinkInput") {
+        push(indices.inputStartIndex)
+        add()
+        yoink()
     }
 
-    fun build(): KsplangProgram = builder.build()
+    /**
+     * Signature: ``` -> input[k]```
+     */
+    override fun ComplexFunction.yoinkInput(k: Int) = complexFunction("yoinkInput($k)") {
+        push(indices.inputStartIndex + k)
+        yoink()
+    }
+
+    override fun build(): KsplangProgram = builder.build()
+}
+
+class SingleModuleWasmBuilder(
+    private val module: InstantiatedKsplangWasmModule,
+    private val builder: KsplangProgramBuilder,
+    private val body: ComplexFunction,
+    val indices: SingleMemoryRuntimeIndexes,
+) : WasmBuilder {
+    private var bodyCalled = false
+
+    override fun getExportedFunction(name: String): ProgramFunctionBase? = module.getExportedFunction(builder, name)
+
+    override fun body(block: ComplexFunction.() -> Unit) {
+        check(!bodyCalled) { "Body can only be set once" }
+        bodyCalled = true
+
+        block(body)
+    }
+
+    override fun ComplexFunction.getInputSize() = complexFunction("inputSize") {
+        push(indices.inputLenIndex)
+        yoink()
+    }
+
+    /**
+     * Signature: ```i -> input[i]```
+     */
+    override fun ComplexFunction.yoinkInput() = complexFunction("yoinkInput") {
+        // input starts at memStartIndex + memSize * 65536
+
+        // i
+        push(indices.memSizeIndex)
+        yoink()
+        // i mem_size
+        push(65536)
+        mul()
+        // i mem_size*65536
+
+        push(indices.memStartIndex)
+        // i mem_size*65536 mem_start
+        add()
+        // i mem_start+mem_size*65536
+        add()
+        // i+mem_start+mem_size*65536
+        yoink()
+    }
+
+    /**
+     * Signature: ``` -> input[k]```
+     */
+    override fun ComplexFunction.yoinkInput(k: Int) = complexFunction("yoinkInput($k)") {
+        // input starts at memStartIndex + memSize * 65536
+
+        push(indices.memSizeIndex)
+        yoink()
+        // mem_size
+        push(65536)
+        mul()
+        // mem_size*65536
+
+        push(indices.memStartIndex + k)
+        // mem_size*65536 mem_start+k
+        add()
+        // k+mem_start+mem_size*65536
+        yoink()
+    }
+
+    override fun build(): KsplangProgram = builder.build()
 }
 
 fun InstantiatedKsplangWasmModule.toRuntimeData(): RuntimeData {
@@ -236,6 +342,59 @@ data class SingleMemoryRuntimeIndexes(
     val memStartIndex: Int,
 )
 
+data class NoMemoryRuntimeIndexes(
+    val inputLenIndex: Int,
+    val globalsStartIndex: Int,
+    val globalsCount: Int,
+    val funTableStartIndex: Int,
+    val funTableCount: Int,
+    val inputStartIndex: Int
+)
+
+
+// input -> 0 input_len [globals] [fun_table] [input]
+//          ^ leaving that available for L-swap or other optimizations
+// input is statically adressable
+private fun ComplexBlock.initializeNoMemoryWasmRuntimeData(runtimeData: RuntimeData): NoMemoryRuntimeIndexes {
+    check(runtimeData.memory.isEmpty())
+
+    // [input]
+    stacklen()
+    push(0)
+    swap2()
+    // [input] 0 inputlen
+    runtimeData.globals.forEach {
+        push(it.value)
+    }
+    // [input] 0 inputlen [globals]
+    runtimeData.funTable.forEach {
+        if (it != null) pushAddressOf(it) else push(-1)
+    }
+    // [input] 0 inputlen [globals] [fun_table]
+
+    val staticSize = 2 + runtimeData.globals.size + runtimeData.funTable.size
+    dupKthZeroIndexed(staticSize - 2)
+
+    // [input] 0 inputlen [globals] [fun_table] inputlen
+    dup()
+    push(staticSize)
+    add()
+    // [input] 0 inputlen [globals] [fun_table] inputlen inputlen+static_size
+    swap2()
+    negate()
+    swap2()
+    // [input] 0 inputlen [globals] [fun_table] -inputlen inputlen+static_size
+    lroll()
+    // 0 inputlen [globals] [fun_table] [input]
+    return NoMemoryRuntimeIndexes(
+        inputLenIndex = 1,
+        globalsStartIndex = 2,
+        globalsCount = runtimeData.globals.size,
+        funTableStartIndex = 2 + runtimeData.globals.size,
+        funTableCount = runtimeData.funTable.size,
+        inputStartIndex = 2 + runtimeData.globals.size + runtimeData.funTable.size,
+    )
+}
 
 // input -> 0 input_len [globals] [fun_table] [mem_size mem_max_size [mem_pages]] [input]
 //          ^ leaving that available for L-swap or other optimizations
