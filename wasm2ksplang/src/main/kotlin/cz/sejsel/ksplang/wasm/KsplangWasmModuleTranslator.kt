@@ -1,6 +1,5 @@
 package cz.sejsel.ksplang.wasm
 
-import com.dylibso.chicory.runtime.Store
 import com.dylibso.chicory.wasm.Parser
 import com.dylibso.chicory.wasm.WasmModule
 import com.dylibso.chicory.wasm.types.ExternalType
@@ -97,11 +96,13 @@ class TranslatedWasmModule(
     val programFunctions: List<ProgramFunctionBase>,
     val chicoryModule: WasmModule,
     private val exportedFunctions: Map<String, ProgramFunctionBase>,
+    /** Forward declaration, needs to be implemented by embedder */
+    //val getMemoryFunction: ProgramFunctionBase,
+    val getGlobalFunctions: Map<Int, ProgramFunction0To1>
 ) {
     fun KsplangProgramBuilder.installFunctions() {
-        programFunctions.forEach {
-            installFunction(it)
-        }
+        programFunctions.forEach { installFunction(it) }
+        getGlobalFunctions.values.forEach { installFunction(it) }
     }
 
     fun getFunction(index: Int): ProgramFunctionBase? {
@@ -117,21 +118,39 @@ class TranslatedWasmModule(
     }
 }
 
+class ModuleTranslatorState {
+    // All of these are forward declarations:
+    val globalFunctions = mutableMapOf<Int, ProgramFunction0To1>()
+    val memoryFunction: ProgramFunction1To1? = null
+
+    fun getGlobalFunction(globalIndex: Int): ProgramFunction0To1 {
+        // Forward declaration.
+        return globalFunctions.getOrPut(globalIndex) {
+            ProgramFunction0To1(
+                name = "wasm_getGlobal($globalIndex)",
+                body = null,
+            )
+        }
+    }
+}
+
 class KsplangWasmModuleTranslator() {
     // TODO: Forward function declaration
     // TODO: Memory
     // TODO: Start function
     fun translate(moduleName: String, module: WasmModule): TranslatedWasmModule {
         val functions = mutableListOf<ProgramFunctionBase>()
+        val state = ModuleTranslatorState()
         for (functionIndex in 0..<module.functionSection().functionCount()) {
-            val function = functionToKsplang(module, functionIndex, moduleName)
+            val function = functionToKsplang(module, functionIndex, moduleName, state)
             functions.add(function)
         }
 
         return TranslatedWasmModule(
             programFunctions = functions,
             chicoryModule = module,
-            exportedFunctions = associateExportedFunctions(module, functions)
+            exportedFunctions = associateExportedFunctions(module, functions),
+            getGlobalFunctions = state.globalFunctions,
         )
     }
 
@@ -150,7 +169,7 @@ class KsplangWasmModuleTranslator() {
             .associate { it.name() to functions[it.index()] }
     }
 
-    private fun functionToKsplang(module: WasmModule, index: Int, moduleName: String): ProgramFunctionBase {
+    private fun functionToKsplang(module: WasmModule, index: Int, moduleName: String, state: ModuleTranslatorState): ProgramFunctionBase {
         val functionType = module.typeSection().getType(module.functionSection().getFunctionType(index))
         val code = module.codeSection().functionBodies()[index]
         val localTypes = code.localTypes()
@@ -166,7 +185,8 @@ class KsplangWasmModuleTranslator() {
             val scope = initializeScope(
                 params = functionType.params(),
                 localTypes = localTypes,
-                returns = functionType.returns()
+                returns = functionType.returns(),
+                state = state
             )
 
             with(scope) {
@@ -209,7 +229,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.LOCAL_GET -> getLocal(instruction.operands()[0].toInt())
                         OpCode.LOCAL_SET -> setLocal(instruction.operands()[0].toInt())
                         OpCode.LOCAL_TEE -> teeLocal(instruction.operands()[0].toInt())
-                        OpCode.GLOBAL_GET -> TODO()
+                        OpCode.GLOBAL_GET -> getGlobal(instruction.operands()[0].toInt())
                         OpCode.GLOBAL_SET -> TODO()
                         OpCode.TABLE_GET -> unsupportedReferenceTypes()
                         OpCode.TABLE_SET -> unsupportedReferenceTypes()

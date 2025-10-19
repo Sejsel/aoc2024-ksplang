@@ -1482,8 +1482,14 @@ sealed class ProgramFunctionBase(
     }
 }
 
+enum class CallInline {
+    NEVER,
+    AUTO,
+    ALWAYS,
+}
+
 @KsplangMarker
-data class FunctionCall(val calledFunction: ProgramFunctionBase) : ComplexBlock {
+data class FunctionCall(val calledFunction: ProgramFunctionBase, val inline: CallInline = CallInline.AUTO) : ComplexBlock {
     // This is quite ugly API-wise
     override var children: MutableList<Block>
         get() = error("FunctionCall does not have children.")
@@ -1494,8 +1500,8 @@ data class FunctionCall(val calledFunction: ProgramFunctionBase) : ComplexBlock 
     }
 }
 
-fun ComplexBlock.call(function: ProgramFunctionBase): FunctionCall {
-    val f = FunctionCall(function)
+fun ComplexBlock.call(function: ProgramFunctionBase, inline: CallInline = CallInline.AUTO): FunctionCall {
+    val f = FunctionCall(function, inline)
     this@call.children.add(f)
     return f
 }

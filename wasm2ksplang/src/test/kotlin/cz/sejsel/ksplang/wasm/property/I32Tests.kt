@@ -4,20 +4,22 @@ import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
+import cz.sejsel.ksplang.wasm.ModuleTranslatorState
 import cz.sejsel.ksplang.wasm.bitsToLong
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import io.kotest.property.checkAll
+import io.mockk.mockk
 import cz.sejsel.ksplang.wasm.WasmFunctionScope.Companion.initialize as initializeScope
 
 class I32Tests : FunSpec({
     val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
+    val globalState: ModuleTranslatorState = mockk()
 
     context("i32Add") {
         val function = buildComplexFunction {
-            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList())
+            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList(), globalState)
             with(scope) {
                 getLocal(0)
                 getLocal(1)
@@ -45,7 +47,7 @@ class I32Tests : FunSpec({
 
     context("i32Sub") {
         val function = buildComplexFunction {
-            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList())
+            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList(), globalState)
             with(scope) {
                 getLocal(0)
                 getLocal(1)
@@ -73,7 +75,7 @@ class I32Tests : FunSpec({
 
     context("i32Mul") {
         val function = buildComplexFunction {
-            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList())
+            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList(), globalState)
             with(scope) {
                 getLocal(0)
                 getLocal(1)

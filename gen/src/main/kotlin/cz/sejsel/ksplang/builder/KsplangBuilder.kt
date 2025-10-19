@@ -281,7 +281,7 @@ class KsplangBuilder(
 
                         is ComplexFunction -> {
                             val blockId = state.getNextBlockId()
-                            state.program.add(listOf(AnnotatedKsplangSegment.BlockStart(block.name, blockId, BlockType.InlinedFunction)))
+                            state.program.add(listOf(AnnotatedKsplangSegment.BlockStart(block.name, blockId, BlockType.InlinedFunctionCall)))
                             // It may be called complex, but it is so simple, oh so simple:
                             for (child in block.children) {
                                 e(child)
@@ -362,23 +362,33 @@ class KsplangBuilder(
                         }
 
                         is FunctionCall -> {
-                            val blockId = state.getNextBlockId()
-                            state.program.add(listOf(AnnotatedKsplangSegment.BlockStart("call_${block.calledFunction.name}", blockId, BlockType.FunctionCall)))
+                            when (block.inline) {
+                                CallInline.AUTO, CallInline.NEVER -> {
+                                    val blockId = state.getNextBlockId()
+                                    state.program.add(listOf(AnnotatedKsplangSegment.BlockStart("call_${block.calledFunction.name}", blockId, BlockType.FunctionCall)))
 
-                            val functionState = state.getFunctionState(block.calledFunction.name)
-                            functionState.callIndex?.let { callIndex ->
-                                // This function is already emitted, we can just push its address
-                                e(extract { push(callIndex) })
-                            } ?: run {
-                                // Because of function calls in functions (recursion, or calling functions not defined yet),
-                                // we need to prepare this push instead of eagerly expanding it.
-                                val callPush = preparePaddedPush()
-                                functionState.pendingCalls.add(callPush)
+                                    val functionState = state.getFunctionState(block.calledFunction.name)
+                                    functionState.callIndex?.let { callIndex ->
+                                        // This function is already emitted, we can just push its address
+                                        e(extract { push(callIndex) })
+                                    } ?: run {
+                                        // Because of function calls in functions (recursion, or calling functions not defined yet),
+                                        // we need to prepare this push instead of eagerly expanding it.
+                                        val callPush = preparePaddedPush()
+                                        functionState.pendingCalls.add(callPush)
+                                    }
+                                    e(call)
+                                    e(pop)
+
+                                    state.program.add(listOf(AnnotatedKsplangSegment.BlockEnd(blockId)))
+                                }
+                                CallInline.ALWAYS -> {
+                                    val blockId = state.getNextBlockId()
+                                    state.program.add(listOf(AnnotatedKsplangSegment.BlockStart("call_inlined_${block.calledFunction.name}", blockId, BlockType.InlinedFunction)))
+                                    e(block.calledFunction.body ?: error("Function ${block.calledFunction.name} has no body - forward declaration without body?"))
+                                    state.program.add(listOf(AnnotatedKsplangSegment.BlockEnd(blockId)))
+                                }
                             }
-                            e(call)
-                            e(pop)
-
-                            state.program.add(listOf(AnnotatedKsplangSegment.BlockEnd(blockId)))
                         }
 
                         is PushFunctionAddress -> {
@@ -411,6 +421,7 @@ class KsplangBuilder(
                         val afterPush = preparePaddedPush(firstFunStart - 1)
                         expand(j)
                         // Callable functions
+                        // TODO: Do not emit if never called
                         for (function in functions) {
                             val functionState = state.getFunctionState(function.name)
                             val fIndex = state.index

@@ -24,6 +24,9 @@ sealed interface BlockType {
     @Serializable
     @SerialName("function_call")
     data object FunctionCall : BlockType
+    @Serializable
+    @SerialName("function_call_inlined")
+    data object InlinedFunctionCall : BlockType
 }
 
 @Serializable

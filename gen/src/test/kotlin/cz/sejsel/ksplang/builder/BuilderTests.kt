@@ -1,6 +1,7 @@
 package cz.sejsel.ksplang.builder
 
 import cz.sejsel.ksplang.DefaultKsplangRunner
+import cz.sejsel.ksplang.dsl.core.CallInline
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.doWhileNonNegative
@@ -16,6 +17,7 @@ import cz.sejsel.ksplang.std.dup
 import cz.sejsel.ksplang.std.mul
 import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.swap2
+import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
@@ -237,5 +239,30 @@ class FunctionTests: FunSpec({
         val ksplang = builder.build(program)
 
         runner.run(ksplang, listOf(8, 4, 0)) shouldBe listOf(8, 4, 0, 16)
+    }
+
+    context("call inline") {
+        val programNotInlined = program {
+            val max = function("max", 2, 1) { max2() }
+            body { call(max, inline = CallInline.NEVER) }
+        }
+
+        val programInlined = program {
+            val max = function("max", 2, 1) { max2() }
+            body { call(max, inline = CallInline.ALWAYS) }
+        }
+
+        val ksplangNotInlined = builder.buildAnnotated(programNotInlined)
+        val ksplangInlined = builder.buildAnnotated(programInlined)
+
+        test("does not contain call") {
+            ksplangNotInlined.segments.contains(AnnotatedKsplangSegment.Op("call")) shouldBe true
+            ksplangInlined.segments.contains(AnnotatedKsplangSegment.Op("call")) shouldBe false
+        }
+
+        test("returns expected value") {
+            runner.run(ksplangInlined.toRunnableProgram(), listOf(8, 4)) shouldBe listOf(8)
+            runner.run(ksplangInlined.toRunnableProgram(), listOf(4, 8)) shouldBe listOf(8)
+        }
     }
 })

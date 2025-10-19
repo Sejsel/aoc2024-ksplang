@@ -15,6 +15,7 @@ import cz.sejsel.ksplang.dsl.core.KsplangProgram
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction2To1
 import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
+import cz.sejsel.ksplang.dsl.core.extract
 import cz.sejsel.ksplang.dsl.core.program
 import cz.sejsel.ksplang.dsl.core.pushAddressOf
 import cz.sejsel.ksplang.dsl.core.whileNonZero
@@ -147,14 +148,25 @@ fun buildSingleModuleProgram(
             // TODO: Ensure we ran start before this!
 
             val runtimeData = module.toRuntimeData()
-            val builder: WasmBuilder = if (runtimeData.memory.size == 0) {
+            val builder: WasmBuilder = if (runtimeData.memory.isEmpty()) {
                 val indices = initializeNoMemoryWasmRuntimeData(runtimeData)
-                NoMemoryWasmBuilder(
+
+                // The stack now starts with
+                // 0 input_len [globals] [fun_table] [input]
+
+                val builder = NoMemoryWasmBuilder(
                     builder = this@program,
                     body = this,
                     indices = indices,
                     module = module
                 )
+                module.getGetGlobalFunctions().forEach { (index, function) ->
+                    function.setBody {
+                        with(builder) { yoinkGlobal(index) }
+                    }
+                }
+
+                builder
             } else if (runtimeData.memory.size == 1) {
                 val indices = initializeSingleMemoryWasmRuntimeData(runtimeData)
 
@@ -183,7 +195,10 @@ interface WasmBuilder {
 
     fun ComplexFunction.getInputSize(): ComplexFunction
     fun ComplexFunction.yoinkInput(): ComplexFunction
-    fun ComplexFunction.yoinkInput(k: Int): ComplexFunction
+    fun ComplexFunction.yoinkInput(index: Int): ComplexFunction
+    fun ComplexFunction.yoinkGlobal(index: Int): ComplexFunction
+    fun ComplexFunction.yoinkMemory(): ComplexFunction
+    fun ComplexFunction.yoinkMemory(index: Int): ComplexFunction
 
     fun build(): KsplangProgram
 }
@@ -222,9 +237,23 @@ class NoMemoryWasmBuilder(
     /**
      * Signature: ``` -> input[k]```
      */
-    override fun ComplexFunction.yoinkInput(k: Int) = complexFunction("yoinkInput($k)") {
-        push(indices.inputStartIndex + k)
+    override fun ComplexFunction.yoinkInput(index: Int) = complexFunction("yoinkInput($index)") {
+        push(indices.inputStartIndex + index)
         yoink()
+    }
+
+    override fun ComplexFunction.yoinkGlobal(index: Int): ComplexFunction = complexFunction("getGlobal($index)") {
+        val index = indices.globalsStartIndex + index
+        push(index)
+        yoink()
+    }
+
+    override fun ComplexFunction.yoinkMemory(): ComplexFunction {
+        error("Not supported")
+    }
+
+    override fun ComplexFunction.yoinkMemory(index: Int): ComplexFunction {
+        error("Not supported")
     }
 
     override fun build(): KsplangProgram = builder.build()
@@ -266,7 +295,7 @@ class SingleModuleWasmBuilder(
         mul()
         // i mem_size*65536
 
-        push(indices.memStartIndex)
+        push(indices.memDataStartIndex)
         // i mem_size*65536 mem_start
         add()
         // i mem_start+mem_size*65536
@@ -278,8 +307,8 @@ class SingleModuleWasmBuilder(
     /**
      * Signature: ``` -> input[k]```
      */
-    override fun ComplexFunction.yoinkInput(k: Int) = complexFunction("yoinkInput($k)") {
-        // input starts at memStartIndex + memSize * 65536
+    override fun ComplexFunction.yoinkInput(index: Int) = complexFunction("yoinkInput($index)") {
+        // input starts at memDataStartIndex + memSize * 65536
 
         push(indices.memSizeIndex)
         yoink()
@@ -288,10 +317,38 @@ class SingleModuleWasmBuilder(
         mul()
         // mem_size*65536
 
-        push(indices.memStartIndex + k)
+        push(indices.memDataStartIndex + index)
         // mem_size*65536 mem_start+k
         add()
         // k+mem_start+mem_size*65536
+        yoink()
+    }
+
+    override fun ComplexFunction.yoinkGlobal(index: Int): ComplexFunction = complexFunction("getGlobal($index)") {
+        push(indices.globalsStartIndex + index)
+        yoink()
+    }
+
+    /**
+     * Signature: ```i -> memory[i]```
+     */
+    override fun ComplexFunction.yoinkMemory(): ComplexFunction = complexFunction("yoinkMemory") {
+        // Important note: we do no bounds checking here, that goes against the WASM spec, but it would be very slow.
+        // it would also require us to keep track of current data len (page count is not enough) - one extra value
+
+        // i
+        push(indices.memDataStartIndex)
+        // i mem_start
+        add()
+        // mem_start+i
+        yoink()
+    }
+
+    /**
+     * Signature: ``` -> memory[index]```
+     */
+    override fun ComplexFunction.yoinkMemory(index: Int): ComplexFunction = complexFunction("yoinkMemory($index)") {
+        push(indices.memDataStartIndex + index)
         yoink()
     }
 
@@ -339,7 +396,7 @@ data class SingleMemoryRuntimeIndexes(
     val funTableCount: Int,
     val memSizeIndex: Int,
     val memMaxSizeIndex: Int,
-    val memStartIndex: Int,
+    val memDataStartIndex: Int,
 )
 
 data class NoMemoryRuntimeIndexes(
@@ -461,7 +518,7 @@ private fun ComplexBlock.initializeSingleMemoryWasmRuntimeData(runtimeData: Runt
         funTableCount = runtimeData.funTable.size,
         memSizeIndex = 2 + runtimeData.globals.size + runtimeData.funTable.size,
         memMaxSizeIndex = 3 + runtimeData.globals.size + runtimeData.funTable.size,
-        memStartIndex = 4 + runtimeData.globals.size + runtimeData.funTable.size,
+        memDataStartIndex = 4 + runtimeData.globals.size + runtimeData.funTable.size,
     )
 }
 

@@ -159,6 +159,7 @@ class LayoutTests : FunSpec({
 
         val emptyProgram = buildSingleModuleProgram(module) {}
         val ksplang = builder.buildAnnotated(emptyProgram).toRunnableProgram()
+        val expectedMemoryBytes = listOf(0xF0, 0x0D, 0xBE, 0xEF, 0xF0, 0xCA, 0xCC, 0x1A).map { it.toLong() }
 
         test("first value is zero") {
             val result = runner.run(ksplang, listOf(40, 2).map { it.toLong() })
@@ -185,8 +186,7 @@ class LayoutTests : FunSpec({
 
         test("memory starts with data sequence") {
             val result = runner.run(ksplang, listOf(1, 2))
-            val expectedData = listOf(0xF0, 0x0D, 0xBE, 0xEF, 0xF0, 0xCA, 0xCC, 0x1A).map { it.toLong() }
-            result.subList(4, 12) shouldBe expectedData
+            result.subList(4, 12) shouldBe expectedMemoryBytes
         }
 
         test("memory continues with many zeroes") {
@@ -243,6 +243,33 @@ class LayoutTests : FunSpec({
                 result.last() shouldBe input[index]
             }
         }
+
+        context("yoinkMemory - static") {
+            withData(listOf(0, 1, 2, 3, 4, 5, 6, 7)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        yoinkMemory(index)
+                    }
+                }
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, listOf(40, 2))
+                result.last() shouldBe expectedMemoryBytes[index]
+            }
+        }
+
+        context("yoinkMemory - dynamic") {
+            withData(listOf(0, 1, 2, 3, 4, 5, 6, 7)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        push(index)
+                        yoinkMemory()
+                    }
+                }
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, listOf(40, 2))
+                result.last() shouldBe expectedMemoryBytes[index]
+            }
+        }
     }
 
     context("kitchen sink") {
@@ -281,7 +308,7 @@ class LayoutTests : FunSpec({
 
         // expected layout:
         // 0 input_len [globals] [fun_table] [mem_size mem_max_size [mem_pages]]           [input]
-        // 0 input_len [7 42   ] [16 ??? -1] [1 2 [240 13 190 239 240 202 204 26 0 ... 0]] [input]
+        // 0 input_len [7 42   ] [?? ??? -1] [1 2 [240 13 190 239 240 202 204 26 0 ... 0]] [input]
 
         val emptyProgram = buildSingleModuleProgram(module) {}
         val ksplang = builder.buildAnnotated(emptyProgram).toRunnableProgram()
@@ -323,6 +350,41 @@ class LayoutTests : FunSpec({
         test("input is correct") {
             // input starts after memory
             result.subList(17 + 65536 - 8, result.size) shouldBe input
+        }
+
+        val expectedResult = result
+
+        test("yoinkInput works") {
+            val program = buildSingleModuleProgram(module) {
+                body {
+                    yoinkInput(0)
+                }
+            }
+            val ksplang = builder.build(program)
+            val result = runner.run(ksplang, input)
+            result shouldBe expectedResult + 40L
+        }
+
+        test("yoinkMemory works") {
+            val program = buildSingleModuleProgram(module) {
+                body {
+                    yoinkMemory(0)
+                }
+            }
+            val ksplang = builder.build(program)
+            val result = runner.run(ksplang, input)
+            result shouldBe expectedResult + 0xF0L
+        }
+
+        test("yoinkGlobal works") {
+            val program = buildSingleModuleProgram(module) {
+                body {
+                    yoinkGlobal(1)
+                }
+            }
+            val ksplang = builder.build(program)
+            val result = runner.run(ksplang, input)
+            result shouldBe expectedResult + 42L
         }
     }
 })

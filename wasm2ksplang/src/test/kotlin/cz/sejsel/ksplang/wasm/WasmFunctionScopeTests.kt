@@ -7,6 +7,7 @@ import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import cz.sejsel.ksplang.wasm.WasmFunctionScope.Companion.initialize as initializeScope
 
 class WasmFunctionScopeTests : FunSpec({
@@ -15,7 +16,7 @@ class WasmFunctionScopeTests : FunSpec({
 
     test("initializing non-parameter local should default to 0") {
         val function = buildComplexFunction {
-            initializeScope(listOf(ValType.I32, ValType.I32), listOf(ValType.I32), emptyList())
+            initializeScope(listOf(ValType.I32, ValType.I32), listOf(ValType.I32), emptyList(), mockk())
         }
 
         val ksplang = builder.build(function)
@@ -24,7 +25,7 @@ class WasmFunctionScopeTests : FunSpec({
 
     test("pop locals removes locals but keeps return value") {
         val function = buildComplexFunction {
-            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(ValType.I32), listOf(ValType.I32))
+            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(ValType.I32), listOf(ValType.I32), mockk())
             with(scope) {
                 getLocal(1)
                 popLocals()
@@ -38,7 +39,7 @@ class WasmFunctionScopeTests : FunSpec({
 
     test("getLocal 0") {
         val function = buildComplexFunction {
-            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList())
+            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList(), mockk())
             with(scope) {
                 getLocal(0)
             }
@@ -50,7 +51,7 @@ class WasmFunctionScopeTests : FunSpec({
 
     test("getLocal 1") {
         val function = buildComplexFunction {
-            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList())
+            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList(), mockk())
             with(scope) {
                 getLocal(1)
             }
@@ -62,7 +63,7 @@ class WasmFunctionScopeTests : FunSpec({
 
     test("getLocal of non-parameter local") {
         val function = buildComplexFunction {
-            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(ValType.I32), emptyList())
+            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(ValType.I32), emptyList(), mockk())
             with(scope) {
                 getLocal(2)
             }
@@ -74,7 +75,7 @@ class WasmFunctionScopeTests : FunSpec({
 
     test("getLocal twice") {
         val function = buildComplexFunction {
-            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList())
+            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList(), mockk())
             with(scope) {
                 getLocal(1)
                 getLocal(0)
@@ -87,7 +88,7 @@ class WasmFunctionScopeTests : FunSpec({
 
     context("i32Add") {
         val function = buildComplexFunction {
-            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList())
+            val scope = initializeScope(listOf(ValType.I32, ValType.I32), listOf(), emptyList(), mockk())
             with(scope) {
                 getLocal(0)
                 getLocal(1)

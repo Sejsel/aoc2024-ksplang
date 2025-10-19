@@ -1,8 +1,10 @@
 package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.types.ValType
+import cz.sejsel.ksplang.dsl.core.CallInline
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
+import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.whileNonZero
@@ -11,6 +13,7 @@ import cz.sejsel.ksplang.std.*
 class WasmFunctionScope private constructor(
     val localTypes: List<ValType>,
     val returnTypes: List<ValType>,
+    val globalState: ModuleTranslatorState
 ) {
     // The locals are on the stack, going from 0 to localTypes.size - 1.
     // Then there may be intermediate values on top of the locals.
@@ -79,6 +82,9 @@ class WasmFunctionScope private constructor(
         intermediateStackValues += stackSizeChange
     }
 
+    fun ComplexFunction.getGlobal(index: Int) = instruction("getGlobal($index)", stackSizeChange = 1) {
+        call(globalState.getGlobalFunction(index), inline = CallInline.ALWAYS)
+    }
 
     // TODO: Find last local usage in function, and instead of duplicating, we can consume it.
     fun ComplexFunction.getLocal(index: Int) = instruction("getLocal($index)", stackSizeChange = 1) {
@@ -1415,13 +1421,14 @@ class WasmFunctionScope private constructor(
         fun ComplexFunction.initialize(
             params: List<ValType>,
             localTypes: List<ValType>,
-            returns: List<ValType>
+            returns: List<ValType>,
+            state: ModuleTranslatorState
         ): WasmFunctionScope {
             require(returns.all { it in listOf(ValType.I32, ValType.I64, ValType.F32, ValType.F64) }) {
                 "Unsupported return type(s) found in $returns"
             }
 
-            val scope = WasmFunctionScope(params + localTypes, returns)
+            val scope = WasmFunctionScope(params + localTypes, returns, state)
             // We need to push defaults for each local
             localTypes.forEach { type ->
                 when (type) {
