@@ -6,6 +6,7 @@ import com.dylibso.chicory.tools.wasm.Wat2Wasm
 import com.dylibso.chicory.wasm.Parser
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction0To1
+import cz.sejsel.ksplang.dsl.core.ProgramFunction1To0
 import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
 import java.nio.file.Path
 
@@ -19,12 +20,11 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
         return with(builder) { with(module) { getExportedFunction(name) } }
     }
 
-    /**
-     * Functions for getGlobal, must have body set by the embedder.
-     */
-    fun getGetGlobalFunctions(): Map<Int, ProgramFunction0To1> {
-        return module.getGlobalFunctions
-    }
+    /* Functions for getGlobal, must have body set by the embedder. */
+    fun getGetGlobalFunctions(): Map<Int, ProgramFunction0To1> = module.getGlobalFunctions
+
+    /* Functions for setGlobal, must have body set by the embedder. */
+    fun getSetGlobalFunctions(): Map<Int, ProgramFunction1To0> = module.setGlobalFunctions
 
     fun install(builder: KsplangProgramBuilder) {
         with(builder) {

@@ -86,6 +86,10 @@ class WasmFunctionScope private constructor(
         call(globalState.getGlobalFunction(index), inline = CallInline.ALWAYS)
     }
 
+    fun ComplexFunction.setGlobal(index: Int) = instruction("setGlobal($index)", stackSizeChange = -1) {
+        call(globalState.setGlobalFunction(index), inline = CallInline.ALWAYS)
+    }
+
     // TODO: Find last local usage in function, and instead of duplicating, we can consume it.
     fun ComplexFunction.getLocal(index: Int) = instruction("getLocal($index)", stackSizeChange = 1) {
         dupLocalValue(index)

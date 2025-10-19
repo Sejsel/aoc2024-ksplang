@@ -98,11 +98,15 @@ class TranslatedWasmModule(
     private val exportedFunctions: Map<String, ProgramFunctionBase>,
     /** Forward declaration, needs to be implemented by embedder */
     //val getMemoryFunction: ProgramFunctionBase,
-    val getGlobalFunctions: Map<Int, ProgramFunction0To1>
+    /** Forward declaration, needs to be implemented by embedder */
+    val getGlobalFunctions: Map<Int, ProgramFunction0To1>,
+    /** Forward declaration, needs to be implemented by embedder */
+    val setGlobalFunctions: Map<Int, ProgramFunction1To0>,
 ) {
     fun KsplangProgramBuilder.installFunctions() {
         programFunctions.forEach { installFunction(it) }
         getGlobalFunctions.values.forEach { installFunction(it) }
+        setGlobalFunctions.values.forEach { installFunction(it) }
     }
 
     fun getFunction(index: Int): ProgramFunctionBase? {
@@ -120,14 +124,24 @@ class TranslatedWasmModule(
 
 class ModuleTranslatorState {
     // All of these are forward declarations:
-    val globalFunctions = mutableMapOf<Int, ProgramFunction0To1>()
-    val memoryFunction: ProgramFunction1To1? = null
+    val getGlobalFunctions = mutableMapOf<Int, ProgramFunction0To1>()
+    val setGlobalFunctions = mutableMapOf<Int, ProgramFunction1To0>()
 
     fun getGlobalFunction(globalIndex: Int): ProgramFunction0To1 {
         // Forward declaration.
-        return globalFunctions.getOrPut(globalIndex) {
+        return getGlobalFunctions.getOrPut(globalIndex) {
             ProgramFunction0To1(
                 name = "wasm_getGlobal($globalIndex)",
+                body = null,
+            )
+        }
+    }
+
+    fun setGlobalFunction(globalIndex: Int): ProgramFunction1To0 {
+        // Forward declaration.
+        return setGlobalFunctions.getOrPut(globalIndex) {
+            ProgramFunction1To0(
+                name = "wasm_setGlobal($globalIndex)",
                 body = null,
             )
         }
@@ -150,7 +164,8 @@ class KsplangWasmModuleTranslator() {
             programFunctions = functions,
             chicoryModule = module,
             exportedFunctions = associateExportedFunctions(module, functions),
-            getGlobalFunctions = state.globalFunctions,
+            getGlobalFunctions = state.getGlobalFunctions,
+            setGlobalFunctions = state.setGlobalFunctions,
         )
     }
 
@@ -230,7 +245,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.LOCAL_SET -> setLocal(instruction.operands()[0].toInt())
                         OpCode.LOCAL_TEE -> teeLocal(instruction.operands()[0].toInt())
                         OpCode.GLOBAL_GET -> getGlobal(instruction.operands()[0].toInt())
-                        OpCode.GLOBAL_SET -> TODO()
+                        OpCode.GLOBAL_SET -> setGlobal(instruction.operands()[0].toInt())
                         OpCode.TABLE_GET -> unsupportedReferenceTypes()
                         OpCode.TABLE_SET -> unsupportedReferenceTypes()
                         OpCode.I32_LOAD -> TODO()

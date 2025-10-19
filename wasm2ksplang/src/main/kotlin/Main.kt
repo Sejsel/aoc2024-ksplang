@@ -30,6 +30,7 @@ import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.roll
 import cz.sejsel.ksplang.std.stacklen
 import cz.sejsel.ksplang.std.swap2
+import cz.sejsel.ksplang.std.yeet
 import cz.sejsel.ksplang.std.yoink
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.instantiateModuleFromPath
@@ -154,19 +155,12 @@ fun buildSingleModuleProgram(
                 // The stack now starts with
                 // 0 input_len [globals] [fun_table] [input]
 
-                val builder = NoMemoryWasmBuilder(
+                NoMemoryWasmBuilder(
                     builder = this@program,
                     body = this,
                     indices = indices,
                     module = module
                 )
-                module.getGetGlobalFunctions().forEach { (index, function) ->
-                    function.setBody {
-                        with(builder) { yoinkGlobal(index) }
-                    }
-                }
-
-                builder
             } else if (runtimeData.memory.size == 1) {
                 val indices = initializeSingleMemoryWasmRuntimeData(runtimeData)
 
@@ -183,6 +177,18 @@ fun buildSingleModuleProgram(
                 error("Multiple memories not supported")
             }
 
+            module.getGetGlobalFunctions().forEach { (index, function) ->
+                function.setBody {
+                    with(builder) { yoinkGlobal(index) }
+                }
+            }
+
+            module.getSetGlobalFunctions().forEach { (index, function) ->
+                function.setBody {
+                    with(builder) { yeetGlobal(index) }
+                }
+            }
+
             builder.block()
         }
     }
@@ -197,6 +203,7 @@ interface WasmBuilder {
     fun ComplexFunction.yoinkInput(): ComplexFunction
     fun ComplexFunction.yoinkInput(index: Int): ComplexFunction
     fun ComplexFunction.yoinkGlobal(index: Int): ComplexFunction
+    fun ComplexFunction.yeetGlobal(index: Int): ComplexFunction
     fun ComplexFunction.yoinkMemory(): ComplexFunction
     fun ComplexFunction.yoinkMemory(index: Int): ComplexFunction
 
@@ -242,10 +249,22 @@ class NoMemoryWasmBuilder(
         yoink()
     }
 
-    override fun ComplexFunction.yoinkGlobal(index: Int): ComplexFunction = complexFunction("getGlobal($index)") {
-        val index = indices.globalsStartIndex + index
-        push(index)
+    /**
+     * Signature: ```-> globals[index]```
+     */
+    override fun ComplexFunction.yoinkGlobal(index: Int): ComplexFunction = complexFunction("yoinkGlobal($index)") {
+        push(indices.globalsStartIndex + index)
         yoink()
+    }
+
+    /**
+     * Signature : ```v -> globals[index] = v```
+     */
+    override fun ComplexFunction.yeetGlobal(index: Int): ComplexFunction = complexFunction("yeetGlobal($index)") {
+        // v
+        push(indices.globalsStartIndex + index)
+        // v i
+        yeet()
     }
 
     override fun ComplexFunction.yoinkMemory(): ComplexFunction {
@@ -324,9 +343,22 @@ class SingleModuleWasmBuilder(
         yoink()
     }
 
+    /**
+     * Signature: ```-> globals[index]```
+     */
     override fun ComplexFunction.yoinkGlobal(index: Int): ComplexFunction = complexFunction("getGlobal($index)") {
         push(indices.globalsStartIndex + index)
         yoink()
+    }
+
+    /**
+     * Signature : ```v -> globals[index] = v```
+     */
+    override fun ComplexFunction.yeetGlobal(index: Int): ComplexFunction = complexFunction("yeetGlobal($index)") {
+        // v
+        push(indices.globalsStartIndex + index)
+        // v i
+        yeet()
     }
 
     /**
