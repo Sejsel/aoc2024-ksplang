@@ -11,6 +11,8 @@ import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.instantiateModuleFromWat
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
+import io.kotest.matchers.comparables.shouldBeGreaterThan
+import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 
 class LayoutTests : FunSpec({
@@ -240,6 +242,87 @@ class LayoutTests : FunSpec({
                 val result = runner.run(ksplang, input)
                 result.last() shouldBe input[index]
             }
+        }
+    }
+
+    context("kitchen sink") {
+        val memSize = 1
+        val maxMemSize = 2
+        val wat = $$"""
+                (module 
+                    (func $add (export "add") (param $a i32) (param $b i32) (result i32)
+                        local.get $a
+                        local.get $b
+                        i32.add
+                    )
+                    (func $sub (export "sub") (param $a i32) (param $b i32) (result i32)
+                        local.get $a
+                        local.get $b
+                        i32.sub
+                    )
+                    ;; initial 1 page, max 2 pages
+                    (memory (export "mem") $$memSize $$maxMemSize)
+                    ;; globals
+                    (global $g_mut (mut i32) i32.const 7)
+                    (global $g_imm i32 i32.const 42)
+                    ;; fun table
+                    (table 3 funcref)
+                    (elem (i32.const 0) $add $sub)
+                    
+                    ;; 8 bytes: 
+                    (data (i32.const 0x0000)
+                        "\F0\0D\BE\EF\F0\CA\CC\1A"
+                    )
+                    
+                )""".trimIndent()
+
+        val store = Store()
+        val module = instantiateModuleFromWat(translator, wat, "test", store)
+
+        // expected layout:
+        // 0 input_len [globals] [fun_table] [mem_size mem_max_size [mem_pages]]           [input]
+        // 0 input_len [7 42   ] [16 ??? -1] [1 2 [240 13 190 239 240 202 204 26 0 ... 0]] [input]
+
+        val emptyProgram = buildSingleModuleProgram(module) {}
+        val ksplang = builder.buildAnnotated(emptyProgram).toRunnableProgram()
+
+        val input = listOf(40L, 2L)
+        val result = runner.run(ksplang, input)
+        test("placeholder is correct") {
+            result[0] shouldBe 0L // placeholder
+        }
+
+        test("input size is correct") {
+            result[1] shouldBe 2L // input size
+        }
+
+        test("globals are correct") {
+            // globals
+            result[2] shouldBe 7L
+            result[3] shouldBe 42L
+        }
+
+        test("function table is correct") {
+            // fun table
+            result[4] shouldBeGreaterThanOrEqual 16L // offset of add
+            result[5] shouldBeGreaterThan result[4] // offset of sub
+            result[6] shouldBe -1L // null entry
+        }
+
+        test("memory is correct") {
+            // memory
+            result[7] shouldBe memSize.toLong()
+            result[8] shouldBe maxMemSize.toLong()
+            val expectedData = listOf(0xF0, 0x0D, 0xBE, 0xEF, 0xF0, 0xCA, 0xCC, 0x1A).map { it.toLong() }
+            result.subList(9, 17) shouldBe expectedData
+
+            val expectedZeroes = List(65536 - 8) { 0L }
+            result.subList(17, 17 + 65536 - 8) shouldBe expectedZeroes
+        }
+
+        test("input is correct") {
+            // input starts after memory
+            result.subList(17 + 65536 - 8, result.size) shouldBe input
         }
     }
 })
