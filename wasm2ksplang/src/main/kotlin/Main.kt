@@ -179,6 +179,7 @@ fun buildSingleModuleProgram(
 
             module.getGetGlobalFunctions().forEach { (index, function) ->
                 function.setBody {
+                    // TODO: For immutable globals, we can just push, they would not even have to be in runtime data
                     with(builder) { yoinkGlobal(index) }
                 }
             }
@@ -186,6 +187,12 @@ fun buildSingleModuleProgram(
             module.getSetGlobalFunctions().forEach { (index, function) ->
                 function.setBody {
                     with(builder) { yeetGlobal(index) }
+                }
+            }
+
+            module.getGetMemoryFunction()?.let {
+                it.setBody {
+                    with(builder) { yoinkMemory() }
                 }
             }
 

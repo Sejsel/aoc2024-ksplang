@@ -97,7 +97,7 @@ class TranslatedWasmModule(
     val chicoryModule: WasmModule,
     private val exportedFunctions: Map<String, ProgramFunctionBase>,
     /** Forward declaration, needs to be implemented by embedder */
-    //val getMemoryFunction: ProgramFunctionBase,
+    val getMemoryFunction: ProgramFunction1To1?,
     /** Forward declaration, needs to be implemented by embedder */
     val getGlobalFunctions: Map<Int, ProgramFunction0To1>,
     /** Forward declaration, needs to be implemented by embedder */
@@ -107,6 +107,7 @@ class TranslatedWasmModule(
         programFunctions.forEach { installFunction(it) }
         getGlobalFunctions.values.forEach { installFunction(it) }
         setGlobalFunctions.values.forEach { installFunction(it) }
+        getMemoryFunction?.let { installFunction(it) }
     }
 
     fun getFunction(index: Int): ProgramFunctionBase? {
@@ -126,6 +127,15 @@ class ModuleTranslatorState {
     // All of these are forward declarations:
     val getGlobalFunctions = mutableMapOf<Int, ProgramFunction0To1>()
     val setGlobalFunctions = mutableMapOf<Int, ProgramFunction1To0>()
+    var getMemoryFunction: ProgramFunction1To1? = null
+
+    fun getMemoryFunction(): ProgramFunction1To1 {
+        // Forward declaration.
+        return getMemoryFunction ?: ProgramFunction1To1(
+            name = "wasm_getMemory",
+            body = null,
+        ).also { getMemoryFunction = it }
+    }
 
     fun getGlobalFunction(globalIndex: Int): ProgramFunction0To1 {
         // Forward declaration.
@@ -166,6 +176,7 @@ class KsplangWasmModuleTranslator() {
             exportedFunctions = associateExportedFunctions(module, functions),
             getGlobalFunctions = state.getGlobalFunctions,
             setGlobalFunctions = state.setGlobalFunctions,
+            getMemoryFunction = state.getMemoryFunction,
         )
     }
 
@@ -248,7 +259,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.GLOBAL_SET -> setGlobal(instruction.operands()[0].toInt())
                         OpCode.TABLE_GET -> unsupportedReferenceTypes()
                         OpCode.TABLE_SET -> unsupportedReferenceTypes()
-                        OpCode.I32_LOAD -> TODO()
+                        OpCode.I32_LOAD -> i32Load()
                         OpCode.I64_LOAD -> TODO()
                         OpCode.F32_LOAD -> TODO()
                         OpCode.F64_LOAD -> TODO()

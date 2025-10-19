@@ -1,6 +1,7 @@
 package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.types.ValType
+import cz.sejsel.ksplang.dsl.core.Block
 import cz.sejsel.ksplang.dsl.core.CallInline
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
@@ -1404,6 +1405,51 @@ class WasmFunctionScope private constructor(
         i64Le() // we swapped the arguments, no swapping back (for perf)
     }
 
+    fun ComplexFunction.i32Load() = instruction("i32Load", stackSizeChange = 0) {
+        // i
+        getBytesFromMemory(4)
+        // m[i] m[i+1] m[i+2] m[i+3]
+        // TODO: Understand align + offset
+        push(24); bitshift()
+        // m[i] m[i+1] m[i+2] m[i+3]<<24
+        roll(4, 1)
+        // m[i+3]<<24 m[i] m[i+1] m[i+2]
+        push(16); bitshift()
+        // m[i+3]<<24 m[i] m[i+1] m[i+2]<<16
+        roll(4, 1)
+        // m[i+2]<<16 m[i+3]<<24 m[i] m[i+1]
+        push(8); bitshift()
+        // m[i+2]<<16 m[i+3]<<24 m[i] m[i+1]<<8
+        add()
+        add()
+        add()
+        // m[i] | (m[i+1]<<8) | (m[i+2]<<16) | (m[i+3]<<24)
+    }
+
+    /**
+     * Signature: ```i -> m[i:i+count]```
+     */
+    private fun ComplexBlock.getBytesFromMemory(count: Int) {
+        // i
+        repeat(count) {
+            // i
+            dup()
+            // i i
+            getFromMemory()
+            // i m[i]
+            swap2()
+            // m[i] i
+            inc()
+            // m[i] i+1
+        }
+        // m[i:i+count] i+count
+        pop()
+        // m[i:i+count]
+    }
+
+    private fun ComplexBlock.getFromMemory() {
+        call(globalState.getMemoryFunction(), inline = CallInline.ALWAYS)
+    }
 
     fun ComplexFunction.popLocals() {
         check(!localsPopped) { "Locals have already been popped in this scope" }
