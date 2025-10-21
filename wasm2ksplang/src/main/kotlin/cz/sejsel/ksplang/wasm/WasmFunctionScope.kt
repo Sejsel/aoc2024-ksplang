@@ -1406,23 +1406,37 @@ class WasmFunctionScope private constructor(
     }
 
     fun ComplexFunction.i32Load() = instruction("i32Load", stackSizeChange = 0) {
+        // TODO: Compare with prev implementation with rolls
         // i
         getBytesFromMemory(4)
         // m[i] m[i+1] m[i+2] m[i+3]
-        // TODO: Understand align + offset
         push(24); bitshift()
         // m[i] m[i+1] m[i+2] m[i+3]<<24
-        roll(4, 1)
-        // m[i+3]<<24 m[i] m[i+1] m[i+2]
+        lswap()
+        // m[i] m[i+1] m[i+2] 0    ; lswap = m[i+3]<<24
+        pop()
+        // m[i] m[i+1] m[i+2]      ; lswap = m[i+3]<<24
         push(16); bitshift()
-        // m[i+3]<<24 m[i] m[i+1] m[i+2]<<16
-        roll(4, 1)
-        // m[i+2]<<16 m[i+3]<<24 m[i] m[i+1]
+        // m[i] m[i+1] m[i+2]<<16  ; lswap = m[i+3]<<24
+        CS()
+        lswap()
+        // m[i] m[i+1] m[i+2]<<16 m[i+3]<<24  ; lswap = CS
+        add()
+        // m[i] m[i+1] (m[i+2]<<16+m[i+3]<<24); lswap = CS
+        lswap()
+        // m[i] m[i+1] CS   ; lswap = m[i+2]<<16+m[i+3]<<24
+        pop()
+        // m[i] m[i+1]      ; lswap = m[i+2]<<16+m[i+3]<<24
         push(8); bitshift()
-        // m[i+2]<<16 m[i+3]<<24 m[i] m[i+1]<<8
+        // m[i] m[i+1]<<8   ; lswap = m[i+2]<<16+m[i+3]<<24
         add()
+        // m[i]+m[i+1]<<8   ; lswap = m[i+2]<<16+m[i+3]<<24
+        CS()
+        lswap()
+        // m[i]+m[i+1]<<8 m[i+2]<<16+m[i+3]<<24; lswap = CS
         add()
-        add()
+        // m[i]+m[i+1]<<8+m[i+2]<<16+m[i+3]<<24; lswap = CS
+
         // m[i] | (m[i+1]<<8) | (m[i+2]<<16) | (m[i+3]<<24)
     }
 
