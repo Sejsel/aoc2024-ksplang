@@ -1,7 +1,6 @@
 package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.types.ValType
-import cz.sejsel.ksplang.dsl.core.Block
 import cz.sejsel.ksplang.dsl.core.CallInline
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
@@ -1405,9 +1404,10 @@ class WasmFunctionScope private constructor(
         i64Le() // we swapped the arguments, no swapping back (for perf)
     }
 
+    fun ComplexFunction.i8Load() = instruction("i8Load", stackSizeChange = 0) { loadInt(1) }
+    fun ComplexFunction.i16Load() = instruction("i16Load", stackSizeChange = 0) { loadInt(2) }
     fun ComplexFunction.i32Load() = instruction("i32Load", stackSizeChange = 0) { loadInt(4) }
     fun ComplexFunction.i64Load() = instruction("i64Load", stackSizeChange = 0) { loadInt(8) }
-    fun ComplexFunction.load8Unsigned() = instruction("load8Unsigned", stackSizeChange = 0) { loadInt(1) }
 
     private fun ComplexFunction.loadInt(bytes: Int) = complexFunction("loadInt(${bytes}B)") {
         // TODO: Compare with implementation with rolls
