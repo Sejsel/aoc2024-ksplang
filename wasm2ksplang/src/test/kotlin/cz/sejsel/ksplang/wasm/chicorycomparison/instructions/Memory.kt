@@ -84,7 +84,7 @@ class MemoryTests : FunSpec({
                 val expected = func.apply(*input.toLongArray()).single()
 
                 val result = runner.run(ksplang, input)
-                result.last().toInt() shouldBe expected.toInt()
+                result.last() shouldBe expected
             }
         }
     }
@@ -154,7 +154,7 @@ class MemoryTests : FunSpec({
                 val expected = func.apply(*input.toLongArray()).single()
 
                 val result = runner.run(ksplang, input)
-                result.last().toInt() shouldBe expected.toInt()
+                result.last() shouldBe expected
             }
         }
     }
@@ -224,7 +224,7 @@ class MemoryTests : FunSpec({
                 val expected = func.apply(*input.toLongArray()).single()
 
                 val result = runner.run(ksplang, input)
-                result.last().toInt() shouldBe expected.toInt()
+                result.last() shouldBe expected
             }
         }
     }
@@ -259,7 +259,77 @@ class MemoryTests : FunSpec({
                 val expected = func.apply(*input.toLongArray()).single()
 
                 val result = runner.run(ksplang, input)
+                result.last() shouldBe expected
+            }
+        }
+    }
+
+    context("f32.load") {
+        val wat = $$"""
+        (module 
+            (memory (export "mem") 1 1)
+            ;; 8 bytes: 
+            (data (i32.const 0x0000) "\F0\0D\BE\EF\F0\CA\CC\1A")
+            (func $load (export "load") (param $index i32) (result f32)
+                local.get $index
+                f32.load
+            )
+        )""".trimIndent()
+
+        val store = Store()
+        val module = instantiateModuleFromWat(translator, wat, "test", store)
+        val program = buildSingleModuleProgram(module) {
+            val load = getExportedFunction("load") as ProgramFunction1To1
+
+            body {
+                call(load)
+            }
+        }
+        val ksplang = builder.buildAnnotated(program).toRunnableProgram()
+
+        test("chicory gets the same result") {
+            checkAll<Long>(Exhaustive.of(0, 1, 2, 3, 4, 5, 6, 7, 8)) { i ->
+                val input = listOf(i)
+                val func = store.instantiate("mod", module.module.chicoryModule).export("load")!!
+                val expected = func.apply(*input.toLongArray()).single()
+
+                val result = runner.run(ksplang, input)
                 result.last().toInt() shouldBe expected.toInt()
+            }
+        }
+    }
+
+    context("f64.load") {
+        val wat = $$"""
+        (module 
+            (memory (export "mem") 1 1)
+            ;; 8 bytes: 
+            (data (i32.const 0x0000) "\F0\0D\BE\EF\F0\CA\CC\1A")
+            (func $load (export "load") (param $index i32) (result f64)
+                local.get $index
+                f64.load
+            )
+        )""".trimIndent()
+
+        val store = Store()
+        val module = instantiateModuleFromWat(translator, wat, "test", store)
+        val program = buildSingleModuleProgram(module) {
+            val load = getExportedFunction("load") as ProgramFunction1To1
+
+            body {
+                call(load)
+            }
+        }
+        val ksplang = builder.buildAnnotated(program).toRunnableProgram()
+
+        test("chicory gets the same result") {
+            checkAll<Long>(Exhaustive.of(0, 1, 2, 3, 4, 5, 6, 7, 8)) { i ->
+                val input = listOf(i)
+                val func = store.instantiate("mod", module.module.chicoryModule).export("load")!!
+                val expected = func.apply(*input.toLongArray()).single()
+
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe expected
             }
         }
     }
