@@ -1406,44 +1406,59 @@ class WasmFunctionScope private constructor(
     }
 
     fun ComplexFunction.i32Load() = instruction("i32Load", stackSizeChange = 0) {
-        // TODO: Compare with prev implementation with rolls
-        // i
-        getBytesFromMemory(4)
-        // m[i] m[i+1] m[i+2] m[i+3]
-        push(24); bitshift()
-        // m[i] m[i+1] m[i+2] m[i+3]<<24
-        lswap()
-        // m[i] m[i+1] m[i+2] 0    ; lswap = m[i+3]<<24
-        pop()
-        // m[i] m[i+1] m[i+2]      ; lswap = m[i+3]<<24
-        push(16); bitshift()
-        // m[i] m[i+1] m[i+2]<<16  ; lswap = m[i+3]<<24
-        CS()
-        lswap()
-        // m[i] m[i+1] m[i+2]<<16 m[i+3]<<24  ; lswap = CS
-        add()
-        // m[i] m[i+1] (m[i+2]<<16+m[i+3]<<24); lswap = CS
-        lswap()
-        // m[i] m[i+1] CS   ; lswap = m[i+2]<<16+m[i+3]<<24
-        pop()
-        // m[i] m[i+1]      ; lswap = m[i+2]<<16+m[i+3]<<24
-        push(8); bitshift()
-        // m[i] m[i+1]<<8   ; lswap = m[i+2]<<16+m[i+3]<<24
-        add()
-        // m[i]+m[i+1]<<8   ; lswap = m[i+2]<<16+m[i+3]<<24
-        CS()
-        lswap()
-        // m[i]+m[i+1]<<8 m[i+2]<<16+m[i+3]<<24; lswap = CS
-        add()
-        // m[i]+m[i+1]<<8+m[i+2]<<16+m[i+3]<<24; lswap = CS
+        loadInt(4)
+    }
 
-        // m[i] | (m[i+1]<<8) | (m[i+2]<<16) | (m[i+3]<<24)
+    fun ComplexFunction.i64Load() = instruction("i64Load", stackSizeChange = 0) {
+        loadInt(8)
+    }
+
+    private fun ComplexFunction.loadInt(bytes: Int) = complexFunction("loadInt(${bytes}B)") {
+        // TODO: Compare with implementation with rolls
+        require(bytes >= 1)
+        require(bytes <= 8) { "Can fit at most 8 bytes into a i64, got $bytes" }
+
+        if (bytes == 1) {
+            getFromMemory()
+            return@complexFunction
+        }
+
+        val offsets = (0..<bytes).map { it * 8 }.reversed()
+
+        // i
+        getBytesFromMemory(bytes)
+        // m[i] ... m[i+bytes]
+        push(offsets.first()); bitshift()
+        // m[i] ... m[i+bytes]<<offset
+        lswap(); pop()
+        // m[i] ...  ; lswap = m[i+bytes]<<offset
+        // m[i] ...  ; lswap = sum
+        offsets.drop(1).dropLast(1).forEach { shift ->
+            push(shift); bitshift()
+            // m[i] ... x<<shift ; lswap = sum
+            CS(); lswap()
+            // m[i] ... x<<shift sum ; lswap = CS
+            add()
+            // m[i] ... x<<shift+sum ; lswap = CS
+            lswap(); pop()
+            // m[i] ... ; lswap = x<<shift+sum
+        }
+        // m[i] ; lswap = sum
+        CS(); lswap()
+        add()
+        // m[i]+...+m[i+bytes]<<bytes*8
     }
 
     /**
      * Signature: ```i -> m[i:i+count]```
      */
-    private fun ComplexBlock.getBytesFromMemory(count: Int) {
+    private fun ComplexBlock.getBytesFromMemory(count: Int) = complexFunction("getBytesFromMemory(${count}B)") {
+        require(count in 1..8) { "Can only get between 1 and 8 bytes from memory, got $count" }
+        if (count == 1) {
+            getFromMemory()
+            return@complexFunction
+        }
+
         // i
         repeat(count) {
             // i

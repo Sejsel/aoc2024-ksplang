@@ -260,7 +260,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.TABLE_GET -> unsupportedReferenceTypes()
                         OpCode.TABLE_SET -> unsupportedReferenceTypes()
                         OpCode.I32_LOAD -> i32Load()
-                        OpCode.I64_LOAD -> TODO()
+                        OpCode.I64_LOAD -> i64Load()
                         OpCode.F32_LOAD -> TODO()
                         OpCode.F64_LOAD -> TODO()
                         OpCode.I32_LOAD8_S -> TODO()
