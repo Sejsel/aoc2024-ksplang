@@ -1405,13 +1405,9 @@ class WasmFunctionScope private constructor(
         i64Le() // we swapped the arguments, no swapping back (for perf)
     }
 
-    fun ComplexFunction.i32Load() = instruction("i32Load", stackSizeChange = 0) {
-        loadInt(4)
-    }
-
-    fun ComplexFunction.i64Load() = instruction("i64Load", stackSizeChange = 0) {
-        loadInt(8)
-    }
+    fun ComplexFunction.i32Load() = instruction("i32Load", stackSizeChange = 0) { loadInt(4) }
+    fun ComplexFunction.i64Load() = instruction("i64Load", stackSizeChange = 0) { loadInt(8) }
+    fun ComplexFunction.load8Unsigned() = instruction("load8Unsigned", stackSizeChange = 0) { loadInt(1) }
 
     private fun ComplexFunction.loadInt(bytes: Int) = complexFunction("loadInt(${bytes}B)") {
         // TODO: Compare with implementation with rolls
