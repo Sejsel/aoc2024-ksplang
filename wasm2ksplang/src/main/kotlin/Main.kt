@@ -196,6 +196,12 @@ fun buildSingleModuleProgram(
                 }
             }
 
+            module.getSetMemoryFunction()?.let {
+                it.setBody {
+                    with(builder) { yeetMemory() }
+                }
+            }
+
             builder.block()
         }
     }
@@ -213,6 +219,7 @@ interface WasmBuilder {
     fun ComplexFunction.yeetGlobal(index: Int): ComplexFunction
     fun ComplexFunction.yoinkMemory(): ComplexFunction
     fun ComplexFunction.yoinkMemory(index: Int): ComplexFunction
+    fun ComplexFunction.yeetMemory(): ComplexFunction
 
     fun build(): KsplangProgram
 }
@@ -279,6 +286,10 @@ class NoMemoryWasmBuilder(
     }
 
     override fun ComplexFunction.yoinkMemory(index: Int): ComplexFunction {
+        error("Not supported")
+    }
+
+    override fun ComplexFunction.yeetMemory(): ComplexFunction {
         error("Not supported")
     }
 
@@ -389,6 +400,15 @@ class SingleModuleWasmBuilder(
     override fun ComplexFunction.yoinkMemory(index: Int): ComplexFunction = complexFunction("yoinkMemory($index)") {
         push(indices.memDataStartIndex + index)
         yoink()
+    }
+
+    /** Signature: ```v i -> memory[i] = v``` */
+    override fun ComplexFunction.yeetMemory(): ComplexFunction = complexFunction("yeetMemory") {
+        // val i
+        push(indices.memDataStartIndex)
+        add()
+        // val mem_start+i
+        yeet()
     }
 
     override fun build(): KsplangProgram = builder.build()

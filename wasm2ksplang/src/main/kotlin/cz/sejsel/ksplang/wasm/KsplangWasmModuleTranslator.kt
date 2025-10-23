@@ -99,6 +99,8 @@ class TranslatedWasmModule(
     /** Forward declaration, needs to be implemented by embedder */
     val getMemoryFunction: ProgramFunction1To1?,
     /** Forward declaration, needs to be implemented by embedder */
+    val setMemoryFunction: ProgramFunction2To0?,
+    /** Forward declaration, needs to be implemented by embedder */
     val getGlobalFunctions: Map<Int, ProgramFunction0To1>,
     /** Forward declaration, needs to be implemented by embedder */
     val setGlobalFunctions: Map<Int, ProgramFunction1To0>,
@@ -108,6 +110,7 @@ class TranslatedWasmModule(
         getGlobalFunctions.values.forEach { installFunction(it) }
         setGlobalFunctions.values.forEach { installFunction(it) }
         getMemoryFunction?.let { installFunction(it) }
+        setMemoryFunction?.let { installFunction(it) }
     }
 
     fun getFunction(index: Int): ProgramFunctionBase? {
@@ -128,6 +131,8 @@ class ModuleTranslatorState {
     val getGlobalFunctions = mutableMapOf<Int, ProgramFunction0To1>()
     val setGlobalFunctions = mutableMapOf<Int, ProgramFunction1To0>()
     var getMemoryFunction: ProgramFunction1To1? = null
+    var setMemoryFunctionIndexValue: ProgramFunction2To0? = null
+    var setMemoryFunctionValueIndex: ProgramFunction2To0? = null
 
     fun getMemoryFunction(): ProgramFunction1To1 {
         // Forward declaration.
@@ -135,6 +140,14 @@ class ModuleTranslatorState {
             name = "wasm_getMemory",
             body = null,
         ).also { getMemoryFunction = it }
+    }
+
+    fun setMemoryFunction(): ProgramFunction2To0 {
+        // Forward declaration.
+        return setMemoryFunctionIndexValue ?: ProgramFunction2To0(
+            name = "wasm_setMemory",
+            body = null,
+        ).also { setMemoryFunctionIndexValue = it }
     }
 
     fun getGlobalFunction(globalIndex: Int): ProgramFunction0To1 {
@@ -177,6 +190,7 @@ class KsplangWasmModuleTranslator() {
             getGlobalFunctions = state.getGlobalFunctions,
             setGlobalFunctions = state.setGlobalFunctions,
             getMemoryFunction = state.getMemoryFunction,
+            setMemoryFunction = state.setMemoryFunctionIndexValue,
         )
     }
 
@@ -273,7 +287,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I64_LOAD16_U -> i16Load()
                         OpCode.I64_LOAD32_S -> i64Load32Signed()
                         OpCode.I64_LOAD32_U -> i32Load()
-                        OpCode.I32_STORE -> TODO()
+                        OpCode.I32_STORE -> i32Store()
                         OpCode.I64_STORE -> TODO()
                         OpCode.F32_STORE -> TODO()
                         OpCode.F64_STORE -> TODO()

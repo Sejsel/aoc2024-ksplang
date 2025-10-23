@@ -15,7 +15,7 @@ import io.kotest.property.Exhaustive
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.of
 
-class MemoryTests : FunSpec({
+class LoadTests : FunSpec({
     val runner = DefaultKsplangRunner(defaultOpLimit = 100_000_000)
     val builder = KsplangBuilder()
     val translator = KsplangWasmModuleTranslator()

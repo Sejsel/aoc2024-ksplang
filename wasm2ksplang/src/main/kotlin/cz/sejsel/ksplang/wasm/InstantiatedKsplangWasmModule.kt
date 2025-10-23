@@ -8,6 +8,7 @@ import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction0To1
 import cz.sejsel.ksplang.dsl.core.ProgramFunction1To0
 import cz.sejsel.ksplang.dsl.core.ProgramFunction1To1
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To0
 import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
 import java.nio.file.Path
 
@@ -29,6 +30,9 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
 
     /** Function for getMemory, must have body set by the embedder. */
     fun getGetMemoryFunction(): ProgramFunction1To1? = module.getMemoryFunction
+
+    /** Function for setMemory, must have body set by the embedder. */
+    fun getSetMemoryFunction(): ProgramFunction2To0? = module.setMemoryFunction
 
     fun install(builder: KsplangProgramBuilder) {
         with(builder) {

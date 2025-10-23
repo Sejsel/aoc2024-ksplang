@@ -1497,6 +1497,61 @@ class WasmFunctionScope private constructor(
         i32ToSigned()
     }
 
+    fun ComplexFunction.i32Store() = instruction("i32Store", stackSizeChange = -2) {
+        // index value
+        storeInt(4)
+    }
+
+    private fun ComplexFunction.storeInt(bytes: Int) = complexFunction("storeInt(${bytes}B)") {
+        require(bytes in 1..8) { "Can only store between 1 and 8 bytes into memory, got $bytes" }
+        when (bytes) {
+            1 -> i8Mod()
+            2 -> i16Mod()
+            4 -> i32Mod()
+            8 -> {
+                // nop
+            }
+            else -> check(false) { "Unsupported byte size $bytes for storeInt (implement a mod if you need it)" }
+        }
+
+        if (bytes == 1) {
+            // index value
+            swap2()
+            // value index
+            setFromMemory()
+            return@complexFunction
+        }
+
+        // index value
+        repeat(bytes) { i ->
+            dup()
+            i8Mod()
+            // index value value%256
+            dupThird()
+            // index value value%256 index
+            setFromMemory()
+            // index value
+            if (i == bytes - 1) {
+                // No shift or index increment after last byte is saved
+            } else {
+                // TODO: Optimization: u63Shr/u64Shr with static by
+                push(8)
+                if (i == 0 && bytes == 8) {
+                    u64Shr()
+                } else {
+                    u63Shr()
+                }
+                // index value>>8
+                swap2()
+                inc()
+                swap2()
+                // index+1 value>>8
+            }
+        }
+        // index+bytes-1 0
+        pop()
+        pop()
+    }
 
     private fun ComplexFunction.loadInt(bytes: Int) = complexFunction("loadInt(${bytes}B)") {
         // TODO: Compare with implementation with rolls
@@ -1563,6 +1618,11 @@ class WasmFunctionScope private constructor(
 
     private fun ComplexBlock.getFromMemory() {
         call(globalState.getMemoryFunction(), inline = CallInline.ALWAYS)
+    }
+
+    /** Signature: ```value index -> m[index] = value``` */
+    private fun ComplexBlock.setFromMemory() {
+        call(globalState.setMemoryFunction(), inline = CallInline.ALWAYS)
     }
 
     fun ComplexFunction.popLocals() {
