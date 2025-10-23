@@ -1497,6 +1497,16 @@ class WasmFunctionScope private constructor(
         i32ToSigned()
     }
 
+    fun ComplexFunction.i8Store() = instruction("i8Store", stackSizeChange = -2) {
+        // index value
+        storeInt(1)
+    }
+
+    fun ComplexFunction.i16Store() = instruction("i16Store", stackSizeChange = -2) {
+        // index value
+        storeInt(2)
+    }
+
     fun ComplexFunction.i32Store() = instruction("i32Store", stackSizeChange = -2) {
         // index value
         storeInt(4)
