@@ -68,8 +68,42 @@ class WasmFunctionScope private constructor(
         // ((a+2^31)&(0xFFFFFFFF))-2^31
     }
 
+    private fun ComplexFunction.i16ToSigned() {
+        // Based on Hacker's Delight Chapter 2.6 - Sign Extension
+
+        // a
+        add(32768)
+        // a+2^15
+        i16Mod()
+        // (a+2^15)&(0xFFFFFFFF)
+        add(-32768)
+        // ((a+2^15)&(0xFFFFFFFF))-2^15
+    }
+
+    private fun ComplexFunction.i8ToSigned() {
+        // Based on Hacker's Delight Chapter 2.6 - Sign Extension
+
+        // a
+        add(128)
+        // a+2^7
+        i8Mod()
+        // (a+2^7)&(0xFFFFFFFF)
+        add(-128)
+        // ((a+2^7)&(0xFFFFFFFF))-2^7
+    }
+
     private fun ComplexBlock.i32Mod() {
         push(4294967295)
+        bitand()
+    }
+
+    private fun ComplexBlock.i16Mod() {
+        push(65535)
+        bitand()
+    }
+
+    private fun ComplexBlock.i8Mod() {
+        push(255)
         bitand()
     }
 
@@ -1408,6 +1442,11 @@ class WasmFunctionScope private constructor(
     fun ComplexFunction.i16Load() = instruction("i16Load", stackSizeChange = 0) { loadInt(2) }
     fun ComplexFunction.i32Load() = instruction("i32Load", stackSizeChange = 0) { loadInt(4) }
     fun ComplexFunction.i64Load() = instruction("i64Load", stackSizeChange = 0) { loadInt(8) }
+    fun ComplexFunction.i32Load8Signed() = instruction("i32Load8Signed", stackSizeChange = 0) {
+        loadInt(1)
+        i8ToSigned()
+        i32Mod()
+    }
 
     private fun ComplexFunction.loadInt(bytes: Int) = complexFunction("loadInt(${bytes}B)") {
         // TODO: Compare with implementation with rolls

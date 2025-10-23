@@ -9,6 +9,7 @@ import cz.sejsel.ksplang.dsl.core.program
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.bitsToLong
 import cz.sejsel.ksplang.wasm.chicorycomparison.createWasmModuleFromWat
+import cz.sejsel.ksplang.wasm.top32BitsShouldBeZero
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.scopes.FunSpecContainerScope
 import io.kotest.matchers.shouldBe
@@ -55,6 +56,7 @@ class I32ChicoryTests : FunSpec({
         // Note that the upper bits do not match between ksplang and chicory.
         // Chicory may have sign extension (1111... in all upper 32 bits),
         // while ksplang always maintains zeros in the bits.
+        result.last().top32BitsShouldBeZero()
         result.last().toInt() shouldBe expected.toInt()
     }
 
@@ -68,6 +70,7 @@ class I32ChicoryTests : FunSpec({
         // Note that the upper bits do not match between ksplang and chicory.
         // Chicory may have sign extension (1111... in all upper 32 bits),
         // while ksplang always maintains zeros in the bits.
+        result.last().top32BitsShouldBeZero()
         result.last().toInt() shouldBe expected.toInt()
     }
 
@@ -81,6 +84,7 @@ class I32ChicoryTests : FunSpec({
         // Note that the upper bits do not match between ksplang and chicory.
         // Chicory may have sign extension (1111... in all upper 32 bits),
         // while ksplang always maintains zeros in the bits.
+        result.last().top32BitsShouldBeZero()
         result.last().toInt() shouldBe expected.toInt()
     }
 
@@ -94,6 +98,7 @@ class I32ChicoryTests : FunSpec({
         // Note that the upper bits do not match between ksplang and chicory.
         // Chicory may have sign extension (1111... in all upper 32 bits),
         // while ksplang always maintains zeros in the bits.
+        result.last().top32BitsShouldBeZero()
         result.last().toInt() shouldBe expected.toInt()
     }
 

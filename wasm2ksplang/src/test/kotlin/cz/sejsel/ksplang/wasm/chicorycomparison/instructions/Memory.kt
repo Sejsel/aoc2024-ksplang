@@ -8,6 +8,7 @@ import cz.sejsel.ksplang.dsl.core.ProgramFunction1To1
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.instantiateModuleFromWat
+import cz.sejsel.ksplang.wasm.top32BitsShouldBeZero
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Exhaustive
@@ -49,6 +50,7 @@ class MemoryTests : FunSpec({
                 val expected = func.apply(*input.toLongArray()).single()
 
                 val result = runner.run(ksplang, input)
+                result.last().top32BitsShouldBeZero()
                 result.last().toInt() shouldBe expected.toInt()
             }
         }
@@ -119,6 +121,7 @@ class MemoryTests : FunSpec({
                 val expected = func.apply(*input.toLongArray()).single()
 
                 val result = runner.run(ksplang, input)
+                result.last().top32BitsShouldBeZero()
                 result.last().toInt() shouldBe expected.toInt()
             }
         }
@@ -189,6 +192,7 @@ class MemoryTests : FunSpec({
                 val expected = func.apply(*input.toLongArray()).single()
 
                 val result = runner.run(ksplang, input)
+                result.last().top32BitsShouldBeZero()
                 result.last().toInt() shouldBe expected.toInt()
             }
         }
@@ -294,6 +298,7 @@ class MemoryTests : FunSpec({
                 val expected = func.apply(*input.toLongArray()).single()
 
                 val result = runner.run(ksplang, input)
+                result.last().top32BitsShouldBeZero()
                 result.last().toInt() shouldBe expected.toInt()
             }
         }
@@ -330,6 +335,42 @@ class MemoryTests : FunSpec({
 
                 val result = runner.run(ksplang, input)
                 result.last() shouldBe expected
+            }
+        }
+    }
+
+    context("i32.load8_s") {
+        val wat = $$"""
+        (module 
+            (memory (export "mem") 1 1)
+            ;; 8 bytes: 
+            (data (i32.const 0x0000) "\F0\0D\BE\EF\F0\CA\CC\1A")
+            (func $load (export "load") (param $index i32) (result i32)
+                local.get $index
+                i32.load8_s
+            )
+        )""".trimIndent()
+
+        val store = Store()
+        val module = instantiateModuleFromWat(translator, wat, "test", store)
+        val program = buildSingleModuleProgram(module) {
+            val load = getExportedFunction("load") as ProgramFunction1To1
+
+            body {
+                call(load)
+            }
+        }
+        val ksplang = builder.buildAnnotated(program).toRunnableProgram()
+
+        test("chicory gets the same result") {
+            checkAll<Long>(Exhaustive.of(0, 1, 2, 3, 4, 5, 6, 7, 8)) { i ->
+                val input = listOf(i)
+                val func = store.instantiate("mod", module.module.chicoryModule).export("load")!!
+                val expected = func.apply(*input.toLongArray()).single()
+
+                val result = runner.run(ksplang, input)
+                result.last().top32BitsShouldBeZero()
+                result.last().toInt() shouldBe expected.toInt()
             }
         }
     }
