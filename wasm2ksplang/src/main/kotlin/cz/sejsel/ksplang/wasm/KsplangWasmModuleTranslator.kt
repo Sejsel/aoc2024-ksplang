@@ -392,7 +392,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I32_TRUNC_F64_S -> TODO()
                         OpCode.I32_TRUNC_F64_U -> TODO()
                         OpCode.I64_EXTEND_I32_S -> i64Extend32Signed()
-                        OpCode.I64_EXTEND_I32_U -> {}
+                        OpCode.I64_EXTEND_I32_U -> {} // nop with our representation
                         OpCode.I64_TRUNC_F32_S -> TODO()
                         OpCode.I64_TRUNC_F32_U -> TODO()
                         OpCode.I64_TRUNC_F64_S -> TODO()
@@ -411,11 +411,12 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I64_REINTERPRET_F64 -> TODO()
                         OpCode.F32_REINTERPRET_I32 -> TODO()
                         OpCode.F64_REINTERPRET_I64 -> TODO()
-                        OpCode.I32_EXTEND_8_S -> TODO()
-                        OpCode.I32_EXTEND_16_S -> TODO()
-                        OpCode.I64_EXTEND_8_S -> TODO()
-                        OpCode.I64_EXTEND_16_S -> TODO()
-                        OpCode.I64_EXTEND_32_S -> TODO()
+                        // Sign-extension Operators extension:
+                        OpCode.I32_EXTEND_8_S -> i32Extend8Signed()
+                        OpCode.I32_EXTEND_16_S -> i32Extend16Signed()
+                        OpCode.I64_EXTEND_8_S -> i64Extend8Signed()
+                        OpCode.I64_EXTEND_16_S -> i64Extend16Signed()
+                        OpCode.I64_EXTEND_32_S -> i64Extend32Signed()
                         OpCode.REF_NULL -> unsupportedReferenceTypes()
                         OpCode.REF_IS_NULL -> unsupportedReferenceTypes()
                         OpCode.REF_FUNC -> unsupportedReferenceTypes()

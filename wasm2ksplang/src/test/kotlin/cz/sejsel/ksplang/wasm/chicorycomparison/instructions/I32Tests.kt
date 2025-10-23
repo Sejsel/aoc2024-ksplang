@@ -348,4 +348,16 @@ class I32ChicoryTests : FunSpec({
         checkAllI32Pairs(func, ksplang)
         checkAllU32Pairs(func, ksplang)
     }
+
+    context("i32.extend16_s") {
+        val (func, ksplang) = prepareI32UnaryFunModule("i32.extend16_s")
+        checkAllI32(func, ksplang)
+        checkAllU32(func, ksplang)
+    }
+
+    context("i32.extend8_s") {
+        val (func, ksplang) = prepareI32UnaryFunModule("i32.extend8_s")
+        checkAllI32(func, ksplang)
+        checkAllU32(func, ksplang)
+    }
 })

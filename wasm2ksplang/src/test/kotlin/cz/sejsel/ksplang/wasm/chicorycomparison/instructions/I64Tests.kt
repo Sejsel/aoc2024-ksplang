@@ -324,4 +324,19 @@ class I64ChicoryTests : FunSpec({
             result.last() shouldBe expected
         }
     }
+
+    context("i64.extend32_s") {
+        val (func, ksplang) = prepareI64toI64UnaryFunModule("i64.extend32_s")
+        checkAllI64(func, ksplang)
+    }
+
+    context("i64.extend16_s") {
+        val (func, ksplang) = prepareI64toI64UnaryFunModule("i64.extend16_s")
+        checkAllI64(func, ksplang)
+    }
+
+    context("i64.extend8_s") {
+        val (func, ksplang) = prepareI64toI64UnaryFunModule("i64.extend8_s")
+        checkAllI64(func, ksplang)
+    }
 })
