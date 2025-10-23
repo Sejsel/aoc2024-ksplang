@@ -7,6 +7,7 @@ import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.program
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
+import cz.sejsel.ksplang.wasm.bitsToLong
 import cz.sejsel.ksplang.wasm.chicorycomparison.createWasmModuleFromWat
 import cz.sejsel.ksplang.wasm.top32BitsShouldBeZero
 import io.kotest.core.spec.style.FunSpec
@@ -18,6 +19,7 @@ import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.long
 import io.kotest.property.checkAll
+import kotlin.collections.toLongArray
 
 class I64ChicoryTests : FunSpec({
     val runner = DefaultKsplangRunner()
@@ -286,6 +288,40 @@ class I64ChicoryTests : FunSpec({
                 result.last().top32BitsShouldBeZero()
                 result.last().toInt() shouldBe expected.toInt()
             }
+        }
+    }
+
+    context("i64.extend_i32_u") {
+        val (func, ksplang) = prepareModule(
+            wat = $$"""
+                (module (func $fun (export "fun") (param $a i32) (result i64)
+                    local.get $a
+                    i64.extend_i32_u
+                ))""".trimIndent(),
+            exportedFunctionName = "fun"
+        )
+        checkAll<Int> { a ->
+            val input = listOf(a.bitsToLong())
+            val expected = func.apply(*input.toLongArray()).single()
+            val result = runner.run(ksplang, input)
+            result.last() shouldBe expected
+        }
+    }
+
+    context("i64.extend_i32_s") {
+        val (func, ksplang) = prepareModule(
+            wat = $$"""
+                (module (func $fun (export "fun") (param $a i32) (result i64)
+                    local.get $a
+                    i64.extend_i32_s
+                ))""".trimIndent(),
+            exportedFunctionName = "fun"
+        )
+        checkAll<Int> { a ->
+            val input = listOf(a.bitsToLong())
+            val expected = func.apply(*input.toLongArray()).single()
+            val result = runner.run(ksplang, input)
+            result.last() shouldBe expected
         }
     }
 })

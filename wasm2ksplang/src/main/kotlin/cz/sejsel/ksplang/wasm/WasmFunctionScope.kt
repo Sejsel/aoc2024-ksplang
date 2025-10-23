@@ -56,6 +56,10 @@ class WasmFunctionScope private constructor(
         push(const)
     }
 
+    fun ComplexFunction.i64Extend32Signed() = instruction("i64Extendi32Signed", stackSizeChange = 0) {
+        i32ToSigned()
+    }
+
     private fun ComplexFunction.i32ToSigned() {
         // Based on Hacker's Delight Chapter 2.6 - Sign Extension
 

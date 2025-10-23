@@ -391,8 +391,8 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I32_TRUNC_F32_U -> TODO()
                         OpCode.I32_TRUNC_F64_S -> TODO()
                         OpCode.I32_TRUNC_F64_U -> TODO()
-                        OpCode.I64_EXTEND_I32_S -> TODO()
-                        OpCode.I64_EXTEND_I32_U -> TODO()
+                        OpCode.I64_EXTEND_I32_S -> i64Extend32Signed()
+                        OpCode.I64_EXTEND_I32_U -> {}
                         OpCode.I64_TRUNC_F32_S -> TODO()
                         OpCode.I64_TRUNC_F32_U -> TODO()
                         OpCode.I64_TRUNC_F64_S -> TODO()
