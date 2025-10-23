@@ -1447,6 +1447,24 @@ class WasmFunctionScope private constructor(
         i8ToSigned()
         i32Mod()
     }
+    fun ComplexFunction.i32Load16Signed() = instruction("i32Load16Signed", stackSizeChange = 0) {
+        loadInt(2)
+        i16ToSigned()
+        i32Mod()
+    }
+    fun ComplexFunction.i64Load8Signed() = instruction("i64Load8Signed", stackSizeChange = 0) {
+        loadInt(1)
+        i8ToSigned()
+    }
+    fun ComplexFunction.i64Load16Signed() = instruction("i64Load16Signed", stackSizeChange = 0) {
+        loadInt(2)
+        i16ToSigned()
+    }
+    fun ComplexFunction.i64Load32Signed() = instruction("i64Load32Signed", stackSizeChange = 0) {
+        loadInt(4)
+        i32ToSigned()
+    }
+
 
     private fun ComplexFunction.loadInt(bytes: Int) = complexFunction("loadInt(${bytes}B)") {
         // TODO: Compare with implementation with rolls
