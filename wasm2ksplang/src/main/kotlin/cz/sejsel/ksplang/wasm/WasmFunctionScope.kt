@@ -1502,6 +1502,11 @@ class WasmFunctionScope private constructor(
         storeInt(4)
     }
 
+    fun ComplexFunction.i64Store() = instruction("i64Store", stackSizeChange = -2) {
+        // index value
+        storeInt(8)
+    }
+
     private fun ComplexFunction.storeInt(bytes: Int) = complexFunction("storeInt(${bytes}B)") {
         require(bytes in 1..8) { "Can only store between 1 and 8 bytes into memory, got $bytes" }
         when (bytes) {
