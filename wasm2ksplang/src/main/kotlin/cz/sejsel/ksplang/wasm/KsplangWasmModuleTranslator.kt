@@ -386,7 +386,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.F64_MIN -> TODO()
                         OpCode.F64_MAX -> TODO()
                         OpCode.F64_COPYSIGN -> TODO()
-                        OpCode.I32_WRAP_I64 -> TODO()
+                        OpCode.I32_WRAP_I64 -> wrap()
                         OpCode.I32_TRUNC_F32_S -> TODO()
                         OpCode.I32_TRUNC_F32_U -> TODO()
                         OpCode.I32_TRUNC_F64_S -> TODO()

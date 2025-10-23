@@ -8,6 +8,7 @@ import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.program
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.chicorycomparison.createWasmModuleFromWat
+import cz.sejsel.ksplang.wasm.top32BitsShouldBeZero
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.scopes.FunSpecContainerScope
 import io.kotest.matchers.shouldBe
@@ -273,5 +274,18 @@ class I64ChicoryTests : FunSpec({
     context("i64.ge_u") {
         val (func, ksplang) = prepareI64toI32BinaryFunModule("i64.ge_u")
         checkAllI64Pairs(func, ksplang)
+    }
+
+    context("i32.wrap_i64") {
+        val (func, ksplang) = prepareI64toI32UnaryFunModule("i32.wrap_i64")
+        this.test("chicory result should equal ksplang result - long") {
+            checkAll<Long> { a ->
+                val input = listOf(a)
+                val expected = func.apply(*input.toLongArray()).single()
+                val result = runner.run(ksplang, input)
+                result.last().top32BitsShouldBeZero()
+                result.last().toInt() shouldBe expected.toInt()
+            }
+        }
     }
 })

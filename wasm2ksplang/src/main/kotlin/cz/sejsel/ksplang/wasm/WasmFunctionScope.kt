@@ -606,6 +606,10 @@ class WasmFunctionScope private constructor(
         // No need to MOD as it cannot set any higher bits
     }
 
+    fun ComplexFunction.wrap() = instruction("i64Wrap", stackSizeChange = 0) {
+        i32Mod()
+    }
+
     private fun ComplexBlock.i64WrappingAdd() {
         // We must avoid SIGNED addition overflow here. Note that this is different from UNSIGNED overflow
         // for example 0xFF...FF + 1 would be unsigned overflow, but is NOT signed overflow.
