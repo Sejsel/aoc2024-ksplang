@@ -233,7 +233,7 @@ class KsplangWasmModuleTranslator() {
                 code.instructions().forEach { instruction ->
                     when (instruction.opcode()) {
                         OpCode.UNREACHABLE -> unreachable()
-                        OpCode.NOP -> TODO()
+                        OpCode.NOP -> {}
                         OpCode.BLOCK -> TODO()
                         OpCode.LOOP -> TODO()
                         OpCode.IF -> TODO()
