@@ -28,6 +28,10 @@ class WasmFunctionScope private constructor(
         setKth(localTypes.size + intermediateStackValues - index - 1)
     }
 
+    fun ComplexFunction.unreachable() = instruction("unreachable", stackSizeChange = 0) {
+        spanek() // trap
+    }
+
     fun ComplexFunction.drop() = instruction("drop", stackSizeChange = -1) {
         pop()
     }
