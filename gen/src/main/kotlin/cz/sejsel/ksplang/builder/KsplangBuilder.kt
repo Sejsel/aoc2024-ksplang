@@ -71,6 +71,11 @@ data class PreparedPush(
     }
 }
 
+data class BreakableBlockState(
+    val preparedPushes: MutableList<PreparedPush> = mutableListOf(),
+    var finished: Boolean = false,
+)
+
 private class BuilderState {
     var index = 0
     // This is a list of lists to support replacing subparts of different lengths (prepared pushes...)
@@ -79,6 +84,7 @@ private class BuilderState {
     var lastSimpleFunction: SimpleFunction? = null
     var earlyExitPushes = mutableListOf<PreparedPush>()
     var preparedPushes = mutableListOf<PreparedPush>()
+    var brekableBlockStates = mutableMapOf<BreakableBlock, BreakableBlockState>()
     var functionStates = mutableMapOf<String, FunctionState>()
 
     fun getFunctionState(name: String): FunctionState {
@@ -92,9 +98,13 @@ private class BuilderState {
         copy.index = index
         copy.program = program.toMutableList()
         copy.lastSimpleFunction = lastSimpleFunction
-        copy.earlyExitPushes = earlyExitPushes.toMutableList()
-        copy.preparedPushes = preparedPushes.toMutableList()
+        copy.earlyExitPushes = earlyExitPushes.map { it.copy() }.toMutableList()
+        copy.preparedPushes = preparedPushes.map { it.copy() }.toMutableList()
         copy.functionStates = functionStates.mapValues { it.value.clone() }.toMutableMap()
+        // not deep copying BreakableBlocks, we need those references to remain the same
+        copy.brekableBlockStates = brekableBlockStates.mapValues {
+            it.value.copy(preparedPushes = it.value.preparedPushes.map { it.copy() }.toMutableList())
+        }.toMutableMap()
         return copy
     }
 }
@@ -148,6 +158,7 @@ data class Ksplang(val segments: List<AnnotatedKsplangSegment>) {
 
     fun toAnnotatedTree(): AnnotatedKsplangTree = segments.toTree()
 
+    @Suppress("unused")
     fun toAnnotatedTreeJson(): String = Json.encodeToString(toAnnotatedTree())
 }
 
@@ -402,6 +413,35 @@ class KsplangBuilder(
                                 val callPush = preparePaddedPush()
                                 functionState.pendingCalls.add(callPush)
                             }
+                        }
+
+                        is BreakableBlock -> {
+                            val breakableState = state.brekableBlockStates.getOrPut(block) { BreakableBlockState() }
+                            if (breakableState.finished) {
+                                throw IllegalStateException("Cannot expand a breakable block that is already finished")
+                            }
+                            for (b in block.children) {
+                                e(b)
+                            }
+                            if (breakableState.preparedPushes.isNotEmpty()) {
+                                e(CS)
+                                for (push in breakableState.preparedPushes) {
+                                    push.set(state.index)
+                                }
+                                e(pop)
+                            }
+                            breakableState.finished = true
+                        }
+
+                        is Break -> {
+                            val breakableState = state.brekableBlockStates[block.block]
+                                ?: throw IllegalStateException("Cannot break from a block that was not started")
+                            if (breakableState.finished) {
+                                throw IllegalStateException("Cannot break from a block that is already finished")
+                            }
+                            val breakPush = preparePaddedPush()
+                            breakableState.preparedPushes.add(breakPush)
+                            e(goto)
                         }
                     }
                 }

@@ -228,6 +228,37 @@ data class WhileNonZero(override var children: MutableList<Block> = mutableListO
     }
 }
 
+@KsplangMarker
+class BreakableBlock(override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
+    override fun addChild(block: SimpleBlock) {
+        children.add(block)
+    }
+}
+
+@KsplangMarker
+class Break(val block: BreakableBlock): ComplexBlock {
+    // This is quite ugly API-wise
+    override var children: MutableList<Block>
+        get() = mutableListOf()
+        set(_) = error("Break does not have children.")
+
+    override fun addChild(block: SimpleBlock) {
+        throw UnsupportedOperationException("Breaks cannot contain other blocks.")
+    }
+}
+
+fun ComplexBlock.block(init: BreakableBlock.() -> Unit): BreakableBlock {
+    val block = BreakableBlock()
+    block.init()
+    children.add(block)
+    return block
+}
+
+fun ComplexBlock.breakBlock(block: BreakableBlock) {
+    val brk = Break(block)
+    children.add(brk)
+}
+
 /**
  * Given x on the stack, executes the inner loop until the top value is zero at the end of the loop.
  * Does not pop the x value after checking. Does pop the value at the end.

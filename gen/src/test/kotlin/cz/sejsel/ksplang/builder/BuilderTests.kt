@@ -2,6 +2,8 @@ package cz.sejsel.ksplang.builder
 
 import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.dsl.core.CallInline
+import cz.sejsel.ksplang.dsl.core.block
+import cz.sejsel.ksplang.dsl.core.breakBlock
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.doWhileNonNegative
@@ -17,8 +19,6 @@ import cz.sejsel.ksplang.std.dup
 import cz.sejsel.ksplang.std.mul
 import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.swap2
-import io.kotest.assertions.throwables.shouldNotThrow
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
@@ -266,3 +266,84 @@ class FunctionTests: FunSpec({
         }
     }
 })
+
+class BreakableBlockTests: FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("break jumps to end of block") {
+        val program = buildComplexFunction {
+            block {
+                inc()
+                breakBlock(this@block)
+                inc()
+                inc()
+            }
+            inc(); inc(); inc(); inc()
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 4 + 5)
+    }
+
+    test("break jumps to end of block - conditional") {
+        val program = buildComplexFunction {
+            block {
+                // a
+                ifZero {
+                    breakBlock(this@block)
+                } otherwise {}
+
+                inc()
+            }
+            inc()
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 6)
+        runner.run(ksplang, listOf(8, 0)) shouldBe listOf(8, 1)
+    }
+
+    test("break outer") {
+        val program = buildComplexFunction {
+            block outer@{
+                inc()
+                block {
+                    inc()
+                    breakBlock(this@outer)
+                    inc()
+                }
+                inc()
+                inc()
+            }
+            inc(); inc(); inc(); inc()
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 4 + 6)
+    }
+
+    test("break inner") {
+        val program = buildComplexFunction {
+            block {
+                inc()
+                block {
+                    inc()
+                    breakBlock(this)
+                    inc()
+                }
+                inc()
+                inc()
+            }
+            inc(); inc(); inc(); inc()
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 4 + 8)
+    }
+})
+

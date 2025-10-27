@@ -1492,7 +1492,7 @@ enum class CallInline {
 data class FunctionCall(val calledFunction: ProgramFunctionBase, val inline: CallInline = CallInline.AUTO) : ComplexBlock {
     // This is quite ugly API-wise
     override var children: MutableList<Block>
-        get() = error("FunctionCall does not have children.")
+        get() = mutableListOf()
         set(_) = error("FunctionCall does not have children.")
 
     override fun addChild(block: SimpleBlock) {
@@ -1513,7 +1513,7 @@ fun ComplexBlock.call(function: ProgramFunctionBase, inline: CallInline = CallIn
 data class PushFunctionAddress(val calledFunction: ProgramFunctionBase) : ComplexBlock {
     // This is quite ugly API-wise
     override var children: MutableList<Block>
-        get() = error("PushFunctionAddress does not have children.")
+        get() = mutableListOf()
         set(_) = error("PushFunctionAddress does not have children.")
 
     override fun addChild(block: SimpleBlock) {
