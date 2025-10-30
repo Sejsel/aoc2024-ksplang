@@ -1,5 +1,6 @@
 package cz.sejsel.ksplang.builder
 
+import cz.sejsel.ksplang.builder.AnnotatedKsplangSegment.*
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.Instruction
 import cz.sejsel.ksplang.dsl.core.SimpleFunction
@@ -76,6 +77,11 @@ data class BreakableBlockState(
     var finished: Boolean = false,
 )
 
+data class LabelState(
+    var index: Int? = null,
+    val preparedPushes: MutableList<PreparedPush> = mutableListOf(),
+)
+
 private class BuilderState {
     var index = 0
     // This is a list of lists to support replacing subparts of different lengths (prepared pushes...)
@@ -86,9 +92,18 @@ private class BuilderState {
     var preparedPushes = mutableListOf<PreparedPush>()
     var brekableBlockStates = mutableMapOf<BreakableBlock, BreakableBlockState>()
     var functionStates = mutableMapOf<String, FunctionState>()
+    var labelStates = mutableMapOf<Label, LabelState>()
 
     fun getFunctionState(name: String): FunctionState {
         return functionStates.getOrPut(name) { FunctionState() }
+    }
+
+    fun getLabelState(label: Label): LabelState {
+        return labelStates.getOrPut(label) { LabelState() }
+    }
+
+    fun getBreakableBlockState(block: BreakableBlock): BreakableBlockState {
+        return brekableBlockStates.getOrPut(block) { BreakableBlockState() }
     }
 
     fun getNextBlockId() = funCounter++
@@ -104,6 +119,12 @@ private class BuilderState {
         // not deep copying BreakableBlocks, we need those references to remain the same
         copy.brekableBlockStates = brekableBlockStates.mapValues {
             it.value.copy(preparedPushes = it.value.preparedPushes.map { it.copy() }.toMutableList())
+        }.toMutableMap()
+        copy.labelStates = labelStates.mapValues {
+            LabelState(
+                index = it.value.index,
+                preparedPushes = it.value.preparedPushes.map { it.copy() }.toMutableList()
+            )
         }.toMutableMap()
         return copy
     }
@@ -191,6 +212,24 @@ class KsplangBuilder(
         is Instruction -> buildAnnotated(programTree)
     }
 
+    private fun firstBlockOrNull(tree: Block, condition: (Block) -> Boolean): Block? {
+        if (condition(tree)) {
+            return tree
+        }
+        val children = when (tree) {
+            is ComplexBlock -> tree.children
+            is SimpleFunction -> tree.children
+            is Instruction -> emptyList()
+        }
+        for (child in children) {
+            val result = firstBlockOrNull(child, condition)
+            if (result != null) {
+                return result
+            }
+        }
+        return null
+    }
+
     private fun buildAnnotated(programTree: ComplexBlock, functions: List<ProgramFunctionBase>): Ksplang {
         require(functions.map { it.name }.distinct().size == functions.size) { "All functions must have unique names." }
 
@@ -244,13 +283,13 @@ class KsplangBuilder(
                         is Instruction -> {
                             state.lastSimpleFunction = null
                             state.index++
-                            state.program.add(listOf(AnnotatedKsplangSegment.Op(block.text)))
+                            state.program.add(listOf(Op(block.text)))
                         }
 
                         is SimpleFunction -> {
                             var optimized = false
                             val blockId = state.getNextBlockId()
-                            state.program.add(listOf(AnnotatedKsplangSegment.BlockStart(block.name, blockId, BlockType.InlinedFunction)))
+                            state.program.add(listOf(BlockStart(block.name, blockId, BlockType.InlinedFunction)))
 
                             if (enablePushOptimizations && state.lastSimpleFunction != null) {
                                 val lastMatch = pushNameRegex.find(state.lastSimpleFunction!!.name ?: "")
@@ -287,24 +326,21 @@ class KsplangBuilder(
                                 }
                             }
                             state.lastSimpleFunction = block
-                            state.program.add(listOf(AnnotatedKsplangSegment.BlockEnd(blockId)))
+                            state.program.add(listOf(BlockEnd(blockId)))
                         }
 
                         is ComplexFunction -> {
                             val blockId = state.getNextBlockId()
-                            state.program.add(listOf(AnnotatedKsplangSegment.BlockStart(block.name, blockId, BlockType.InlinedFunctionCall)))
+                            state.program.add(listOf(BlockStart(block.name, blockId, BlockType.InlinedFunctionCall)))
                             // It may be called complex, but it is so simple, oh so simple:
                             for (child in block.children) {
                                 e(child)
                             }
-                            state.program.add(listOf(AnnotatedKsplangSegment.BlockEnd(blockId)))
+                            state.program.add(listOf(BlockEnd(blockId)))
                         }
 
                         is IfZero -> {
-                            if (block.orElse == null) {
-                                // We can specialize
-                                throw NotImplementedError()
-                            }
+                            // TODO: We can specialize if ifElse is empty
 
                             val thenPush = preparePaddedPush()
                             e(extract { roll(2, 1) })
@@ -329,8 +365,10 @@ class KsplangBuilder(
                             if (block.popChecked) {
                                 e(pop)
                             }
-                            for (b in block.orElse!!.children) {
-                                e(b)
+                            block.orElse?.let { orElse ->
+                                for (b in orElse.children) {
+                                    e(b)
+                                }
                             }
                             e(CS)
                             e(pop)
@@ -376,7 +414,7 @@ class KsplangBuilder(
                             when (block.inline) {
                                 CallInline.AUTO, CallInline.NEVER -> {
                                     val blockId = state.getNextBlockId()
-                                    state.program.add(listOf(AnnotatedKsplangSegment.BlockStart("call_${block.calledFunction.name}", blockId, BlockType.FunctionCall)))
+                                    state.program.add(listOf(BlockStart("call_${block.calledFunction.name}", blockId, BlockType.FunctionCall)))
 
                                     val functionState = state.getFunctionState(block.calledFunction.name)
                                     functionState.callIndex?.let { callIndex ->
@@ -391,13 +429,13 @@ class KsplangBuilder(
                                     e(call)
                                     e(pop)
 
-                                    state.program.add(listOf(AnnotatedKsplangSegment.BlockEnd(blockId)))
+                                    state.program.add(listOf(BlockEnd(blockId)))
                                 }
                                 CallInline.ALWAYS -> {
                                     val blockId = state.getNextBlockId()
-                                    state.program.add(listOf(AnnotatedKsplangSegment.BlockStart("call_inlined_${block.calledFunction.name}", blockId, BlockType.InlinedFunction)))
+                                    state.program.add(listOf(BlockStart("call_inlined_${block.calledFunction.name}", blockId, BlockType.InlinedFunction)))
                                     e(block.calledFunction.body ?: error("Function ${block.calledFunction.name} has no body - forward declaration without body?"))
-                                    state.program.add(listOf(AnnotatedKsplangSegment.BlockEnd(blockId)))
+                                    state.program.add(listOf(BlockEnd(blockId)))
                                 }
                             }
                         }
@@ -416,7 +454,7 @@ class KsplangBuilder(
                         }
 
                         is BreakableBlock -> {
-                            val breakableState = state.brekableBlockStates.getOrPut(block) { BreakableBlockState() }
+                            val breakableState = state.getBreakableBlockState(block)
                             if (breakableState.finished) {
                                 throw IllegalStateException("Cannot expand a breakable block that is already finished")
                             }
@@ -442,6 +480,41 @@ class KsplangBuilder(
                             val breakPush = preparePaddedPush()
                             breakableState.preparedPushes.add(breakPush)
                             e(goto)
+                        }
+
+                        is GoToLabel -> {
+                            val labelState = state.getLabelState(block.label)
+                            if (labelState.index != null) {
+                                // Label is already defined, we can push directly
+                                e(extract { push(labelState.index!!) })
+                            } else {
+                                // Label is not yet defined, prepare the push
+                                val labelPush = preparePaddedPush()
+                                labelState.preparedPushes.add(labelPush)
+                            }
+                            e(goto)
+                        }
+                        is Label -> {
+                            val isUsed = firstBlockOrNull(programTree) {
+                                it is GoToLabel && it.label === block
+                            } != null
+
+                            // No need to add anything for a label which is not used
+                            if (!isUsed) return
+
+                            val labelState = state.getLabelState(block)
+                            if (labelState.index != null) {
+                                throw IllegalStateException("Label ${block.name} is already defined at index ${labelState.index}")
+                            }
+
+                            e(CS)
+                            val labelIndex = state.index
+                            labelState.index = labelIndex
+                            for (push in labelState.preparedPushes) {
+                                push.set(labelIndex)
+                            }
+                            labelState.preparedPushes.clear()
+                            e(pop)
                         }
                     }
                 }
@@ -507,6 +580,12 @@ class KsplangBuilder(
 
                 if (state.earlyExitPushes.isNotEmpty()) {
                     TODO()
+                }
+
+                state.labelStates.forEach {
+                    if (it.value.index == null) {
+                        throw IllegalStateException("Label ${it.key.name} was never placed, referenced by ${it.value.preparedPushes.size} goto(s)")
+                    }
                 }
 
                 return Ksplang(state.program.flatten())

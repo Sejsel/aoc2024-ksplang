@@ -6,10 +6,13 @@ import cz.sejsel.ksplang.dsl.core.block
 import cz.sejsel.ksplang.dsl.core.breakBlock
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.call
+import cz.sejsel.ksplang.dsl.core.createLabel
 import cz.sejsel.ksplang.dsl.core.doWhileNonNegative
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.doWhileZero
+import cz.sejsel.ksplang.dsl.core.gotoLabel
 import cz.sejsel.ksplang.dsl.core.ifZero
+import cz.sejsel.ksplang.dsl.core.label
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.program
 import cz.sejsel.ksplang.dsl.core.pushAddressOf
@@ -19,6 +22,7 @@ import cz.sejsel.ksplang.std.dup
 import cz.sejsel.ksplang.std.mul
 import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.swap2
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
@@ -140,7 +144,7 @@ class WhileNonZeroTests : FunSpec({
 })
 
 
-class FunctionTests: FunSpec({
+class FunctionTests : FunSpec({
     val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
@@ -188,7 +192,7 @@ class FunctionTests: FunSpec({
                     call(factorial)
                     // x x-1!
                     mul()
-                     // x * factorial(x-1)
+                    // x * factorial(x-1)
                 }
             }
 
@@ -267,7 +271,7 @@ class FunctionTests: FunSpec({
     }
 })
 
-class BreakableBlockTests: FunSpec({
+class BreakableBlockTests : FunSpec({
     val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
@@ -344,6 +348,85 @@ class BreakableBlockTests: FunSpec({
         val ksplang = builder.build(program)
 
         runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 4 + 8)
+    }
+})
+
+class LabelTests : FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("goto label backwards") {
+        val program = buildComplexFunction {
+            inc()
+            val x = label()
+            inc()
+            ifZero {
+                gotoLabel(x)
+            }
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 6)
+        runner.run(ksplang, listOf(8, -1)) shouldBe listOf(8, 1)
+        runner.run(ksplang, listOf(8, -2)) shouldBe listOf(8, 1)
+    }
+
+    test("goto label forwards") {
+        val label = createLabel()
+        val program = buildComplexFunction {
+            inc()
+            gotoLabel(label)
+            inc() // skipped
+            +label
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 5)
+    }
+
+    test("goto to unplaced forward-declared label throws during build") {
+        val label = createLabel()
+        val program = buildComplexFunction {
+            inc()
+            gotoLabel(label)
+            inc()
+            // +label // not placed
+        }
+
+        shouldThrow<Exception> {
+            builder.build(program)
+        }
+    }
+
+    test("label placed multiple times throws during build - forward-declared") {
+        val label = createLabel()
+        val program = buildComplexFunction {
+            gotoLabel(label)
+            inc()
+            +label
+            inc()
+            +label // placed again
+        }
+
+        shouldThrow<Exception> {
+            builder.build(program)
+        }
+    }
+
+    test("label placed multiple times throws during build") {
+        val program = buildComplexFunction {
+            inc()
+            val label = label()
+            gotoLabel(label)
+            inc()
+            +label // placed again
+        }
+
+        shouldThrow<Exception> {
+            builder.build(program)
+        }
     }
 })
 

@@ -40,7 +40,7 @@ import kotlin.io.path.Path
 fun main() {
     //val parsed = Parser.parse(Path("wasm/ksplang_web_bg.wasm"))
     //val parsed = Parser.parse(Path("wasm/add.wasm"))
-    val parsed = Parser.parse(Path("wasm/table.wasm"))
+    val parsed = Parser.parse(Path("wasm/loops_all.wasm"))
     //println(parsed)
 
     val tableStore = Store()

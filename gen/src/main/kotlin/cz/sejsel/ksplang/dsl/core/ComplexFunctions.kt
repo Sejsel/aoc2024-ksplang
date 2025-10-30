@@ -259,6 +259,83 @@ fun ComplexBlock.breakBlock(block: BreakableBlock) {
     children.add(brk)
 }
 
+class Label(val name: String?) : ComplexBlock {
+    // This is quite ugly API-wise
+    override var children: MutableList<Block>
+        get() = mutableListOf()
+        set(_) = error("Label does not have children.")
+
+    override fun addChild(block: SimpleBlock) {
+        throw UnsupportedOperationException("Labels cannot contain other blocks.")
+    }
+}
+
+/**
+ * Prepares a label which can be used as a target for [gotoLabel]. Required if you need jumps forward.
+ *
+ * Place into code where you want the label to be with unary plus:
+ * ```
+ * buildComplexFunction {
+ *     val label = createLabel()
+ *
+ *     gotoLabel(label)
+ *     // ...
+ *     +label
+ * }
+ * ```
+ *
+ * Obviously only place the label once, or the builder will cry when presented with such a program.
+ * And you wouldn't want that, would you?
+ */
+fun createLabel(name: String? = null): Label {
+    return Label(name)
+}
+
+/**
+ * Places a label which can be used as a target for [gotoLabel]. If you need forward jumps, use [createLabel].
+ *
+ * ```
+ * buildComplexFunction {
+ *     val x = label()
+ *     // ...
+ *     gotoLabel(x) // jump back
+ * }
+ * ```
+ */
+fun ComplexBlock.label(name: String? = null): Label {
+    val label = Label(name)
+    children.add(label)
+    return label
+}
+
+class GoToLabel(val label: Label) : ComplexBlock {
+    // This is quite ugly API-wise
+    override var children: MutableList<Block>
+        get() = mutableListOf()
+        set(_) = error("GoToLabel does not have children.")
+
+    override fun addChild(block: SimpleBlock) {
+        throw UnsupportedOperationException("GoToLabel cannot contain other blocks.")
+    }
+}
+
+/**
+ * Jumps to the given label.
+ *
+ * Example:
+ * ```
+ * buildComplexFunction {
+ *     val loopStart = label()
+ *     // ...
+ *     gotoLabel(loopStart) // jump back
+ * }
+ * ```
+ */
+fun ComplexBlock.gotoLabel(label: Label) {
+    val goTo = GoToLabel(label)
+    children.add(goTo)
+}
+
 /**
  * Given x on the stack, executes the inner loop until the top value is zero at the end of the loop.
  * Does not pop the x value after checking. Does pop the value at the end.
