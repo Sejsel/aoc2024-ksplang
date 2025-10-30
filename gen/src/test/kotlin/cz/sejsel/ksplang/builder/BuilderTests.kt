@@ -25,6 +25,7 @@ import cz.sejsel.ksplang.std.swap2
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
+import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
 
 class IfZeroBuilderTests : FunSpec({
@@ -384,6 +385,24 @@ class LabelTests : FunSpec({
         val ksplang = builder.build(program)
 
         runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 5)
+    }
+
+    test("unused label does not change code") {
+        val programWithLabel = buildComplexFunction {
+            inc()
+            label("unused")
+            inc()
+        }
+
+        val programWithoutLabel = buildComplexFunction {
+            inc()
+            inc()
+        }
+
+        val ksplangWithLabel = builder.build(programWithLabel)
+        val ksplangWithoutLabel = builder.build(programWithoutLabel)
+
+        ksplangWithLabel shouldBeEqual ksplangWithoutLabel
     }
 
     test("goto to unplaced forward-declared label throws during build") {
