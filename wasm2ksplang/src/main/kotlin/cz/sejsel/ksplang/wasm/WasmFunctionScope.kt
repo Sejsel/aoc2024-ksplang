@@ -1,14 +1,26 @@
 package cz.sejsel.ksplang.wasm
 
+import com.dylibso.chicory.wasm.types.AnnotatedInstruction
+import com.dylibso.chicory.wasm.types.Instruction
 import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.dsl.core.CallInline
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
+import cz.sejsel.ksplang.dsl.core.Label
 import cz.sejsel.ksplang.dsl.core.call
+import cz.sejsel.ksplang.dsl.core.createLabel
+import cz.sejsel.ksplang.dsl.core.gotoLabel
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.whileNonZero
 import cz.sejsel.ksplang.std.*
+
+data class BlockFrame(
+    val startInstruction: AnnotatedInstruction,
+    val valuesReturned: Int,
+    val previousStackSize: Int,
+    val label: Label,
+)
 
 class WasmFunctionScope private constructor(
     val localTypes: List<ValType>,
@@ -19,6 +31,7 @@ class WasmFunctionScope private constructor(
     // Then there may be intermediate values on top of the locals.
     private var intermediateStackValues = 0
     private var localsPopped: Boolean = false
+    private var blockStack: MutableList<BlockFrame> = mutableListOf()
 
     private fun ComplexBlock.dupLocalValue(index: Int) {
         dupKthZeroIndexed(localTypes.size + intermediateStackValues - index - 1)
@@ -140,7 +153,7 @@ class WasmFunctionScope private constructor(
     }
 
 
-    private fun ComplexFunction.instruction(name: String, stackSizeChange: Int, block: ComplexFunction.() -> Unit) {
+    private fun ComplexBlock.instruction(name: String, stackSizeChange: Int, block: ComplexFunction.() -> Unit) {
         check(!localsPopped)
         complexFunction(name) {
             block()
@@ -1658,6 +1671,76 @@ class WasmFunctionScope private constructor(
             }
         }
         localsPopped = true
+    }
+
+    fun ComplexFunction.startBlock(instruction: AnnotatedInstruction, returnedValues: Int) {
+        val frame = BlockFrame(
+            startInstruction = instruction,
+            valuesReturned = returnedValues,
+            previousStackSize = intermediateStackValues,
+            label = createLabel("block_${instruction}"),
+        )
+        blockStack.add(frame)
+        // For blocks, the labels are at the end, so we emit them when we reach the end.
+    }
+
+    fun ComplexFunction.startLoop(instruction: AnnotatedInstruction, returnedValues: Int) {
+        val frame = BlockFrame(
+            startInstruction = instruction,
+            valuesReturned = returnedValues,
+            previousStackSize = intermediateStackValues,
+            label = createLabel("loop_${instruction}"),
+        )
+        blockStack.add(frame)
+        // For loops, labels are at the start
+        +frame.label
+    }
+
+    fun ComplexFunction.endBlock(scope: Instruction) {
+        val frame = blockStack.removeLast()
+        check(frame.startInstruction.scope() == scope) {
+            "Mismatched end of block: expected end of ${frame.startInstruction}, got end of $scope"
+        }
+        // For blocks, labels are at the end
+        +frame.label
+
+        // We do not need to clean up the stack here at all, as the stack should be already at the correct size
+        // (thanks to wasm validation).
+        check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
+            "Inconsistent stack size at end of block ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+        }
+    }
+
+    fun ComplexBlock.endLoop(scope: Instruction) {
+        val frame = blockStack.removeLast()
+        check(frame.startInstruction.scope() == scope) {
+            "Mismatched end of loop: expected end of ${frame.startInstruction}, got end of $scope"
+        }
+        // For loops, labels are at the start, so we emitted them already
+
+        // We do not need to clean up the stack here at all, as the stack should be already at the correct size
+        // (thanks to wasm validation).
+        check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
+            "Inconsistent stack size at end of loop ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+        }
+    }
+
+    /** depth = 0 refers to the innermost block, 1 to the next-innermost, and so on. */
+    fun ComplexBlock.branch(depth: Int) {
+        // We need to "pop" n blocks
+        val endedBlocks = blockStack.takeLast(depth + 1)
+        val targetBlock = endedBlocks.first()
+        val newStackSize = targetBlock.previousStackSize + targetBlock.valuesReturned
+        val toRemove = intermediateStackValues - newStackSize
+        check(toRemove >= 0) { "Stack is smaller than expected when branching to depth $depth, new intermediates $newStackSize, current intermediates $intermediateStackValues, to remove $toRemove" }
+        check(!localsPopped)
+
+        // Note that this must not be an `instruction`, because there is potentially more code in this block which
+        // retains the same stack, so we do NOT want to update the intermediateStackValues here.
+        complexFunction("br(depth=$depth, remove=$toRemove)") {
+            repeat(toRemove) { pop() }
+            gotoLabel(targetBlock.label)
+        }
     }
 
     companion object {

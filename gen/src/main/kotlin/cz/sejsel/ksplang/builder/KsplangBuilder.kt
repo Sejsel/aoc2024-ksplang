@@ -126,6 +126,7 @@ private class BuilderState {
                 preparedPushes = it.value.preparedPushes.map { it.copy() }.toMutableList()
             )
         }.toMutableMap()
+        // Important: If adding more fields, you likely also need to add it to restoreState below
         return copy
     }
 }
@@ -246,6 +247,16 @@ class KsplangBuilder(
                     state.earlyExitPushes = backup.earlyExitPushes.toMutableList()
                     state.preparedPushes = backup.preparedPushes.toMutableList()
                     state.functionStates = backup.functionStates.mapValues { it.value.clone() }.toMutableMap()
+                    state.brekableBlockStates = backup.brekableBlockStates.mapValues {
+                        it.value.copy(preparedPushes = it.value.preparedPushes.map { it.copy() }.toMutableList())
+                    }.toMutableMap()
+                    state.labelStates = backup.labelStates.mapValues {
+                        LabelState(
+                            index = it.value.index,
+                            preparedPushes = it.value.preparedPushes.map { it.copy() }.toMutableList()
+                        )
+                    }.toMutableMap()
+                    // Important: If adding more fields, you likely also need to add it to deepCopy above
                 }
 
                 fun applyPreparedPush(push: PreparedPush, n: Long) {
@@ -495,9 +506,9 @@ class KsplangBuilder(
                             e(goto)
                         }
                         is Label -> {
-                            val isUsed = firstBlockOrNull(programTree) {
-                                it is GoToLabel && it.label === block
-                            } != null
+                            val isUsed = (listOf(programTree) + functions.map { it.body }).filterNotNull().any {
+                                firstBlockOrNull(it) { it is GoToLabel && it.label === block } != null
+                            }
 
                             // No need to add anything for a label which is not used
                             if (!isUsed) return

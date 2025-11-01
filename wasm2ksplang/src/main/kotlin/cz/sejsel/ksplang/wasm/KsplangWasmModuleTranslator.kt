@@ -2,8 +2,10 @@ package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.Parser
 import com.dylibso.chicory.wasm.WasmModule
+import com.dylibso.chicory.wasm.types.AnnotatedInstruction
 import com.dylibso.chicory.wasm.types.ExternalType
 import com.dylibso.chicory.wasm.types.OpCode
+import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction
 import cz.sejsel.ksplang.dsl.core.ProgramFunction0To0
@@ -209,6 +211,16 @@ class KsplangWasmModuleTranslator() {
             .associate { it.name() to functions[it.index()] }
     }
 
+    private fun getBlockReturnCount(instruction: AnnotatedInstruction): Int {
+        check(instruction.operands().size == 1) { "Multi-value extension is not supported" }
+        return when (val id = instruction.operands().single()) {
+            0x40L -> 0 // 0x40 (64) is empty type
+            ValType.ID.I32.toLong(), ValType.ID.F32.toLong() -> 1
+            ValType.ID.I64.toLong(), ValType.ID.F64.toLong() -> 1
+            else -> error("Unsupported block result type: $id")
+        }
+    }
+
     private fun functionToKsplang(module: WasmModule, index: Int, moduleName: String, state: ModuleTranslatorState): ProgramFunctionBase {
         val functionType = module.typeSection().getType(module.functionSection().getFunctionType(index))
         val code = module.codeSection().functionBodies()[index]
@@ -234,25 +246,39 @@ class KsplangWasmModuleTranslator() {
                     when (instruction.opcode()) {
                         OpCode.UNREACHABLE -> unreachable()
                         OpCode.NOP -> {}
-                        OpCode.BLOCK -> TODO()
-                        OpCode.LOOP -> TODO()
+                        OpCode.BLOCK -> {
+                            startBlock(instruction, getBlockReturnCount(instruction))
+                        }
+                        OpCode.LOOP -> {
+                            startLoop(instruction, getBlockReturnCount(instruction))
+                        }
                         OpCode.IF -> TODO()
                         OpCode.ELSE -> TODO()
                         OpCode.THROW -> unsupportedExceptionHandling()
                         OpCode.THROW_REF -> unsupportedExceptionHandling()
                         OpCode.END -> {
+                            val scope = instruction.scope()
                             if (instruction.depth() == 0) {
-                                // The scope definition from Chicory is a bit weird here, let's double-check
-                                // it's always the same just to make sure we are not missing something
-                                check(instruction.scope() == instruction)
                                 // End of the function
+                                // The scope definition from Chicory is a bit weird here, we just ignore it, it
+                                // looks like it can have itself when there are no other blocks, or the previous block
                                 popLocals()
                             } else {
-                                TODO()
+                                if (scope.opcode() == OpCode.BLOCK) {
+                                    endBlock(scope)
+                                } else if (scope.opcode() == OpCode.LOOP) {
+                                    endLoop(scope)
+                                } else {
+                                    error("Unsupported end scope: ${instruction.scope().opcode()}")
+                                }
                             }
                         }
 
-                        OpCode.BR -> TODO()
+                        OpCode.BR -> {
+                            check(instruction.operands().size == 1) { "Expected one operand for BR" }
+                            check(instruction.operands()[0] in 0..Int.MAX_VALUE.toLong()) { "Invalid BR target depth: ${instruction.operands()[0]}" }
+                            branch(instruction.operands()[0].toInt())
+                        }
                         OpCode.BR_IF -> TODO()
                         OpCode.BR_TABLE -> TODO()
                         OpCode.RETURN -> TODO()
