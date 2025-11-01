@@ -39,6 +39,17 @@ class ControlFlowTests : FunSpec({
         this.drop(2 + input.size)
 
     val testCases = listOf(
+        "simple block with result with no br" to $$"""
+            (module 
+                (func $flow (export "flow") (param $input i32) (result i32)
+                    block (result i32)
+                        local.get $input
+                        i32.const 42
+                        i32.add
+                    end
+                )
+            )""".trimIndent(),
+
         "simple block with result with unconditional br" to $$"""
             (module 
                 (func $flow (export "flow") (param $input i32) (result i32)
@@ -62,6 +73,19 @@ class ControlFlowTests : FunSpec({
                         local.set $input
                     end
                     local.get $input
+                )
+            )""".trimIndent(),
+
+        "simple block with result with br_if" to $$"""
+            (module 
+                (func $flow (export "flow") (param $input i32) (result i32)
+                    block (result i32)
+                        local.get $input
+                        local.get $input
+                        br_if 0
+                        i32.const 42
+                        i32.add
+                    end
                 )
             )""".trimIndent(),
 
@@ -124,6 +148,37 @@ class ControlFlowTests : FunSpec({
                     local.get $input
                 )
             )""".trimIndent(),
+
+        "simple loop with result with no br" to $$"""
+            (module 
+                (func $flow (export "flow") (param $input i32) (result i32)
+                    loop (result i32)
+                        local.get $input
+                        i32.const 42
+                        i32.add
+                    end
+                )
+            )""".trimIndent(),
+
+        "simple loop with 3 iterations" to $$"""
+            (module 
+                (func $flow (export "flow") (param $input i32) (result i32)
+                    (local $index i32)  
+                    (local.set $index (i32.const 3))
+                    loop
+                        local.get $input
+                        i32.const 1
+                        i32.add
+                        local.set $input
+                        local.get $index
+                        i32.const 1
+                        i32.sub
+                        local.tee $index
+                        br_if 0
+                    end
+                  local.get $input
+                )
+            )""".trimIndent()
     )
 
     withData(nameFn = { (name, _) -> name }, testCases) { (_, wat) ->

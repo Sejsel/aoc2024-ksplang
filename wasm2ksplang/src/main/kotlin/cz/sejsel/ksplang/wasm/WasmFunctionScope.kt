@@ -1743,6 +1743,14 @@ class WasmFunctionScope private constructor(
         }
     }
 
+    /** depth = 0 refers to the innermost block, 1 to the next-innermost, and so on. */
+    fun ComplexBlock.branchIf(depth: Int) {
+        check(!localsPopped)
+        check(intermediateStackValues >= 1)
+        intermediateStackValues -= 1
+        ifZero(popChecked = true) { } otherwise { branch(depth) }
+    }
+
     companion object {
         fun ComplexFunction.initialize(
             params: List<ValType>,

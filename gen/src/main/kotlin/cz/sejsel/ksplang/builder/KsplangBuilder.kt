@@ -218,6 +218,7 @@ class KsplangBuilder(
             return tree
         }
         val children = when (tree) {
+            is IfZero -> tree.children + listOfNotNull(tree.orElse)
             is ComplexBlock -> tree.children
             is SimpleFunction -> tree.children
             is Instruction -> emptyList()

@@ -279,7 +279,11 @@ class KsplangWasmModuleTranslator() {
                             check(instruction.operands()[0] in 0..Int.MAX_VALUE.toLong()) { "Invalid BR target depth: ${instruction.operands()[0]}" }
                             branch(instruction.operands()[0].toInt())
                         }
-                        OpCode.BR_IF -> TODO()
+                        OpCode.BR_IF -> {
+                            check(instruction.operands().size == 1) { "Expected one operand for BR" }
+                            check(instruction.operands()[0] in 0..Int.MAX_VALUE.toLong()) { "Invalid BR target depth: ${instruction.operands()[0]}" }
+                            branchIf(instruction.operands()[0].toInt())
+                        }
                         OpCode.BR_TABLE -> TODO()
                         OpCode.RETURN -> TODO()
                         OpCode.CALL -> TODO()
