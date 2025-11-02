@@ -80,7 +80,7 @@ class WasmFunctionScope private constructor(
             repeat(removedValues) {
                 pop()
             }
-            //intermediateStackValues -= removedValues
+            intermediateStackValues -= removedValues
         }
 
         blockStack.forEach { frame ->

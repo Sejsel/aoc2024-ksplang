@@ -134,7 +134,6 @@ class ModuleTranslatorState {
     val setGlobalFunctions = mutableMapOf<Int, ProgramFunction1To0>()
     var getMemoryFunction: ProgramFunction1To1? = null
     var setMemoryFunctionIndexValue: ProgramFunction2To0? = null
-    var setMemoryFunctionValueIndex: ProgramFunction2To0? = null
 
     fun getMemoryFunction(): ProgramFunction1To1 {
         // Forward declaration.
