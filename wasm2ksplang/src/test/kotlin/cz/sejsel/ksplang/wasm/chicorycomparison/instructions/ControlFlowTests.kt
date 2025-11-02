@@ -325,6 +325,20 @@ class ControlFlowTests : FunSpec({
                 i32.const 42
               )
             )
+        """.trimMargin(),
+
+        "simple call" to $$"""
+            (module
+              (func $helper (param $x i32) (result i32)
+                local.get $x
+                i32.const 100
+                i32.add
+              )
+              (func $flow (export "flow") (param $input i32) (result i32)
+                local.get $input
+                call $helper
+              )
+            )
         """.trimMargin()
     )
 

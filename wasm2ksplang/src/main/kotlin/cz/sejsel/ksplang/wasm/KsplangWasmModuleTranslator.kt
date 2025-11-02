@@ -6,6 +6,7 @@ import com.dylibso.chicory.wasm.types.AnnotatedInstruction
 import com.dylibso.chicory.wasm.types.ExternalType
 import com.dylibso.chicory.wasm.types.OpCode
 import com.dylibso.chicory.wasm.types.ValType
+import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction
 import cz.sejsel.ksplang.dsl.core.ProgramFunction0To0
@@ -203,9 +204,22 @@ class KsplangWasmModuleTranslator() {
     fun translate(moduleName: String, module: WasmModule): TranslatedWasmModule {
         val functions = mutableListOf<ProgramFunctionBase>()
         val state = ModuleTranslatorState()
+
+        // First, forward declare all functions so they can call one another.
+        for (index in 0..<module.functionSection().functionCount()) {
+            val functionType = module.typeSection().getType(module.functionSection().getFunctionType(index))
+            val paramCount = functionType.params().size
+            val returnCount = functionType.returns().size
+            // There may be a name in the name custom section
+            val declaredName = module.nameSection()?.nameOfFunction(index) ?: "anonymous"
+            val name = "wasm_${moduleName}_${index}_$declaredName"
+            functions.add(createFunction(name = name, paramCount = paramCount, returnCount = returnCount))
+        }
+
+
         for (functionIndex in 0..<module.functionSection().functionCount()) {
-            val function = functionToKsplang(module, functionIndex, moduleName, state)
-            functions.add(function)
+            val body = functionToKsplang(module, functions, functionIndex, state)
+            functions[functionIndex].setBody(body)
         }
 
         return TranslatedWasmModule(
@@ -246,17 +260,12 @@ class KsplangWasmModuleTranslator() {
         }
     }
 
-    private fun functionToKsplang(module: WasmModule, index: Int, moduleName: String, state: ModuleTranslatorState): ProgramFunctionBase {
+    private fun functionToKsplang(module: WasmModule, functions: List<ProgramFunctionBase>, index: Int, state: ModuleTranslatorState): ComplexBlock {
         val functionType = module.typeSection().getType(module.functionSection().getFunctionType(index))
         val code = module.codeSection().functionBodies()[index]
         val localTypes = code.localTypes()
         val paramCount = functionType.params().size
         val returnCount = functionType.returns().size
-
-        // There may be a name in the name custom section
-        val declaredName = module.nameSection()?.nameOfFunction(index) ?: "anonymous"
-
-        val name = "wasm_${moduleName}_${index}_$declaredName"
 
         val body = buildComplexFunction {
             val scope = initializeScope(
@@ -311,7 +320,7 @@ class KsplangWasmModuleTranslator() {
                             branchTable(instruction.operands().map { it.toInt() })
                         }
                         OpCode.RETURN -> returnFromFunction()
-                        OpCode.CALL -> TODO()
+                        OpCode.CALL -> callFunction(functions[instruction.operands()[0].toInt()])
                         OpCode.CALL_INDIRECT -> TODO()
                         OpCode.RETURN_CALL -> unsupportedTailCall()
                         OpCode.RETURN_CALL_INDIRECT -> unsupportedTailCall()
@@ -751,6 +760,12 @@ class KsplangWasmModuleTranslator() {
             }
         }
 
+        return body
+    }
+
+    private fun createFunction(paramCount: Int, returnCount: Int, name: String): ProgramFunctionBase {
+        // This is a forward-declaration
+        val body = null
         return when (paramCount) {
             0 -> when (returnCount) {
                 0 -> ProgramFunction0To0(name, body)

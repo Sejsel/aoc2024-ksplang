@@ -232,18 +232,18 @@ fun buildSingleModuleProgram(
 interface WasmBuilder {
     fun getExportedFunction(name: String): ProgramFunctionBase?
 
-    fun body(block: ComplexFunction.() -> Unit)
+    fun body(block: ComplexBlock.() -> Unit)
 
-    fun ComplexFunction.getInputSize(): ComplexFunction
-    fun ComplexFunction.yoinkInput(): ComplexFunction
-    fun ComplexFunction.yoinkInput(index: Int): ComplexFunction
-    fun ComplexFunction.yoinkGlobal(index: Int): ComplexFunction
-    fun ComplexFunction.yeetGlobal(index: Int): ComplexFunction
-    fun ComplexFunction.yoinkMemory(): ComplexFunction
-    fun ComplexFunction.yoinkMemory(index: Int): ComplexFunction
-    fun ComplexFunction.yeetMemory(): ComplexFunction
-    fun ComplexFunction.getMemorySize(): ComplexFunction
-    fun ComplexFunction.growMemory(): ComplexFunction
+    fun ComplexBlock.getInputSize(): ComplexFunction
+    fun ComplexBlock.yoinkInput(): ComplexFunction
+    fun ComplexBlock.yoinkInput(index: Int): ComplexFunction
+    fun ComplexBlock.yoinkGlobal(index: Int): ComplexFunction
+    fun ComplexBlock.yeetGlobal(index: Int): ComplexFunction
+    fun ComplexBlock.yoinkMemory(): ComplexFunction
+    fun ComplexBlock.yoinkMemory(index: Int): ComplexFunction
+    fun ComplexBlock.yeetMemory(): ComplexFunction
+    fun ComplexBlock.getMemorySize(): ComplexFunction
+    fun ComplexBlock.growMemory(): ComplexFunction
 
     fun build(): KsplangProgram
 }
@@ -251,21 +251,21 @@ interface WasmBuilder {
 class NoMemoryWasmBuilder(
     private val module: InstantiatedKsplangWasmModule,
     private val builder: KsplangProgramBuilder,
-    private val body: ComplexFunction,
+    private val body: ComplexBlock,
     val indices: NoMemoryRuntimeIndexes,
 ) : WasmBuilder {
     private var bodyCalled = false
 
     override fun getExportedFunction(name: String): ProgramFunctionBase? = module.getExportedFunction(builder, name)
 
-    override fun body(block: ComplexFunction.() -> Unit) {
+    override fun body(block: ComplexBlock.() -> Unit) {
         check(!bodyCalled) { "Body can only be set once" }
         bodyCalled = true
 
         block(body)
     }
 
-    override fun ComplexFunction.getInputSize() = complexFunction("inputSize") {
+    override fun ComplexBlock.getInputSize() = complexFunction("inputSize") {
         push(indices.inputLenIndex)
         yoink()
     }
@@ -273,7 +273,7 @@ class NoMemoryWasmBuilder(
     /**
      * Signature: ```i -> input[i]```
      */
-    override fun ComplexFunction.yoinkInput() = complexFunction("yoinkInput") {
+    override fun ComplexBlock.yoinkInput() = complexFunction("yoinkInput") {
         push(indices.inputStartIndex)
         add()
         yoink()
@@ -282,7 +282,7 @@ class NoMemoryWasmBuilder(
     /**
      * Signature: ``` -> input[k]```
      */
-    override fun ComplexFunction.yoinkInput(index: Int) = complexFunction("yoinkInput($index)") {
+    override fun ComplexBlock.yoinkInput(index: Int) = complexFunction("yoinkInput($index)") {
         push(indices.inputStartIndex + index)
         yoink()
     }
@@ -290,7 +290,7 @@ class NoMemoryWasmBuilder(
     /**
      * Signature: ```-> globals[index]```
      */
-    override fun ComplexFunction.yoinkGlobal(index: Int): ComplexFunction = complexFunction("yoinkGlobal($index)") {
+    override fun ComplexBlock.yoinkGlobal(index: Int): ComplexFunction = complexFunction("yoinkGlobal($index)") {
         push(indices.globalsStartIndex + index)
         yoink()
     }
@@ -298,30 +298,30 @@ class NoMemoryWasmBuilder(
     /**
      * Signature : ```v -> globals[index] = v```
      */
-    override fun ComplexFunction.yeetGlobal(index: Int): ComplexFunction = complexFunction("yeetGlobal($index)") {
+    override fun ComplexBlock.yeetGlobal(index: Int): ComplexFunction = complexFunction("yeetGlobal($index)") {
         // v
         push(indices.globalsStartIndex + index)
         // v i
         yeet()
     }
 
-    override fun ComplexFunction.yoinkMemory(): ComplexFunction {
+    override fun ComplexBlock.yoinkMemory(): ComplexFunction {
         error("Not supported")
     }
 
-    override fun ComplexFunction.yoinkMemory(index: Int): ComplexFunction {
+    override fun ComplexBlock.yoinkMemory(index: Int): ComplexFunction {
         error("Not supported")
     }
 
-    override fun ComplexFunction.yeetMemory(): ComplexFunction {
+    override fun ComplexBlock.yeetMemory(): ComplexFunction {
         error("Not supported")
     }
 
-    override fun ComplexFunction.getMemorySize(): ComplexFunction {
+    override fun ComplexBlock.getMemorySize(): ComplexFunction {
         error("Not supported")
     }
 
-    override fun ComplexFunction.growMemory(): ComplexFunction {
+    override fun ComplexBlock.growMemory(): ComplexFunction {
         error("Not supported")
     }
 
@@ -331,21 +331,21 @@ class NoMemoryWasmBuilder(
 class SingleModuleWasmBuilder(
     private val module: InstantiatedKsplangWasmModule,
     private val builder: KsplangProgramBuilder,
-    private val body: ComplexFunction,
+    private val body: ComplexBlock,
     val indices: SingleMemoryRuntimeIndexes,
 ) : WasmBuilder {
     private var bodyCalled = false
 
     override fun getExportedFunction(name: String): ProgramFunctionBase? = module.getExportedFunction(builder, name)
 
-    override fun body(block: ComplexFunction.() -> Unit) {
+    override fun body(block: ComplexBlock.() -> Unit) {
         check(!bodyCalled) { "Body can only be set once" }
         bodyCalled = true
 
         block(body)
     }
 
-    override fun ComplexFunction.getInputSize() = complexFunction("inputSize") {
+    override fun ComplexBlock.getInputSize() = complexFunction("inputSize") {
         push(indices.inputLenIndex)
         yoink()
     }
@@ -353,7 +353,7 @@ class SingleModuleWasmBuilder(
     /**
      * Signature: ```i -> input[i]```
      */
-    override fun ComplexFunction.yoinkInput() = complexFunction("yoinkInput") {
+    override fun ComplexBlock.yoinkInput() = complexFunction("yoinkInput") {
         // input starts at memStartIndex + memSize * 65536
 
         // i
@@ -376,7 +376,7 @@ class SingleModuleWasmBuilder(
     /**
      * Signature: ``` -> input[k]```
      */
-    override fun ComplexFunction.yoinkInput(index: Int) = complexFunction("yoinkInput($index)") {
+    override fun ComplexBlock.yoinkInput(index: Int) = complexFunction("yoinkInput($index)") {
         // input starts at memDataStartIndex + memSize * 65536
 
         push(indices.memSizeIndex)
@@ -396,7 +396,7 @@ class SingleModuleWasmBuilder(
     /**
      * Signature: ```-> globals[index]```
      */
-    override fun ComplexFunction.yoinkGlobal(index: Int): ComplexFunction = complexFunction("getGlobal($index)") {
+    override fun ComplexBlock.yoinkGlobal(index: Int): ComplexFunction = complexFunction("getGlobal($index)") {
         push(indices.globalsStartIndex + index)
         yoink()
     }
@@ -404,7 +404,7 @@ class SingleModuleWasmBuilder(
     /**
      * Signature : ```v -> globals[index] = v```
      */
-    override fun ComplexFunction.yeetGlobal(index: Int): ComplexFunction = complexFunction("yeetGlobal($index)") {
+    override fun ComplexBlock.yeetGlobal(index: Int): ComplexFunction = complexFunction("yeetGlobal($index)") {
         // v
         push(indices.globalsStartIndex + index)
         // v i
@@ -414,7 +414,7 @@ class SingleModuleWasmBuilder(
     /**
      * Signature: ```i -> memory[i]```
      */
-    override fun ComplexFunction.yoinkMemory(): ComplexFunction = complexFunction("yoinkMemory") {
+    override fun ComplexBlock.yoinkMemory(): ComplexFunction = complexFunction("yoinkMemory") {
         // Important note: we do no bounds checking here, that goes against the WASM spec, but it would be very slow.
         // it would also require us to keep track of current data len (page count is not enough) - one extra value
 
@@ -429,13 +429,13 @@ class SingleModuleWasmBuilder(
     /**
      * Signature: ``` -> memory[index]```
      */
-    override fun ComplexFunction.yoinkMemory(index: Int): ComplexFunction = complexFunction("yoinkMemory($index)") {
+    override fun ComplexBlock.yoinkMemory(index: Int): ComplexFunction = complexFunction("yoinkMemory($index)") {
         push(indices.memDataStartIndex + index)
         yoink()
     }
 
     /** Signature: ```v i -> memory[i] = v``` */
-    override fun ComplexFunction.yeetMemory(): ComplexFunction = complexFunction("yeetMemory") {
+    override fun ComplexBlock.yeetMemory(): ComplexFunction = complexFunction("yeetMemory") {
         // val i
         push(indices.memDataStartIndex)
         add()
@@ -443,12 +443,12 @@ class SingleModuleWasmBuilder(
         yeet()
     }
 
-    override fun ComplexFunction.getMemorySize(): ComplexFunction = complexFunction("getMemorySize"){
+    override fun ComplexBlock.getMemorySize(): ComplexFunction = complexFunction("getMemorySize"){
         push(indices.memSizeIndex)
         yoink()
     }
 
-    override fun ComplexFunction.growMemory(): ComplexFunction = complexFunction("growMemory") {
+    override fun ComplexBlock.growMemory(): ComplexFunction = complexFunction("growMemory") {
         // If we would hit memory max size, we must fail (return -1), otherwise return old size
 
         // pages

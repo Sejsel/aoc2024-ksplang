@@ -7,6 +7,7 @@ package cz.sejsel.ksplang.dsl.core
  * as long as you don't need to call functions, and inlining them is good enough for you.
  * On the other hand, using this class allows for recursion.
  */
+@Suppress("unused")
 @KsplangMarker
 class KsplangProgramBuilder {
     var body: ComplexFunction? = null
@@ -25,7 +26,7 @@ class KsplangProgramBuilder {
         functions[function.name] = function
     }
 
-    fun body(init: ComplexFunction.() -> Unit) {
+    fun body(init: ComplexBlock.() -> Unit) {
         require(body == null) { "Body can only be set once." }
 
         val block = ComplexFunction("ksplang_program_body")
@@ -41,7 +42,7 @@ class KsplangProgramBuilder {
         return KsplangProgram(body!!, functions.values.toList())
     }
 
-    fun function(name: String, args: Int, outputs: Int, init: ComplexFunction.() -> Unit): ProgramFunction {
+    fun function(name: String, args: Int, outputs: Int, init: ComplexBlock.() -> Unit): ProgramFunction {
         val programFunction = ProgramFunction(name, args, outputs, null)
         programFunction.setBody(init)
 
@@ -49,7 +50,7 @@ class KsplangProgramBuilder {
         return programFunction
     }
 
-    fun function(name: String, args: Int, outputs: Int, body: ComplexFunction): ProgramFunction {
+    fun function(name: String, args: Int, outputs: Int, body: ComplexBlock): ProgramFunction {
         val programFunction = ProgramFunction(name, args, outputs, null)
         programFunction.setBody(body)
 
@@ -72,7 +73,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function0To0(name: String, init: ComplexFunction.() -> Unit): ProgramFunction0To0 {
+    fun function0To0(name: String, init: ComplexBlock.() -> Unit): ProgramFunction0To0 {
         val function = ProgramFunction0To0(name, null)
         function.setBody(init)
         installFunction(function)
@@ -89,7 +90,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function0To1(name: String, init: ComplexFunction.() -> Unit): ProgramFunction0To1 {
+    fun function0To1(name: String, init: ComplexBlock.() -> Unit): ProgramFunction0To1 {
         val function = ProgramFunction0To1(name, null)
         function.setBody(init)
         installFunction(function)
@@ -106,7 +107,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function0To2(name: String, init: ComplexFunction.() -> Unit): ProgramFunction0To2 {
+    fun function0To2(name: String, init: ComplexBlock.() -> Unit): ProgramFunction0To2 {
         val function = ProgramFunction0To2(name, null)
         function.setBody(init)
         installFunction(function)
@@ -123,7 +124,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function0To3(name: String, init: ComplexFunction.() -> Unit): ProgramFunction0To3 {
+    fun function0To3(name: String, init: ComplexBlock.() -> Unit): ProgramFunction0To3 {
         val function = ProgramFunction0To3(name, null)
         function.setBody(init)
         installFunction(function)
@@ -140,7 +141,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function0To4(name: String, init: ComplexFunction.() -> Unit): ProgramFunction0To4 {
+    fun function0To4(name: String, init: ComplexBlock.() -> Unit): ProgramFunction0To4 {
         val function = ProgramFunction0To4(name, null)
         function.setBody(init)
         installFunction(function)
@@ -157,7 +158,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function0To5(name: String, init: ComplexFunction.() -> Unit): ProgramFunction0To5 {
+    fun function0To5(name: String, init: ComplexBlock.() -> Unit): ProgramFunction0To5 {
         val function = ProgramFunction0To5(name, null)
         function.setBody(init)
         installFunction(function)
@@ -174,7 +175,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function0To6(name: String, init: ComplexFunction.() -> Unit): ProgramFunction0To6 {
+    fun function0To6(name: String, init: ComplexBlock.() -> Unit): ProgramFunction0To6 {
         val function = ProgramFunction0To6(name, null)
         function.setBody(init)
         installFunction(function)
@@ -191,7 +192,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function0To7(name: String, init: ComplexFunction.() -> Unit): ProgramFunction0To7 {
+    fun function0To7(name: String, init: ComplexBlock.() -> Unit): ProgramFunction0To7 {
         val function = ProgramFunction0To7(name, null)
         function.setBody(init)
         installFunction(function)
@@ -208,7 +209,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function0To8(name: String, init: ComplexFunction.() -> Unit): ProgramFunction0To8 {
+    fun function0To8(name: String, init: ComplexBlock.() -> Unit): ProgramFunction0To8 {
         val function = ProgramFunction0To8(name, null)
         function.setBody(init)
         installFunction(function)
@@ -225,7 +226,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function1To0(name: String, init: ComplexFunction.() -> Unit): ProgramFunction1To0 {
+    fun function1To0(name: String, init: ComplexBlock.() -> Unit): ProgramFunction1To0 {
         val function = ProgramFunction1To0(name, null)
         function.setBody(init)
         installFunction(function)
@@ -242,7 +243,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function1To1(name: String, init: ComplexFunction.() -> Unit): ProgramFunction1To1 {
+    fun function1To1(name: String, init: ComplexBlock.() -> Unit): ProgramFunction1To1 {
         val function = ProgramFunction1To1(name, null)
         function.setBody(init)
         installFunction(function)
@@ -259,7 +260,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function1To2(name: String, init: ComplexFunction.() -> Unit): ProgramFunction1To2 {
+    fun function1To2(name: String, init: ComplexBlock.() -> Unit): ProgramFunction1To2 {
         val function = ProgramFunction1To2(name, null)
         function.setBody(init)
         installFunction(function)
@@ -276,7 +277,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function1To3(name: String, init: ComplexFunction.() -> Unit): ProgramFunction1To3 {
+    fun function1To3(name: String, init: ComplexBlock.() -> Unit): ProgramFunction1To3 {
         val function = ProgramFunction1To3(name, null)
         function.setBody(init)
         installFunction(function)
@@ -293,7 +294,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function1To4(name: String, init: ComplexFunction.() -> Unit): ProgramFunction1To4 {
+    fun function1To4(name: String, init: ComplexBlock.() -> Unit): ProgramFunction1To4 {
         val function = ProgramFunction1To4(name, null)
         function.setBody(init)
         installFunction(function)
@@ -310,7 +311,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function1To5(name: String, init: ComplexFunction.() -> Unit): ProgramFunction1To5 {
+    fun function1To5(name: String, init: ComplexBlock.() -> Unit): ProgramFunction1To5 {
         val function = ProgramFunction1To5(name, null)
         function.setBody(init)
         installFunction(function)
@@ -327,7 +328,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function1To6(name: String, init: ComplexFunction.() -> Unit): ProgramFunction1To6 {
+    fun function1To6(name: String, init: ComplexBlock.() -> Unit): ProgramFunction1To6 {
         val function = ProgramFunction1To6(name, null)
         function.setBody(init)
         installFunction(function)
@@ -344,7 +345,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function1To7(name: String, init: ComplexFunction.() -> Unit): ProgramFunction1To7 {
+    fun function1To7(name: String, init: ComplexBlock.() -> Unit): ProgramFunction1To7 {
         val function = ProgramFunction1To7(name, null)
         function.setBody(init)
         installFunction(function)
@@ -361,7 +362,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function1To8(name: String, init: ComplexFunction.() -> Unit): ProgramFunction1To8 {
+    fun function1To8(name: String, init: ComplexBlock.() -> Unit): ProgramFunction1To8 {
         val function = ProgramFunction1To8(name, null)
         function.setBody(init)
         installFunction(function)
@@ -378,7 +379,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function2To0(name: String, init: ComplexFunction.() -> Unit): ProgramFunction2To0 {
+    fun function2To0(name: String, init: ComplexBlock.() -> Unit): ProgramFunction2To0 {
         val function = ProgramFunction2To0(name, null)
         function.setBody(init)
         installFunction(function)
@@ -395,7 +396,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function2To1(name: String, init: ComplexFunction.() -> Unit): ProgramFunction2To1 {
+    fun function2To1(name: String, init: ComplexBlock.() -> Unit): ProgramFunction2To1 {
         val function = ProgramFunction2To1(name, null)
         function.setBody(init)
         installFunction(function)
@@ -412,7 +413,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function2To2(name: String, init: ComplexFunction.() -> Unit): ProgramFunction2To2 {
+    fun function2To2(name: String, init: ComplexBlock.() -> Unit): ProgramFunction2To2 {
         val function = ProgramFunction2To2(name, null)
         function.setBody(init)
         installFunction(function)
@@ -429,7 +430,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function2To3(name: String, init: ComplexFunction.() -> Unit): ProgramFunction2To3 {
+    fun function2To3(name: String, init: ComplexBlock.() -> Unit): ProgramFunction2To3 {
         val function = ProgramFunction2To3(name, null)
         function.setBody(init)
         installFunction(function)
@@ -446,7 +447,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function2To4(name: String, init: ComplexFunction.() -> Unit): ProgramFunction2To4 {
+    fun function2To4(name: String, init: ComplexBlock.() -> Unit): ProgramFunction2To4 {
         val function = ProgramFunction2To4(name, null)
         function.setBody(init)
         installFunction(function)
@@ -463,7 +464,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function2To5(name: String, init: ComplexFunction.() -> Unit): ProgramFunction2To5 {
+    fun function2To5(name: String, init: ComplexBlock.() -> Unit): ProgramFunction2To5 {
         val function = ProgramFunction2To5(name, null)
         function.setBody(init)
         installFunction(function)
@@ -480,7 +481,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function2To6(name: String, init: ComplexFunction.() -> Unit): ProgramFunction2To6 {
+    fun function2To6(name: String, init: ComplexBlock.() -> Unit): ProgramFunction2To6 {
         val function = ProgramFunction2To6(name, null)
         function.setBody(init)
         installFunction(function)
@@ -497,7 +498,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function2To7(name: String, init: ComplexFunction.() -> Unit): ProgramFunction2To7 {
+    fun function2To7(name: String, init: ComplexBlock.() -> Unit): ProgramFunction2To7 {
         val function = ProgramFunction2To7(name, null)
         function.setBody(init)
         installFunction(function)
@@ -514,7 +515,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function2To8(name: String, init: ComplexFunction.() -> Unit): ProgramFunction2To8 {
+    fun function2To8(name: String, init: ComplexBlock.() -> Unit): ProgramFunction2To8 {
         val function = ProgramFunction2To8(name, null)
         function.setBody(init)
         installFunction(function)
@@ -531,7 +532,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function3To0(name: String, init: ComplexFunction.() -> Unit): ProgramFunction3To0 {
+    fun function3To0(name: String, init: ComplexBlock.() -> Unit): ProgramFunction3To0 {
         val function = ProgramFunction3To0(name, null)
         function.setBody(init)
         installFunction(function)
@@ -548,7 +549,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function3To1(name: String, init: ComplexFunction.() -> Unit): ProgramFunction3To1 {
+    fun function3To1(name: String, init: ComplexBlock.() -> Unit): ProgramFunction3To1 {
         val function = ProgramFunction3To1(name, null)
         function.setBody(init)
         installFunction(function)
@@ -565,7 +566,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function3To2(name: String, init: ComplexFunction.() -> Unit): ProgramFunction3To2 {
+    fun function3To2(name: String, init: ComplexBlock.() -> Unit): ProgramFunction3To2 {
         val function = ProgramFunction3To2(name, null)
         function.setBody(init)
         installFunction(function)
@@ -582,7 +583,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function3To3(name: String, init: ComplexFunction.() -> Unit): ProgramFunction3To3 {
+    fun function3To3(name: String, init: ComplexBlock.() -> Unit): ProgramFunction3To3 {
         val function = ProgramFunction3To3(name, null)
         function.setBody(init)
         installFunction(function)
@@ -599,7 +600,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function3To4(name: String, init: ComplexFunction.() -> Unit): ProgramFunction3To4 {
+    fun function3To4(name: String, init: ComplexBlock.() -> Unit): ProgramFunction3To4 {
         val function = ProgramFunction3To4(name, null)
         function.setBody(init)
         installFunction(function)
@@ -616,7 +617,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function3To5(name: String, init: ComplexFunction.() -> Unit): ProgramFunction3To5 {
+    fun function3To5(name: String, init: ComplexBlock.() -> Unit): ProgramFunction3To5 {
         val function = ProgramFunction3To5(name, null)
         function.setBody(init)
         installFunction(function)
@@ -633,7 +634,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function3To6(name: String, init: ComplexFunction.() -> Unit): ProgramFunction3To6 {
+    fun function3To6(name: String, init: ComplexBlock.() -> Unit): ProgramFunction3To6 {
         val function = ProgramFunction3To6(name, null)
         function.setBody(init)
         installFunction(function)
@@ -650,7 +651,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function3To7(name: String, init: ComplexFunction.() -> Unit): ProgramFunction3To7 {
+    fun function3To7(name: String, init: ComplexBlock.() -> Unit): ProgramFunction3To7 {
         val function = ProgramFunction3To7(name, null)
         function.setBody(init)
         installFunction(function)
@@ -667,7 +668,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function3To8(name: String, init: ComplexFunction.() -> Unit): ProgramFunction3To8 {
+    fun function3To8(name: String, init: ComplexBlock.() -> Unit): ProgramFunction3To8 {
         val function = ProgramFunction3To8(name, null)
         function.setBody(init)
         installFunction(function)
@@ -684,7 +685,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function4To0(name: String, init: ComplexFunction.() -> Unit): ProgramFunction4To0 {
+    fun function4To0(name: String, init: ComplexBlock.() -> Unit): ProgramFunction4To0 {
         val function = ProgramFunction4To0(name, null)
         function.setBody(init)
         installFunction(function)
@@ -701,7 +702,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function4To1(name: String, init: ComplexFunction.() -> Unit): ProgramFunction4To1 {
+    fun function4To1(name: String, init: ComplexBlock.() -> Unit): ProgramFunction4To1 {
         val function = ProgramFunction4To1(name, null)
         function.setBody(init)
         installFunction(function)
@@ -718,7 +719,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function4To2(name: String, init: ComplexFunction.() -> Unit): ProgramFunction4To2 {
+    fun function4To2(name: String, init: ComplexBlock.() -> Unit): ProgramFunction4To2 {
         val function = ProgramFunction4To2(name, null)
         function.setBody(init)
         installFunction(function)
@@ -735,7 +736,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function4To3(name: String, init: ComplexFunction.() -> Unit): ProgramFunction4To3 {
+    fun function4To3(name: String, init: ComplexBlock.() -> Unit): ProgramFunction4To3 {
         val function = ProgramFunction4To3(name, null)
         function.setBody(init)
         installFunction(function)
@@ -752,7 +753,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function4To4(name: String, init: ComplexFunction.() -> Unit): ProgramFunction4To4 {
+    fun function4To4(name: String, init: ComplexBlock.() -> Unit): ProgramFunction4To4 {
         val function = ProgramFunction4To4(name, null)
         function.setBody(init)
         installFunction(function)
@@ -769,7 +770,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function4To5(name: String, init: ComplexFunction.() -> Unit): ProgramFunction4To5 {
+    fun function4To5(name: String, init: ComplexBlock.() -> Unit): ProgramFunction4To5 {
         val function = ProgramFunction4To5(name, null)
         function.setBody(init)
         installFunction(function)
@@ -786,7 +787,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function4To6(name: String, init: ComplexFunction.() -> Unit): ProgramFunction4To6 {
+    fun function4To6(name: String, init: ComplexBlock.() -> Unit): ProgramFunction4To6 {
         val function = ProgramFunction4To6(name, null)
         function.setBody(init)
         installFunction(function)
@@ -803,7 +804,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function4To7(name: String, init: ComplexFunction.() -> Unit): ProgramFunction4To7 {
+    fun function4To7(name: String, init: ComplexBlock.() -> Unit): ProgramFunction4To7 {
         val function = ProgramFunction4To7(name, null)
         function.setBody(init)
         installFunction(function)
@@ -820,7 +821,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function4To8(name: String, init: ComplexFunction.() -> Unit): ProgramFunction4To8 {
+    fun function4To8(name: String, init: ComplexBlock.() -> Unit): ProgramFunction4To8 {
         val function = ProgramFunction4To8(name, null)
         function.setBody(init)
         installFunction(function)
@@ -837,7 +838,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function5To0(name: String, init: ComplexFunction.() -> Unit): ProgramFunction5To0 {
+    fun function5To0(name: String, init: ComplexBlock.() -> Unit): ProgramFunction5To0 {
         val function = ProgramFunction5To0(name, null)
         function.setBody(init)
         installFunction(function)
@@ -854,7 +855,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function5To1(name: String, init: ComplexFunction.() -> Unit): ProgramFunction5To1 {
+    fun function5To1(name: String, init: ComplexBlock.() -> Unit): ProgramFunction5To1 {
         val function = ProgramFunction5To1(name, null)
         function.setBody(init)
         installFunction(function)
@@ -871,7 +872,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function5To2(name: String, init: ComplexFunction.() -> Unit): ProgramFunction5To2 {
+    fun function5To2(name: String, init: ComplexBlock.() -> Unit): ProgramFunction5To2 {
         val function = ProgramFunction5To2(name, null)
         function.setBody(init)
         installFunction(function)
@@ -888,7 +889,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function5To3(name: String, init: ComplexFunction.() -> Unit): ProgramFunction5To3 {
+    fun function5To3(name: String, init: ComplexBlock.() -> Unit): ProgramFunction5To3 {
         val function = ProgramFunction5To3(name, null)
         function.setBody(init)
         installFunction(function)
@@ -905,7 +906,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function5To4(name: String, init: ComplexFunction.() -> Unit): ProgramFunction5To4 {
+    fun function5To4(name: String, init: ComplexBlock.() -> Unit): ProgramFunction5To4 {
         val function = ProgramFunction5To4(name, null)
         function.setBody(init)
         installFunction(function)
@@ -922,7 +923,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function5To5(name: String, init: ComplexFunction.() -> Unit): ProgramFunction5To5 {
+    fun function5To5(name: String, init: ComplexBlock.() -> Unit): ProgramFunction5To5 {
         val function = ProgramFunction5To5(name, null)
         function.setBody(init)
         installFunction(function)
@@ -939,7 +940,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function5To6(name: String, init: ComplexFunction.() -> Unit): ProgramFunction5To6 {
+    fun function5To6(name: String, init: ComplexBlock.() -> Unit): ProgramFunction5To6 {
         val function = ProgramFunction5To6(name, null)
         function.setBody(init)
         installFunction(function)
@@ -956,7 +957,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function5To7(name: String, init: ComplexFunction.() -> Unit): ProgramFunction5To7 {
+    fun function5To7(name: String, init: ComplexBlock.() -> Unit): ProgramFunction5To7 {
         val function = ProgramFunction5To7(name, null)
         function.setBody(init)
         installFunction(function)
@@ -973,7 +974,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function5To8(name: String, init: ComplexFunction.() -> Unit): ProgramFunction5To8 {
+    fun function5To8(name: String, init: ComplexBlock.() -> Unit): ProgramFunction5To8 {
         val function = ProgramFunction5To8(name, null)
         function.setBody(init)
         installFunction(function)
@@ -990,7 +991,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function6To0(name: String, init: ComplexFunction.() -> Unit): ProgramFunction6To0 {
+    fun function6To0(name: String, init: ComplexBlock.() -> Unit): ProgramFunction6To0 {
         val function = ProgramFunction6To0(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1007,7 +1008,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function6To1(name: String, init: ComplexFunction.() -> Unit): ProgramFunction6To1 {
+    fun function6To1(name: String, init: ComplexBlock.() -> Unit): ProgramFunction6To1 {
         val function = ProgramFunction6To1(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1024,7 +1025,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function6To2(name: String, init: ComplexFunction.() -> Unit): ProgramFunction6To2 {
+    fun function6To2(name: String, init: ComplexBlock.() -> Unit): ProgramFunction6To2 {
         val function = ProgramFunction6To2(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1041,7 +1042,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function6To3(name: String, init: ComplexFunction.() -> Unit): ProgramFunction6To3 {
+    fun function6To3(name: String, init: ComplexBlock.() -> Unit): ProgramFunction6To3 {
         val function = ProgramFunction6To3(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1058,7 +1059,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function6To4(name: String, init: ComplexFunction.() -> Unit): ProgramFunction6To4 {
+    fun function6To4(name: String, init: ComplexBlock.() -> Unit): ProgramFunction6To4 {
         val function = ProgramFunction6To4(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1075,7 +1076,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function6To5(name: String, init: ComplexFunction.() -> Unit): ProgramFunction6To5 {
+    fun function6To5(name: String, init: ComplexBlock.() -> Unit): ProgramFunction6To5 {
         val function = ProgramFunction6To5(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1092,7 +1093,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function6To6(name: String, init: ComplexFunction.() -> Unit): ProgramFunction6To6 {
+    fun function6To6(name: String, init: ComplexBlock.() -> Unit): ProgramFunction6To6 {
         val function = ProgramFunction6To6(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1109,7 +1110,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function6To7(name: String, init: ComplexFunction.() -> Unit): ProgramFunction6To7 {
+    fun function6To7(name: String, init: ComplexBlock.() -> Unit): ProgramFunction6To7 {
         val function = ProgramFunction6To7(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1126,7 +1127,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function6To8(name: String, init: ComplexFunction.() -> Unit): ProgramFunction6To8 {
+    fun function6To8(name: String, init: ComplexBlock.() -> Unit): ProgramFunction6To8 {
         val function = ProgramFunction6To8(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1143,7 +1144,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function7To0(name: String, init: ComplexFunction.() -> Unit): ProgramFunction7To0 {
+    fun function7To0(name: String, init: ComplexBlock.() -> Unit): ProgramFunction7To0 {
         val function = ProgramFunction7To0(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1160,7 +1161,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function7To1(name: String, init: ComplexFunction.() -> Unit): ProgramFunction7To1 {
+    fun function7To1(name: String, init: ComplexBlock.() -> Unit): ProgramFunction7To1 {
         val function = ProgramFunction7To1(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1177,7 +1178,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function7To2(name: String, init: ComplexFunction.() -> Unit): ProgramFunction7To2 {
+    fun function7To2(name: String, init: ComplexBlock.() -> Unit): ProgramFunction7To2 {
         val function = ProgramFunction7To2(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1194,7 +1195,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function7To3(name: String, init: ComplexFunction.() -> Unit): ProgramFunction7To3 {
+    fun function7To3(name: String, init: ComplexBlock.() -> Unit): ProgramFunction7To3 {
         val function = ProgramFunction7To3(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1211,7 +1212,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function7To4(name: String, init: ComplexFunction.() -> Unit): ProgramFunction7To4 {
+    fun function7To4(name: String, init: ComplexBlock.() -> Unit): ProgramFunction7To4 {
         val function = ProgramFunction7To4(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1228,7 +1229,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function7To5(name: String, init: ComplexFunction.() -> Unit): ProgramFunction7To5 {
+    fun function7To5(name: String, init: ComplexBlock.() -> Unit): ProgramFunction7To5 {
         val function = ProgramFunction7To5(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1245,7 +1246,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function7To6(name: String, init: ComplexFunction.() -> Unit): ProgramFunction7To6 {
+    fun function7To6(name: String, init: ComplexBlock.() -> Unit): ProgramFunction7To6 {
         val function = ProgramFunction7To6(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1262,7 +1263,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function7To7(name: String, init: ComplexFunction.() -> Unit): ProgramFunction7To7 {
+    fun function7To7(name: String, init: ComplexBlock.() -> Unit): ProgramFunction7To7 {
         val function = ProgramFunction7To7(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1279,7 +1280,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function7To8(name: String, init: ComplexFunction.() -> Unit): ProgramFunction7To8 {
+    fun function7To8(name: String, init: ComplexBlock.() -> Unit): ProgramFunction7To8 {
         val function = ProgramFunction7To8(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1296,7 +1297,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function8To0(name: String, init: ComplexFunction.() -> Unit): ProgramFunction8To0 {
+    fun function8To0(name: String, init: ComplexBlock.() -> Unit): ProgramFunction8To0 {
         val function = ProgramFunction8To0(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1313,7 +1314,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function8To1(name: String, init: ComplexFunction.() -> Unit): ProgramFunction8To1 {
+    fun function8To1(name: String, init: ComplexBlock.() -> Unit): ProgramFunction8To1 {
         val function = ProgramFunction8To1(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1330,7 +1331,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function8To2(name: String, init: ComplexFunction.() -> Unit): ProgramFunction8To2 {
+    fun function8To2(name: String, init: ComplexBlock.() -> Unit): ProgramFunction8To2 {
         val function = ProgramFunction8To2(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1347,7 +1348,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function8To3(name: String, init: ComplexFunction.() -> Unit): ProgramFunction8To3 {
+    fun function8To3(name: String, init: ComplexBlock.() -> Unit): ProgramFunction8To3 {
         val function = ProgramFunction8To3(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1364,7 +1365,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function8To4(name: String, init: ComplexFunction.() -> Unit): ProgramFunction8To4 {
+    fun function8To4(name: String, init: ComplexBlock.() -> Unit): ProgramFunction8To4 {
         val function = ProgramFunction8To4(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1381,7 +1382,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function8To5(name: String, init: ComplexFunction.() -> Unit): ProgramFunction8To5 {
+    fun function8To5(name: String, init: ComplexBlock.() -> Unit): ProgramFunction8To5 {
         val function = ProgramFunction8To5(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1398,7 +1399,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function8To6(name: String, init: ComplexFunction.() -> Unit): ProgramFunction8To6 {
+    fun function8To6(name: String, init: ComplexBlock.() -> Unit): ProgramFunction8To6 {
         val function = ProgramFunction8To6(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1415,7 +1416,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function8To7(name: String, init: ComplexFunction.() -> Unit): ProgramFunction8To7 {
+    fun function8To7(name: String, init: ComplexBlock.() -> Unit): ProgramFunction8To7 {
         val function = ProgramFunction8To7(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1432,7 +1433,7 @@ class KsplangProgramBuilder {
         installFunction(function)
         return function
     }
-    fun function8To8(name: String, init: ComplexFunction.() -> Unit): ProgramFunction8To8 {
+    fun function8To8(name: String, init: ComplexBlock.() -> Unit): ProgramFunction8To8 {
         val function = ProgramFunction8To8(name, null)
         function.setBody(init)
         installFunction(function)
@@ -1470,13 +1471,13 @@ sealed class ProgramFunctionBase(
     var body: ComplexBlock? = body
         private set
 
-    fun setBody(block: ComplexFunction.() -> Unit) {
+    fun setBody(block: ComplexBlock.() -> Unit) {
         val function = ComplexFunction(innerFunctionName)
         function.block()
         setBody(function)
     }
 
-    fun setBody(body: ComplexFunction) {
+    fun setBody(body: ComplexBlock) {
         require(this.body == null) { "Function body can only be set once." }
         this.body = body
     }

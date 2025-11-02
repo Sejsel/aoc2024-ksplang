@@ -7,6 +7,7 @@ import cz.sejsel.ksplang.dsl.core.CallInline
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
 import cz.sejsel.ksplang.dsl.core.Label
+import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.createLabel
 import cz.sejsel.ksplang.dsl.core.gotoLabel
@@ -91,6 +92,14 @@ class WasmFunctionScope private constructor(
         }
 
         gotoLabel(functionEndLabel)
+    }
+
+    fun ComplexFunction.callFunction(function: ProgramFunctionBase) {
+        val inputCount = function.args
+        val outputCount = function.outputs
+        instruction("callFunction(${function.name})", stackSizeChange = outputCount - inputCount) {
+            call(function)
+        }
     }
 
     fun ComplexFunction.unreachable() = instruction("unreachable", stackSizeChange = 0) {
