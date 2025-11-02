@@ -1586,6 +1586,15 @@ class WasmFunctionScope private constructor(
         storeInt(8)
     }
 
+    fun ComplexFunction.memorySize() = instruction("memorySize", stackSizeChange = 1) {
+        call(globalState.getMemorySizeFunction(), inline = CallInline.ALWAYS)
+    }
+
+    fun ComplexFunction.memoryGrow() = instruction("memoryGrow", stackSizeChange = 0) {
+        // No inline on this one, it's likely quite beefy and not done often
+        call(globalState.growMemoryFunction())
+    }
+
     private fun ComplexFunction.storeInt(bytes: Int) = complexFunction("storeInt(${bytes}B)") {
         require(bytes in 1..8) { "Can only store between 1 and 8 bytes into memory, got $bytes" }
         when (bytes) {

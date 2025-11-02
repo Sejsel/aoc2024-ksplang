@@ -4,7 +4,6 @@ import com.dylibso.chicory.runtime.Store
 import cz.sejsel.buildSingleModuleProgram
 import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
-import cz.sejsel.ksplang.dsl.core.ProgramFunction1To1
 import cz.sejsel.ksplang.dsl.core.ProgramFunction2To0
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator

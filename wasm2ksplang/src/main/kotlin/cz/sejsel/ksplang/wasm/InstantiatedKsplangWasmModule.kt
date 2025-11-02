@@ -34,6 +34,12 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
     /** Function for setMemory, must have body set by the embedder. */
     fun getSetMemoryFunction(): ProgramFunction2To0? = module.setMemoryFunction
 
+    /** Function for getMemorySize, must have body set by the embedder. */
+    fun getGetMemorySizeFunction(): ProgramFunction0To1? = module.getMemorySizeFunction
+
+    /** Function for growMemory, must have body set by the embedder. */
+    fun getGrowMemoryFunction(): ProgramFunction1To1? = module.growMemoryFunction
+
     fun install(builder: KsplangProgramBuilder) {
         with(builder) {
             with(module) { installFunctions() }

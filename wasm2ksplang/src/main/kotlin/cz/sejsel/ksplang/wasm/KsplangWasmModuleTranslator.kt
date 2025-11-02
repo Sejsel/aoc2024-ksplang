@@ -101,6 +101,10 @@ class TranslatedWasmModule(
     /** Forward declaration, needs to be implemented by embedder */
     val getMemoryFunction: ProgramFunction1To1?,
     /** Forward declaration, needs to be implemented by embedder */
+    val getMemorySizeFunction: ProgramFunction0To1?,
+    /** Forward declaration, needs to be implemented by embedder */
+    val growMemoryFunction: ProgramFunction1To1?,
+    /** Forward declaration, needs to be implemented by embedder */
     val setMemoryFunction: ProgramFunction2To0?,
     /** Forward declaration, needs to be implemented by embedder */
     val getGlobalFunctions: Map<Int, ProgramFunction0To1>,
@@ -112,7 +116,9 @@ class TranslatedWasmModule(
         getGlobalFunctions.values.forEach { installFunction(it) }
         setGlobalFunctions.values.forEach { installFunction(it) }
         getMemoryFunction?.let { installFunction(it) }
+        getMemorySizeFunction?.let { installFunction(it) }
         setMemoryFunction?.let { installFunction(it) }
+        growMemoryFunction?.let { installFunction(it) }
     }
 
     fun getFunction(index: Int): ProgramFunctionBase? {
@@ -134,6 +140,24 @@ class ModuleTranslatorState {
     val setGlobalFunctions = mutableMapOf<Int, ProgramFunction1To0>()
     var getMemoryFunction: ProgramFunction1To1? = null
     var setMemoryFunctionIndexValue: ProgramFunction2To0? = null
+    var getMemorySizeFunction: ProgramFunction0To1? = null
+    var growMemoryFunction: ProgramFunction1To1? = null
+
+    fun getMemorySizeFunction(): ProgramFunction0To1 {
+        // Forward declaration.
+        return getMemorySizeFunction ?: ProgramFunction0To1(
+            name = "wasm_getMemorySize",
+            body = null,
+        ).also { getMemorySizeFunction = it }
+    }
+
+    fun growMemoryFunction(): ProgramFunction1To1 {
+        // Forward declaration.
+        return growMemoryFunction ?: ProgramFunction1To1(
+            name = "wasm_growMemory",
+            body = null,
+        ).also { growMemoryFunction = it }
+    }
 
     fun getMemoryFunction(): ProgramFunction1To1 {
         // Forward declaration.
@@ -191,6 +215,8 @@ class KsplangWasmModuleTranslator() {
             getGlobalFunctions = state.getGlobalFunctions,
             setGlobalFunctions = state.setGlobalFunctions,
             getMemoryFunction = state.getMemoryFunction,
+            getMemorySizeFunction = state.getMemorySizeFunction,
+            growMemoryFunction = state.growMemoryFunction,
             setMemoryFunction = state.setMemoryFunctionIndexValue,
         )
     }
@@ -325,8 +351,8 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I64_STORE8 -> i8Store()
                         OpCode.I64_STORE16 -> i16Store()
                         OpCode.I64_STORE32 -> i32Store()
-                        OpCode.MEMORY_SIZE -> TODO()
-                        OpCode.MEMORY_GROW -> TODO()
+                        OpCode.MEMORY_SIZE -> memorySize()
+                        OpCode.MEMORY_GROW -> memoryGrow()
                         OpCode.I32_CONST -> i32Const(instruction.operands()[0])
                         OpCode.I64_CONST -> i64Const(instruction.operands()[0])
                         OpCode.F32_CONST -> TODO()

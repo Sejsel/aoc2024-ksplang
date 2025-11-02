@@ -123,6 +123,13 @@ fun Block.pushOn(stackTop: Long, n: Long): SimpleFunction = function("pushOn($st
 }
 
 /**
+ * Pushes a constant number to the top of the stack if there is a specific value on top of the stack already.
+ *
+ * Generally more useful as an optimization for generating ksplang code than being used manually.
+ */
+fun Block.pushOn(stackTop: Long, n: Int): SimpleFunction = pushOn(stackTop, n.toLong())
+
+/**
  * Pushes a constant number to the top of the stack, using the given number of operations exactly.
  * @throws PaddingFailureException if we don't have a short enough push to fit into the opCount.
  */

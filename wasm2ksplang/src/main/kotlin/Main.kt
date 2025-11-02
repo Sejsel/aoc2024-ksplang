@@ -15,7 +15,10 @@ import cz.sejsel.ksplang.dsl.core.KsplangProgram
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction2To1
 import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
+import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.extract
+import cz.sejsel.ksplang.dsl.core.ifZero
+import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.program
 import cz.sejsel.ksplang.dsl.core.pushAddressOf
 import cz.sejsel.ksplang.dsl.core.whileNonZero
@@ -23,12 +26,19 @@ import cz.sejsel.ksplang.std.add
 import cz.sejsel.ksplang.std.auto.*
 import cz.sejsel.ksplang.std.dec
 import cz.sejsel.ksplang.std.dup
+import cz.sejsel.ksplang.std.dupAb
 import cz.sejsel.ksplang.std.dupKthZeroIndexed
+import cz.sejsel.ksplang.std.dupThird
 import cz.sejsel.ksplang.std.mul
 import cz.sejsel.ksplang.std.negate
 import cz.sejsel.ksplang.std.push
+import cz.sejsel.ksplang.std.pushManyBottom
+import cz.sejsel.ksplang.std.pushOn
 import cz.sejsel.ksplang.std.roll
+import cz.sejsel.ksplang.std.sgn
 import cz.sejsel.ksplang.std.stacklen
+import cz.sejsel.ksplang.std.stacklenWithMin
+import cz.sejsel.ksplang.std.sub
 import cz.sejsel.ksplang.std.swap2
 import cz.sejsel.ksplang.std.yeet
 import cz.sejsel.ksplang.std.yoink
@@ -202,6 +212,18 @@ fun buildSingleModuleProgram(
                 }
             }
 
+            module.getGetMemorySizeFunction()?.let {
+                it.setBody {
+                    with(builder) { getMemorySize() }
+                }
+            }
+
+            module.getGrowMemoryFunction()?.let {
+                it.setBody {
+                    with(builder) { growMemory() }
+                }
+            }
+
             builder.block()
         }
     }
@@ -220,6 +242,8 @@ interface WasmBuilder {
     fun ComplexFunction.yoinkMemory(): ComplexFunction
     fun ComplexFunction.yoinkMemory(index: Int): ComplexFunction
     fun ComplexFunction.yeetMemory(): ComplexFunction
+    fun ComplexFunction.getMemorySize(): ComplexFunction
+    fun ComplexFunction.growMemory(): ComplexFunction
 
     fun build(): KsplangProgram
 }
@@ -290,6 +314,14 @@ class NoMemoryWasmBuilder(
     }
 
     override fun ComplexFunction.yeetMemory(): ComplexFunction {
+        error("Not supported")
+    }
+
+    override fun ComplexFunction.getMemorySize(): ComplexFunction {
+        error("Not supported")
+    }
+
+    override fun ComplexFunction.growMemory(): ComplexFunction {
         error("Not supported")
     }
 
@@ -411,6 +443,136 @@ class SingleModuleWasmBuilder(
         yeet()
     }
 
+    override fun ComplexFunction.getMemorySize(): ComplexFunction = complexFunction("getMemorySize"){
+        push(indices.memSizeIndex)
+        yoink()
+    }
+
+    override fun ComplexFunction.growMemory(): ComplexFunction = complexFunction("growMemory") {
+        // If we would hit memory max size, we must fail (return -1), otherwise return old size
+
+        // pages
+        dup()
+        sgn()
+        // pages sgn(pages)
+        inc()
+        ifZero(popChecked = true) {
+            // negative page count, we fail (return -1)
+            // pages
+            push(-1)
+            pop2()
+        } otherwise {
+            // pages
+            ifZero {
+                // 0
+                pushOn(0, indices.memSizeIndex)
+                yoink()
+                // 0 oldSize
+                pop2()
+                // oldSize
+            } otherwise {
+                // pages
+                push(indices.memSizeIndex)
+                yoink()
+                // pages oldSize
+                push(indices.memMaxSizeIndex)
+                yoink()
+                // pages oldSize maxSize
+                dupThird(); dupThird()
+                // pages oldSize maxSize pages oldSize
+                add()
+                // pages oldSize maxSize newSize
+                sub()
+                // pages oldSize maxSize-newSize
+                sgn()
+                // pages oldSize sgn(maxSize-newSize)
+                //               ^ positive if there is leftover space
+                //                 0 if we hit the limit perfectly
+                //                 negative if we exceed the limit
+                inc()
+                ifZero(popChecked = true) {
+                    // does not fit, return -1
+                    // pages oldSize
+                    push(-1)
+                    pop2()
+                    pop2()
+                    // -1
+                } otherwise {
+                    // pages oldSize
+                    dupAb(); add()
+                    // pages oldSize newSize
+                    push(indices.memSizeIndex)
+                    yeet()
+                    // pages oldSize ; mem_size updated
+                    swap2()
+                    dup()
+                    // oldSize pages pages
+                    doWhileNonZero {
+                        // oldSize pages remainingPages
+                        pushManyZeroes(65536)
+                        // oldSize pages remainingPages [65536 * 0]
+                        roll(65536 + 3, -3)
+                        // [65536 * 0] oldSize pages remainingPages
+                        dec()
+                        // [65536 * 0] oldSize pages remainingPages-1
+                        CS()
+                    }
+                    // [65536*pages * 0] oldSize pages 0
+                    pop()
+                    // now we need to move into the correct position, for that we unfortunately need stacklen;
+                    // thankfully we can skip most of it because we have a good lower bound:
+                    //   mem_data_start + newSize*65536 + input_len
+                    // [65536*pages * 0] oldSize pages
+                    dupAb()
+                    add()
+                    // [65536*pages * 0] oldSize pages oldSize+pages
+                    // [65536*pages * 0] oldSize pages newSize
+                    mul(65536) // cannot overflow due to 32bit mem address limit
+                    // [65536*pages * 0] oldSize pages newSize*65536
+                    push(indices.inputLenIndex)
+                    yoink()
+                    // [65536*pages * 0] oldSize pages newSize*65536 inputLen
+                    push(indices.memDataStartIndex)
+                    // [65536*pages * 0] oldSize pages newSize*65536 inputLen memStart
+                    add()
+                    add()
+                    stacklenWithMin()
+                    // [65536*pages * 0] oldSize pages newSize*65536+inputLen+memStart
+                    // [65536*pages * 0] oldSize pages stacklen
+                    dupThird()
+                    // [65536*pages * 0] oldSize pages stacklen oldSize
+                    dupThird()
+                    // [65536*pages * 0] oldSize pages stacklen oldSize pages
+                    mul(65536)
+                    // [65536*pages * 0] oldSize pages stacklen oldSize pages*65536
+                    add(4)
+                    // [65536*pages * 0] oldSize pages stacklen oldSize pages*65536+4
+                    push(1)
+                    swap2()
+                    // [65536*pages * 0] oldSize pages stacklen oldSize 1 pages*65536+4
+                    lroll() // increasing stacklen
+                    // oldSize [65536*pages * 0] oldSize pages stacklen-1
+                    roll(3, 2)
+                    // oldSize [65536*pages * 0] pages stacklen-1 oldSize
+                    mul(65536)
+                    // oldSize [65536*pages * 0] pages stacklen-1 oldSize*65536
+                    push(indices.memDataStartIndex)
+                    add()
+                    // oldSize [65536*pages * 0] pages stacklen-1 oldSize*65536+memStart
+                    sub() // reducing stacklen
+                    // oldSize [65536*pages * 0] pages stacklen-oldSize*65536+memStart
+                    swap2()
+                    // oldSize [65536*pages * 0] stacklen-oldSize*65536+memStart pages
+                    mul(65536)
+                    swap2()
+                    // oldSize [65536*pages * 0] pages*65536 stacklen-oldSize*65536+memStart
+                    lroll() // newly allocated memory moved to its place
+                    // oldSize
+                }
+            }
+        }
+    }
+
     override fun build(): KsplangProgram = builder.build()
 }
 
@@ -425,7 +587,7 @@ fun InstantiatedKsplangWasmModule.toRuntimeData(): RuntimeData {
     }
     val memories = instance.memory()?.let { listOf(instance.memory()) } ?: emptyList<Memory>()
     val tables = instance.getTables()
-    val funTable: List<ProgramFunctionBase?> = if (tables.size == 0) {
+    val funTable: List<ProgramFunctionBase?> = if (tables.isEmpty()) {
         emptyList()
     } else {
         check(tables.size == 1) { "Multiple tables not supported" }

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { List } from 'react-window';
 import type { StateMessage } from '../types/debugger';
 import { Badge } from './ui/badge';
 import { Checkbox } from './ui/checkbox';
@@ -64,6 +65,7 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
   const [alignNumbers, setAlignNumbers] = useState(true);
   const [stackInput, setStackInput] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const parseStackInput = (input: string): bigint[] => {
     // Split by any non-digit characters except minus sign
@@ -157,55 +159,81 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
         </div>
       </div>
       
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden" ref={containerRef}>
         {currentState?.stack.length ? (
-          <div className="h-full overflow-y-auto font-mono text-sm">
+          <div className="h-full font-mono text-sm">
             {alignNumbers ? (
-              // Aligned grid layout (adjust columns based on display mode)
-              Array.from({ length: Math.ceil(currentState.stack.length / (displayMode === 'binary' ? 2 : 8)) }, (_, rowIndex) => {
+              // Virtualized aligned grid layout
+              (() => {
                 const itemsPerRow = displayMode === 'binary' ? 2 : 8;
-                const startIndex = rowIndex * itemsPerRow;
-                const rowItems = currentState.stack.slice(startIndex, startIndex + itemsPerRow);
+                const rowCount = Math.ceil(currentState.stack.length / itemsPerRow);
+                const rowHeight = 32; // Reduced height to match original spacing
                 
-                return (
-                  <div key={rowIndex} className="flex items-center mb-2">
-                    <div className="w-8 text-muted-foreground text-right mr-2 text-xs">
-                      {startIndex}:
-                    </div>
-                    <div className={`flex-1 grid gap-1 ${displayMode === 'binary' ? 'grid-cols-2' : 'grid-cols-8'}`}>
-                      {rowItems.map((value, colIndex) => {
-                        const formattedValue = formatStackValue(value, displayMode);
-                        return (
-                          <div 
-                            key={startIndex + colIndex} 
-                            className={`text-center text-xs px-1 py-1 bg-muted rounded overflow-hidden ${displayMode === 'binary' ? 'font-mono text-[10px]' : ''}`}
-                            title={`${value.toString()} (${displayMode === 'binary' ? 'binary' : 'decimal'})`}
-                          >
-                            <div className="truncate">
-                              {formattedValue}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              // Unaligned flow layout
-              <div className="flex flex-wrap gap-1">
-                {currentState.stack.map((value, index) => {
-                  const formattedValue = formatStackValue(value, displayMode);
+                // Get container height
+                const containerHeight = containerRef.current?.clientHeight || 400;
+                
+                // Row renderer for virtualized list - Let TypeScript infer the props
+                const Row = (props: any) => {
+                  const { index, style, stackData, mode, itemsPerRow } = props;
+                  const startIndex = index * itemsPerRow;
+                  const rowItems = stackData.slice(startIndex, startIndex + itemsPerRow);
+                  
                   return (
-                    <div 
-                      key={index} 
-                      className={`text-xs px-2 py-1 bg-muted rounded border ${displayMode === 'binary' ? 'font-mono text-[10px]' : ''}`}
-                      title={`${index}: ${value.toString()} (${displayMode === 'binary' ? 'binary' : 'decimal'})`}
-                    >
-                      {formattedValue}
+                    <div style={style} className="flex items-center pr-2 pb-2">
+                      <div className="w-8 text-muted-foreground text-right mr-2 text-xs flex-shrink-0">
+                        {startIndex}:
+                      </div>
+                      <div className={`flex-1 grid gap-1 ${mode === 'binary' ? 'grid-cols-2' : 'grid-cols-8'}`}>
+                        {rowItems.map((value: bigint, colIndex: number) => {
+                          const formattedValue = formatStackValue(value, mode);
+                          return (
+                            <div 
+                              key={startIndex + colIndex} 
+                              className={`text-center text-xs px-1 py-1 bg-muted rounded overflow-hidden ${mode === 'binary' ? 'font-mono text-[10px]' : ''}`}
+                              title={`${value.toString()} (${mode === 'binary' ? 'binary' : 'decimal'})`}
+                            >
+                              <div className="truncate">
+                                {formattedValue}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   );
-                })}
+                };
+                
+                return (
+                  <List
+                    style={{ height: containerHeight, width: '100%' }}
+                    rowCount={rowCount}
+                    rowHeight={rowHeight}
+                    rowComponent={Row}
+                    rowProps={{
+                      stackData: currentState.stack,
+                      mode: displayMode,
+                      itemsPerRow: itemsPerRow
+                    }}
+                  />
+                );
+              })()
+            ) : (
+              // Unaligned flow layout
+              <div className="h-full overflow-y-auto">
+                <div className="flex flex-wrap gap-1">
+                  {currentState.stack.map((value, index) => {
+                    const formattedValue = formatStackValue(value, displayMode);
+                    return (
+                      <div 
+                        key={index} 
+                        className={`text-xs px-2 py-1 bg-muted rounded border ${displayMode === 'binary' ? 'font-mono text-[10px]' : ''}`}
+                        title={`${index}: ${value.toString()} (${displayMode === 'binary' ? 'binary' : 'decimal'})`}
+                      >
+                        {formattedValue}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
