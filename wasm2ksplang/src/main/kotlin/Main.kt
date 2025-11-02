@@ -13,8 +13,10 @@ import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
 import cz.sejsel.ksplang.dsl.core.KsplangProgram
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
+import cz.sejsel.ksplang.dsl.core.ProgramFunction0To1
 import cz.sejsel.ksplang.dsl.core.ProgramFunction2To1
 import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
+import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.extract
 import cz.sejsel.ksplang.dsl.core.ifZero
@@ -44,34 +46,11 @@ import cz.sejsel.ksplang.std.yeet
 import cz.sejsel.ksplang.std.yoink
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.instantiateModuleFromPath
+import cz.sejsel.ksplang.wasm.instantiateModuleFromWat
 import java.io.File
 import kotlin.io.path.Path
 
 fun main() {
-    //val parsed = Parser.parse(Path("wasm/ksplang_web_bg.wasm"))
-    //val parsed = Parser.parse(Path("wasm/add.wasm"))
-    val parsed = Parser.parse(Path("wasm/loops_all.wasm"))
-    //println(parsed)
-
-    val tableStore = Store()
-    val tableInstance = tableStore.instantiate("table", parsed)
-    val times3 = tableInstance.export("times3")
-    times3.apply(7).also { println("7 * 3 = ${it[0]}") }
-
-    //val store = Store()
-    //val instance = store.instantiate("add", parsed)
-    //val add = instance.export("add")
-    //add.apply(1, 2).also { println(it[0]) }
-
-    val store = Store()
-    val module = Parser.parse(Path("wasm/memory-basics.wasm"))
-    val instance = store.instantiate("memory-basics", module)
-    val size = instance.export("wasm_size")
-    val grow = instance.export("wasm_grow")
-    size.apply().also { println("Size: ${it[0]}") }
-    grow.apply(1)
-    size.apply().also { println("Size after grow: ${it[0]}") }
-
     val builder = KsplangBuilder()
 
     /*
@@ -107,6 +86,7 @@ fun main() {
     // TODO: This is all very manual for now, you need to use the correct incantations
     //  in the correct order or things blow up (silently).
 
+    /*
     val wasmStore = Store()
     val translator = KsplangWasmModuleTranslator()
     val addWasmModule = instantiateModuleFromPath(translator, Path("wasm/add.wasm"), name = "add", store)
@@ -137,10 +117,23 @@ fun main() {
             }
         }
     }
+     */
+    val translator = KsplangWasmModuleTranslator()
 
-    val program = builder.build(ksplang)
-    val instructionCount = program.trim().split("\\s+".toRegex()).count()
-    File("wasmtest.ksplang").writeText(program)
+    val store = Store()
+    val module = instantiateModuleFromPath(translator, Path("wasm/ksplang_wasm.wasm"), "interpreter", store)
+    val program = buildSingleModuleProgram(module) {
+        val sum = getExportedFunction("sum_ksplang_result") as ProgramFunction0To1
+
+        body {
+            call(sum)
+        }
+    }
+
+    val annotated = builder.buildAnnotated(program)
+    val ksplang = annotated.toRunnableProgram()
+    val instructionCount = ksplang.trim().split("\\s+".toRegex()).count()
+    File("wasmtest.ksplang").writeText(ksplang)
     println("Generated program with $instructionCount instructions")
 }
 

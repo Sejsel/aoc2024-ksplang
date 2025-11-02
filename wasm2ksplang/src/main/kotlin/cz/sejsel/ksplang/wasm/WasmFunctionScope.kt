@@ -68,6 +68,8 @@ class WasmFunctionScope private constructor(
 
     fun ComplexFunction.endFunction() {
         +functionEndLabel
+        // TODO: Figure out why this is wrong (return?)
+        intermediateStackValues = returnTypes.size
         popLocals()
     }
 

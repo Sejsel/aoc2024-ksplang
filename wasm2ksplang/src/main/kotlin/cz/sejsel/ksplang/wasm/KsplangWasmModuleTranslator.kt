@@ -404,7 +404,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I32_CONST -> i32Const(instruction.operands()[0])
                         OpCode.I64_CONST -> i64Const(instruction.operands()[0])
                         OpCode.F32_CONST -> TODO()
-                        OpCode.F64_CONST -> TODO()
+                        OpCode.F64_CONST -> {unreachable()} // TODO
                         OpCode.I32_EQZ -> i32Eqz()
                         OpCode.I32_EQ -> i32Eq()
                         OpCode.I32_NE -> i32Ne()
@@ -435,10 +435,10 @@ class KsplangWasmModuleTranslator() {
                         OpCode.F32_GE -> TODO()
                         OpCode.F64_EQ -> TODO()
                         OpCode.F64_NE -> TODO()
-                        OpCode.F64_LT -> TODO()
-                        OpCode.F64_GT -> TODO()
+                        OpCode.F64_LT -> {unreachable()} // TODO
+                        OpCode.F64_GT -> {unreachable()} // TODO
                         OpCode.F64_LE -> TODO()
-                        OpCode.F64_GE -> TODO()
+                        OpCode.F64_GE -> {unreachable()} // TODO
                         OpCode.I32_CLZ -> i32Clz()
                         OpCode.I32_CTZ -> i32Ctz()
                         OpCode.I32_POPCNT -> i32PopCnt()
@@ -495,7 +495,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.F64_FLOOR -> TODO()
                         OpCode.F64_TRUNC -> TODO()
                         OpCode.F64_NEAREST -> TODO()
-                        OpCode.F64_SQRT -> TODO()
+                        OpCode.F64_SQRT -> {unreachable()} // TODO
                         OpCode.F64_ADD -> TODO()
                         OpCode.F64_SUB -> TODO()
                         OpCode.F64_MUL -> TODO()
@@ -507,13 +507,13 @@ class KsplangWasmModuleTranslator() {
                         OpCode.I32_TRUNC_F32_S -> TODO()
                         OpCode.I32_TRUNC_F32_U -> TODO()
                         OpCode.I32_TRUNC_F64_S -> TODO()
-                        OpCode.I32_TRUNC_F64_U -> TODO()
+                        OpCode.I32_TRUNC_F64_U -> { unreachable() } // TODO
                         OpCode.I64_EXTEND_I32_S -> i64Extend32Signed()
                         OpCode.I64_EXTEND_I32_U -> {} // nop with our representation
                         OpCode.I64_TRUNC_F32_S -> TODO()
                         OpCode.I64_TRUNC_F32_U -> TODO()
                         OpCode.I64_TRUNC_F64_S -> TODO()
-                        OpCode.I64_TRUNC_F64_U -> TODO()
+                        OpCode.I64_TRUNC_F64_U -> {unreachable()} // TODO
                         OpCode.F32_CONVERT_I32_S -> TODO()
                         OpCode.F32_CONVERT_I32_U -> TODO()
                         OpCode.F32_CONVERT_I64_S -> TODO()
@@ -522,7 +522,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.F64_CONVERT_I32_S -> TODO()
                         OpCode.F64_CONVERT_I32_U -> TODO()
                         OpCode.F64_CONVERT_I64_S -> TODO()
-                        OpCode.F64_CONVERT_I64_U -> TODO()
+                        OpCode.F64_CONVERT_I64_U -> {unreachable()} // TODO
                         OpCode.F64_PROMOTE_F32 -> TODO()
                         OpCode.I32_REINTERPRET_F32 -> TODO()
                         OpCode.I64_REINTERPRET_F64 -> TODO()
