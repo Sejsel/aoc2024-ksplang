@@ -178,7 +178,84 @@ class ControlFlowTests : FunSpec({
                     end
                   local.get $input
                 )
-            )""".trimIndent()
+            )""".trimIndent(),
+
+        "if else with result" to $$"""
+            (module 
+                (func $flow (export "flow") (param $input i32) (result i32)
+                    local.get $input
+                    i32.const 0
+                    i32.gt_s
+                    if (result i32)
+                        local.get $input
+                        i32.const 1
+                        i32.add
+                    else
+                        local.get $input
+                        i32.const 2
+                        i32.add
+                    end
+                )
+            )""".trimIndent(),
+
+        "if else without result" to $$"""
+            (module 
+                (func $flow (export "flow") (param $input i32) (result i32)
+                    local.get $input
+                    i32.const 0
+                    i32.gt_s
+                    if
+                        local.get $input
+                        i32.const 1
+                        i32.add
+                        local.set $input
+                    else
+                        local.get $input
+                        i32.const 2
+                        i32.add
+                        local.set $input
+                    end
+                    local.get $input
+                )
+            )""".trimIndent(),
+
+        "if else with result - br in if" to $$"""
+            (module 
+                (func $flow (export "flow") (param $input i32) (result i32)
+                    local.get $input
+                    i32.const 0
+                    i32.gt_s
+                    if (result i32)
+                        local.get $input
+                        br 0
+                        i32.const 1
+                        i32.add
+                    else
+                        local.get $input
+                        i32.const 2
+                        i32.add
+                    end
+                )
+            )""".trimIndent(),
+
+        "if else with result - br in else" to $$"""
+            (module 
+                (func $flow (export "flow") (param $input i32) (result i32)
+                    local.get $input
+                    i32.const 0
+                    i32.gt_s
+                    if (result i32)
+                        local.get $input
+                        i32.const 1
+                        i32.add
+                    else
+                        local.get $input
+                        br 0
+                        i32.const 2
+                        i32.add
+                    end
+                )
+            )""".trimIndent(),
     )
 
     withData(nameFn = { (name, _) -> name }, testCases) { (_, wat) ->

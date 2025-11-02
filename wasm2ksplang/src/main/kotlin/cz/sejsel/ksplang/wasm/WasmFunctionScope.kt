@@ -15,12 +15,33 @@ import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.whileNonZero
 import cz.sejsel.ksplang.std.*
 
-data class BlockFrame(
-    val startInstruction: AnnotatedInstruction,
-    val valuesReturned: Int,
-    val previousStackSize: Int,
-    val label: Label,
-)
+sealed interface BlockFrame {
+    val startInstruction: AnnotatedInstruction
+    val valuesReturned: Int
+    val previousStackSize: Int
+    val branchLabel: Label
+}
+
+/** Block or loop */
+data class SimpleBlockFrame(
+    override val startInstruction: AnnotatedInstruction,
+    override val valuesReturned: Int,
+    override val previousStackSize: Int,
+    override val branchLabel: Label,
+) : BlockFrame
+
+/** If-else block */
+data class IfElseBlockFrame(
+    override val startInstruction: AnnotatedInstruction,
+    override val valuesReturned: Int,
+    override val previousStackSize: Int,
+    val elseLabel: Label,
+    val endLabel: Label,
+) : BlockFrame {
+    // both if and else blocks break to endLabel (thankfully)
+    override val branchLabel: Label
+        get() = endLabel
+}
 
 class WasmFunctionScope private constructor(
     val localTypes: List<ValType>,
@@ -1674,26 +1695,86 @@ class WasmFunctionScope private constructor(
     }
 
     fun ComplexFunction.startBlock(instruction: AnnotatedInstruction, returnedValues: Int) {
-        val frame = BlockFrame(
+        val frame = SimpleBlockFrame(
             startInstruction = instruction,
             valuesReturned = returnedValues,
             previousStackSize = intermediateStackValues,
-            label = createLabel("block_${instruction}"),
+            branchLabel = createLabel("block_${instruction}"),
         )
         blockStack.add(frame)
         // For blocks, the labels are at the end, so we emit them when we reach the end.
     }
 
     fun ComplexFunction.startLoop(instruction: AnnotatedInstruction, returnedValues: Int) {
-        val frame = BlockFrame(
+        val frame = SimpleBlockFrame(
             startInstruction = instruction,
             valuesReturned = returnedValues,
             previousStackSize = intermediateStackValues,
-            label = createLabel("loop_${instruction}"),
+            branchLabel = createLabel("loop_${instruction}"),
         )
         blockStack.add(frame)
         // For loops, labels are at the start
-        +frame.label
+        +frame.branchLabel
+    }
+
+    fun ComplexFunction.startIf(instruction: AnnotatedInstruction, returnedValues: Int) {
+        // We will be removing one value shortly for if check
+        check(!localsPopped)
+        check(intermediateStackValues >= 1)
+        intermediateStackValues -= 1
+
+        val frame = IfElseBlockFrame(
+            startInstruction = instruction,
+            valuesReturned = returnedValues,
+            previousStackSize = intermediateStackValues,
+            elseLabel = createLabel("else_${instruction}"),
+            endLabel = createLabel("end_if_${instruction}"),
+        )
+        blockStack.add(frame)
+
+        // This removes the condition value:
+        ifZero(popChecked = true) { gotoLabel(frame.elseLabel) } otherwise {}
+    }
+
+    fun ComplexFunction.startElse(scope: Instruction) {
+        check(!localsPopped)
+
+        // We can either reuse the same frame, or create a new one for else.
+        // It should not matter, as branch should land at the same location for either if or else, so we reuse.
+        // Chicory scope for else is null, so we cannot check it (unfortunately).
+
+        // Note last instead of removeLast:
+        val frame = blockStack.last() as IfElseBlockFrame
+
+
+        // Due to validation, we know this should be the correct stack size already for the end of the `if` part.
+        check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
+            "Inconsistent stack size at else of ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+        }
+
+        // The `if` part is done, so jump over the `else` part:
+        gotoLabel(frame.endLabel)
+
+        // However, the if branch may have contained some values that are returned.
+        // They will not exist in the else block yet, so for once we need to update the stack tracking manually.
+        intermediateStackValues = frame.previousStackSize
+
+        +frame.elseLabel
+    }
+
+    fun ComplexFunction.endIf(scope: Instruction) {
+        val frame = blockStack.removeLast() as IfElseBlockFrame
+        check(frame.startInstruction.scope() == scope) {
+            "Mismatched end of if: expected end of ${frame.startInstruction}, got end of $scope"
+        }
+        // For ifs, labels are at the end
+        +frame.endLabel
+
+        // We do not need to clean up the stack here at all, as the stack should be already at the correct size
+        // (thanks to wasm validation).
+        check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
+            "Inconsistent stack size at end of if ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+        }
     }
 
     fun ComplexFunction.endBlock(scope: Instruction) {
@@ -1702,7 +1783,7 @@ class WasmFunctionScope private constructor(
             "Mismatched end of block: expected end of ${frame.startInstruction}, got end of $scope"
         }
         // For blocks, labels are at the end
-        +frame.label
+        +frame.branchLabel
 
         // We do not need to clean up the stack here at all, as the stack should be already at the correct size
         // (thanks to wasm validation).
@@ -1739,7 +1820,7 @@ class WasmFunctionScope private constructor(
         // retains the same stack, so we do NOT want to update the intermediateStackValues here.
         complexFunction("br(depth=$depth, remove=$toRemove)") {
             repeat(toRemove) { pop() }
-            gotoLabel(targetBlock.label)
+            gotoLabel(targetBlock.branchLabel)
         }
     }
 

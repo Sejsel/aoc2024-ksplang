@@ -252,8 +252,12 @@ class KsplangWasmModuleTranslator() {
                         OpCode.LOOP -> {
                             startLoop(instruction, getBlockReturnCount(instruction))
                         }
-                        OpCode.IF -> TODO()
-                        OpCode.ELSE -> TODO()
+                        OpCode.IF -> {
+                            startIf(instruction, getBlockReturnCount(instruction))
+                        }
+                        OpCode.ELSE -> {
+                            startElse(instruction)
+                        }
                         OpCode.THROW -> unsupportedExceptionHandling()
                         OpCode.THROW_REF -> unsupportedExceptionHandling()
                         OpCode.END -> {
@@ -268,6 +272,8 @@ class KsplangWasmModuleTranslator() {
                                     endBlock(scope)
                                 } else if (scope.opcode() == OpCode.LOOP) {
                                     endLoop(scope)
+                                } else if (scope.opcode() == OpCode.IF) {
+                                    endIf(scope)
                                 } else {
                                     error("Unsupported end scope: ${instruction.scope().opcode()}")
                                 }
