@@ -21,7 +21,9 @@ class KsplangProgramBuilder {
 
     fun installFunction(function: ProgramFunctionBase) {
         require(function.name.isNotEmpty()) { "Function name cannot be empty." }
-        require(!functions.containsKey(function.name)) { "Function '${function.name}' is already defined." }
+        require(!functions.containsKey(function.name) || function == functions[function.name]) {
+            "Function '${function.name}' is already defined."
+        }
 
         functions[function.name] = function
     }

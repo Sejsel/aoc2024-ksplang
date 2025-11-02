@@ -1,9 +1,12 @@
 package cz.sejsel.ksplang.wasm
 
+import com.dylibso.chicory.runtime.HostFunction
 import com.dylibso.chicory.runtime.Instance
 import com.dylibso.chicory.runtime.Store
 import com.dylibso.chicory.tools.wasm.Wat2Wasm
 import com.dylibso.chicory.wasm.Parser
+import com.dylibso.chicory.wasm.types.FunctionType
+import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction0To1
 import cz.sejsel.ksplang.dsl.core.ProgramFunction1To0
@@ -14,6 +17,12 @@ import java.nio.file.Path
 
 class InstantiatedKsplangWasmModule(val moduleName: String, val module: TranslatedWasmModule, store: Store) {
     // TODO: Check in the store that module name is unique?
+    init {
+        // This is a bit of an ugly hack, but it's the only way we can reuse chicory's instantiate functionality.
+        // TODO: Do this for all imports, we have module here, so we can do it automatically
+        store.addFunction(HostFunction("env", "input_size", FunctionType.of(listOf(), listOf(ValType.I32))) { _, _ -> error("Dummy function") })
+        store.addFunction(HostFunction("env", "read_input", FunctionType.of(listOf(ValType.I32), listOf(ValType.I64))) { _, _ -> error("Dummy function") })
+    }
     val instance: Instance = store.instantiate(moduleName, module.chicoryModule)
 
     fun getFunction(index: Int): ProgramFunctionBase? = module.getFunction(index)
@@ -22,10 +31,10 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
         return with(builder) { with(module) { getExportedFunction(name) } }
     }
 
-    /* Functions for getGlobal, must have body set by the embedder. */
+    /** Functions for getGlobal, must have body set by the embedder. */
     fun getGetGlobalFunctions(): Map<Int, ProgramFunction0To1> = module.getGlobalFunctions
 
-    /* Functions for setGlobal, must have body set by the embedder. */
+    /** Functions for setGlobal, must have body set by the embedder. */
     fun getSetGlobalFunctions(): Map<Int, ProgramFunction1To0> = module.setGlobalFunctions
 
     /** Function for getMemory, must have body set by the embedder. */
@@ -39,6 +48,13 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
 
     /** Function for growMemory, must have body set by the embedder. */
     fun getGrowMemoryFunction(): ProgramFunction1To1? = module.growMemoryFunction
+
+    /** Function for getInputSize, must have body set by the embedder. */
+    fun getGetInputSizeFunction(): ProgramFunction0To1? = module.getInputSizeFunction
+
+    /** Function for readInput, must have body set by the embedder. */
+    fun getReadInputFunction(): ProgramFunction1To1? = module.readInputFunction
+
 
     fun install(builder: KsplangProgramBuilder) {
         with(builder) {

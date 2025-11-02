@@ -4,6 +4,7 @@ import com.dylibso.chicory.wasm.Parser
 import com.dylibso.chicory.wasm.WasmModule
 import com.dylibso.chicory.wasm.types.AnnotatedInstruction
 import com.dylibso.chicory.wasm.types.ExternalType
+import com.dylibso.chicory.wasm.types.FunctionImport
 import com.dylibso.chicory.wasm.types.OpCode
 import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
@@ -111,6 +112,10 @@ class TranslatedWasmModule(
     val getGlobalFunctions: Map<Int, ProgramFunction0To1>,
     /** Forward declaration, needs to be implemented by embedder */
     val setGlobalFunctions: Map<Int, ProgramFunction1To0>,
+    /** Forward declaration, needs to be implemented by embedder */
+    val getInputSizeFunction: ProgramFunction0To1?,
+    /** Forward declaration, needs to be implemented by embedder */
+    val readInputFunction: ProgramFunction1To1?,
 ) {
     fun KsplangProgramBuilder.installFunctions() {
         programFunctions.forEach { installFunction(it) }
@@ -120,6 +125,8 @@ class TranslatedWasmModule(
         getMemorySizeFunction?.let { installFunction(it) }
         setMemoryFunction?.let { installFunction(it) }
         growMemoryFunction?.let { installFunction(it) }
+        getInputSizeFunction?.let { installFunction(it) }
+        readInputFunction?.let { installFunction(it) }
     }
 
     fun getFunction(index: Int): ProgramFunctionBase? {
@@ -143,6 +150,8 @@ class ModuleTranslatorState {
     var setMemoryFunctionIndexValue: ProgramFunction2To0? = null
     var getMemorySizeFunction: ProgramFunction0To1? = null
     var growMemoryFunction: ProgramFunction1To1? = null
+    var getInputSizeFunction: ProgramFunction0To1? = null
+    var readInputFunction: ProgramFunction1To1? = null
 
     fun getMemorySizeFunction(): ProgramFunction0To1 {
         // Forward declaration.
@@ -203,23 +212,53 @@ class KsplangWasmModuleTranslator() {
     // TODO: Start function
     fun translate(moduleName: String, module: WasmModule): TranslatedWasmModule {
         val functions = mutableListOf<ProgramFunctionBase>()
+        val importedFunctions = mutableMapOf<Pair<String, String>, ProgramFunctionBase>()
         val state = ModuleTranslatorState()
+
+        // First imported functions, then defined functions.
+
+        module.importSection()?.let { imports ->
+            (0..<imports.importCount()).forEach { i ->
+                val import = module.importSection().getImport(i)
+                if (import.importType() == ExternalType.FUNCTION) {
+                    val functionImport = import as FunctionImport
+                    val functionType = module.typeSection().getType(functionImport.typeIndex())
+                    val paramCount = functionType.params().size
+                    val returnCount = functionType.returns().size
+                    // There may be a name in the name custom section
+                    val declaredName = module.nameSection()?.nameOfFunction(i) ?: "anonymous"
+                    val name = "wasm_${moduleName}_import_${i}_$declaredName"
+                    val function = createFunction(name = name, paramCount = paramCount, returnCount = returnCount)
+                    functions.add(function)
+                    importedFunctions[import.module() to import.name()] = function
+                }
+            }
+        }
+        val importFunctionCount = functions.size
 
         // First, forward declare all functions so they can call one another.
         for (index in 0..<module.functionSection().functionCount()) {
+            val fullIndex = importFunctionCount + index
             val functionType = module.typeSection().getType(module.functionSection().getFunctionType(index))
             val paramCount = functionType.params().size
             val returnCount = functionType.returns().size
             // There may be a name in the name custom section
-            val declaredName = module.nameSection()?.nameOfFunction(index) ?: "anonymous"
-            val name = "wasm_${moduleName}_${index}_$declaredName"
+            val declaredName = module.nameSection()?.nameOfFunction(fullIndex) ?: "anonymous"
+            val name = "wasm_${moduleName}_${fullIndex}_$declaredName"
             functions.add(createFunction(name = name, paramCount = paramCount, returnCount = returnCount))
         }
 
-
         for (functionIndex in 0..<module.functionSection().functionCount()) {
             val body = functionToKsplang(module, functions, functionIndex, state)
-            functions[functionIndex].setBody(body)
+            functions[importFunctionCount + functionIndex].setBody(body)
+        }
+
+        importedFunctions["env" to "input_size"]?.let {
+            state.getInputSizeFunction = it as ProgramFunction0To1
+        }
+
+        importedFunctions["env" to "read_input"]?.let {
+            state.readInputFunction = it as ProgramFunction1To1
         }
 
         return TranslatedWasmModule(
@@ -232,6 +271,8 @@ class KsplangWasmModuleTranslator() {
             getMemorySizeFunction = state.getMemorySizeFunction,
             growMemoryFunction = state.growMemoryFunction,
             setMemoryFunction = state.setMemoryFunctionIndexValue,
+            getInputSizeFunction = state.getInputSizeFunction,
+            readInputFunction = state.readInputFunction
         )
     }
 
@@ -264,8 +305,6 @@ class KsplangWasmModuleTranslator() {
         val functionType = module.typeSection().getType(module.functionSection().getFunctionType(index))
         val code = module.codeSection().functionBodies()[index]
         val localTypes = code.localTypes()
-        val paramCount = functionType.params().size
-        val returnCount = functionType.returns().size
 
         val body = buildComplexFunction {
             val scope = initializeScope(

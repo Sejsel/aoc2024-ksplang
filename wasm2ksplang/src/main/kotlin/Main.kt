@@ -224,6 +224,18 @@ fun buildSingleModuleProgram(
                 }
             }
 
+            module.getReadInputFunction()?.let {
+                it.setBody {
+                    with(builder) { yoinkInput() }
+                }
+            }
+
+            module.getGetInputSizeFunction()?.let {
+                it.setBody {
+                    with(builder) { getInputSize() }
+                }
+            }
+
             builder.block()
         }
     }
