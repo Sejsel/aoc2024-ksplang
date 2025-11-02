@@ -28,6 +28,7 @@ data class SimpleBlockFrame(
     override val valuesReturned: Int,
     override val previousStackSize: Int,
     override val branchLabel: Label,
+    var containsReturn: Boolean
 ) : BlockFrame
 
 /** If-else block */
@@ -35,6 +36,7 @@ data class IfElseBlockFrame(
     override val startInstruction: AnnotatedInstruction,
     override val valuesReturned: Int,
     override val previousStackSize: Int,
+    var containsReturn: Boolean,
     val elseLabel: Label,
     val endLabel: Label,
 ) : BlockFrame {
@@ -53,6 +55,7 @@ class WasmFunctionScope private constructor(
     private var intermediateStackValues = 0
     private var localsPopped: Boolean = false
     private var blockStack: MutableList<BlockFrame> = mutableListOf()
+    private var functionEndLabel: Label = createLabel("func_end")
 
     private fun ComplexBlock.dupLocalValue(index: Int) {
         dupKthZeroIndexed(localTypes.size + intermediateStackValues - index - 1)
@@ -60,6 +63,34 @@ class WasmFunctionScope private constructor(
 
     private fun ComplexBlock.setLocalValue(index: Int) {
         setKth(localTypes.size + intermediateStackValues - index - 1)
+    }
+
+    fun ComplexFunction.endFunction() {
+        +functionEndLabel
+        popLocals()
+    }
+
+    fun ComplexFunction.returnFromFunction() {
+        check(intermediateStackValues >= returnTypes.size)
+
+        // We need to keep top n values (returned values)
+        if (intermediateStackValues > returnTypes.size) {
+            roll(intermediateStackValues.toLong(), returnTypes.size.toLong())
+            val removedValues = intermediateStackValues - returnTypes.size
+            repeat(removedValues) {
+                pop()
+            }
+            //intermediateStackValues -= removedValues
+        }
+
+        blockStack.forEach { frame ->
+            when (frame) {
+                is IfElseBlockFrame -> frame.containsReturn = true
+                is SimpleBlockFrame -> frame.containsReturn = true
+            }
+        }
+
+        gotoLabel(functionEndLabel)
     }
 
     fun ComplexFunction.unreachable() = instruction("unreachable", stackSizeChange = 0) {
@@ -1700,6 +1731,7 @@ class WasmFunctionScope private constructor(
             valuesReturned = returnedValues,
             previousStackSize = intermediateStackValues,
             branchLabel = createLabel("block_${instruction}"),
+            containsReturn = false,
         )
         blockStack.add(frame)
         // For blocks, the labels are at the end, so we emit them when we reach the end.
@@ -1711,6 +1743,7 @@ class WasmFunctionScope private constructor(
             valuesReturned = returnedValues,
             previousStackSize = intermediateStackValues,
             branchLabel = createLabel("loop_${instruction}"),
+            containsReturn = false,
         )
         blockStack.add(frame)
         // For loops, labels are at the start
@@ -1729,6 +1762,7 @@ class WasmFunctionScope private constructor(
             previousStackSize = intermediateStackValues,
             elseLabel = createLabel("else_${instruction}"),
             endLabel = createLabel("end_if_${instruction}"),
+            containsReturn = false,
         )
         blockStack.add(frame)
 
@@ -1746,11 +1780,15 @@ class WasmFunctionScope private constructor(
         // Note last instead of removeLast:
         val frame = blockStack.last() as IfElseBlockFrame
 
-
         // Due to validation, we know this should be the correct stack size already for the end of the `if` part.
-        check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
-            "Inconsistent stack size at else of ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+        if (!frame.containsReturn) {
+            check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
+                "Inconsistent stack size at else of ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+            }
         }
+
+        // Reset the return tracking for the else part:
+        frame.containsReturn = false
 
         // The `if` part is done, so jump over the `else` part:
         gotoLabel(frame.endLabel)
@@ -1772,13 +1810,17 @@ class WasmFunctionScope private constructor(
 
         // We do not need to clean up the stack here at all, as the stack should be already at the correct size
         // (thanks to wasm validation).
-        check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
-            "Inconsistent stack size at end of if ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+        if (!frame.containsReturn) {
+            check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
+                "Inconsistent stack size at end of if ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+            }
+        } else {
+            intermediateStackValues = frame.previousStackSize + frame.valuesReturned
         }
     }
 
     fun ComplexFunction.endBlock(scope: Instruction) {
-        val frame = blockStack.removeLast()
+        val frame = blockStack.removeLast() as SimpleBlockFrame
         check(frame.startInstruction.scope() == scope) {
             "Mismatched end of block: expected end of ${frame.startInstruction}, got end of $scope"
         }
@@ -1787,13 +1829,17 @@ class WasmFunctionScope private constructor(
 
         // We do not need to clean up the stack here at all, as the stack should be already at the correct size
         // (thanks to wasm validation).
-        check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
-            "Inconsistent stack size at end of block ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+        if (!frame.containsReturn) {
+            check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
+                "Inconsistent stack size at end of block ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+            }
+        } else {
+            intermediateStackValues = frame.previousStackSize + frame.valuesReturned
         }
     }
 
     fun ComplexBlock.endLoop(scope: Instruction) {
-        val frame = blockStack.removeLast()
+        val frame = blockStack.removeLast() as SimpleBlockFrame
         check(frame.startInstruction.scope() == scope) {
             "Mismatched end of loop: expected end of ${frame.startInstruction}, got end of $scope"
         }
@@ -1801,8 +1847,12 @@ class WasmFunctionScope private constructor(
 
         // We do not need to clean up the stack here at all, as the stack should be already at the correct size
         // (thanks to wasm validation).
-        check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
-            "Inconsistent stack size at end of loop ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+        if (!frame.containsReturn) {
+            check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
+                "Inconsistent stack size at end of loop ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
+            }
+        } else {
+            intermediateStackValues = frame.previousStackSize + frame.valuesReturned
         }
     }
 

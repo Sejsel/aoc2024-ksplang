@@ -258,7 +258,7 @@ class KsplangWasmModuleTranslator() {
                                 // End of the function
                                 // The scope definition from Chicory is a bit weird here, we just ignore it, it
                                 // looks like it can have itself when there are no other blocks, or the previous block
-                                popLocals()
+                                endFunction()
                             } else {
                                 if (scope.opcode() == OpCode.BLOCK) {
                                     endBlock(scope)
@@ -285,7 +285,7 @@ class KsplangWasmModuleTranslator() {
                         OpCode.BR_TABLE -> {
                             branchTable(instruction.operands().map { it.toInt() })
                         }
-                        OpCode.RETURN -> TODO()
+                        OpCode.RETURN -> returnFromFunction()
                         OpCode.CALL -> TODO()
                         OpCode.CALL_INDIRECT -> TODO()
                         OpCode.RETURN_CALL -> unsupportedTailCall()

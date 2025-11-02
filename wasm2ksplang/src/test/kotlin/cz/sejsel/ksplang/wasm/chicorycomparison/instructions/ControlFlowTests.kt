@@ -40,7 +40,7 @@ class ControlFlowTests : FunSpec({
 
     val testCases = listOf(
         "simple block with result with no br" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     block (result i32)
                         local.get $input
@@ -51,7 +51,7 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "simple block with result with unconditional br" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     block (result i32)
                         local.get $input
@@ -63,7 +63,7 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "simple block without result with unconditional br" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     block
                         br 0
@@ -77,7 +77,7 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "simple block with result with br_if" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     block (result i32)
                         local.get $input
@@ -90,7 +90,7 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "nested blocks with result - break inner" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     block
                         block
@@ -110,7 +110,7 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "nested blocks with result - break outer" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     block
                         block
@@ -130,7 +130,7 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "nested blocks with result - br removes intermediate values" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     block
                         local.get $input ;; this is the intermediate
@@ -150,7 +150,7 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "simple loop with result with no br" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     loop (result i32)
                         local.get $input
@@ -161,9 +161,9 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "simple loop with 3 iterations" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
-                    (local $index i32)  
+                    (local $index i32)
                     (local.set $index (i32.const 3))
                     loop
                         local.get $input
@@ -181,7 +181,7 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "if else with result" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     local.get $input
                     i32.const 0
@@ -199,7 +199,7 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "if else without result" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     local.get $input
                     i32.const 0
@@ -220,7 +220,7 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "if else with result - br in if" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     local.get $input
                     i32.const 0
@@ -239,7 +239,7 @@ class ControlFlowTests : FunSpec({
             )""".trimIndent(),
 
         "if else with result - br in else" to $$"""
-            (module 
+            (module
                 (func $flow (export "flow") (param $input i32) (result i32)
                     local.get $input
                     i32.const 0
@@ -283,7 +283,49 @@ class ControlFlowTests : FunSpec({
                 )
                 local.get $input
               )
-            )""".trimMargin()
+            )""".trimMargin(),
+
+        "return drops values from bottom of stack" to $$"""
+            (module
+              (func $flow (export "flow") (param $input i32) (result i32)
+                i32.const 10 ;; should be dropped
+                local.get $input
+                return
+              )
+            )
+        """.trimMargin(),
+
+        "return in a block" to $$"""
+            (module
+              (func $flow (export "flow") (param $input i32) (result i32)
+                block
+                  local.get $input
+                  i32.const 5
+                  i32.add
+                  return
+                end
+                ;; unreachable
+                local.get $input
+                i32.const 10
+                i32.add
+              )
+            )
+        """.trimMargin(),
+
+        "conditional return in a block" to $$"""
+            (module
+              (func (export "flow") (param $input i32) (result i32)
+                block
+                    i32.const 10
+                    i32.const 90
+                    local.get $input
+                    br_if 0
+                    return
+                end
+                i32.const 42
+              )
+            )
+        """.trimMargin()
     )
 
     withData(nameFn = { (name, _) -> name }, testCases) { (_, wat) ->
