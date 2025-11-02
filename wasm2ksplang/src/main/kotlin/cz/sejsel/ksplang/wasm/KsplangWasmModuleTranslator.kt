@@ -246,18 +246,10 @@ class KsplangWasmModuleTranslator() {
                     when (instruction.opcode()) {
                         OpCode.UNREACHABLE -> unreachable()
                         OpCode.NOP -> {}
-                        OpCode.BLOCK -> {
-                            startBlock(instruction, getBlockReturnCount(instruction))
-                        }
-                        OpCode.LOOP -> {
-                            startLoop(instruction, getBlockReturnCount(instruction))
-                        }
-                        OpCode.IF -> {
-                            startIf(instruction, getBlockReturnCount(instruction))
-                        }
-                        OpCode.ELSE -> {
-                            startElse(instruction)
-                        }
+                        OpCode.BLOCK -> startBlock(instruction, getBlockReturnCount(instruction))
+                        OpCode.LOOP -> startLoop(instruction, getBlockReturnCount(instruction))
+                        OpCode.IF -> startIf(instruction, getBlockReturnCount(instruction))
+                        OpCode.ELSE -> startElse(instruction)
                         OpCode.THROW -> unsupportedExceptionHandling()
                         OpCode.THROW_REF -> unsupportedExceptionHandling()
                         OpCode.END -> {
@@ -290,7 +282,9 @@ class KsplangWasmModuleTranslator() {
                             check(instruction.operands()[0] in 0..Int.MAX_VALUE.toLong()) { "Invalid BR target depth: ${instruction.operands()[0]}" }
                             branchIf(instruction.operands()[0].toInt())
                         }
-                        OpCode.BR_TABLE -> TODO()
+                        OpCode.BR_TABLE -> {
+                            branchTable(instruction.operands().map { it.toInt() })
+                        }
                         OpCode.RETURN -> TODO()
                         OpCode.CALL -> TODO()
                         OpCode.CALL_INDIRECT -> TODO()

@@ -1832,6 +1832,39 @@ class WasmFunctionScope private constructor(
         ifZero(popChecked = true) { } otherwise { branch(depth) }
     }
 
+    fun ComplexBlock.branchTable(depths: List<Int>) {
+        check(depths.isNotEmpty())
+        check(!localsPopped)
+        check(intermediateStackValues >= 1)
+        intermediateStackValues -= 1
+
+        // index
+        dup()
+        sgn()
+        // index sgn(index)
+        inc()
+        ifZero(popChecked = true) {
+            // index was negative, we go to last label
+            branch(depths.last())
+        } otherwise {
+            // index was zero or positive; this means we can safely dec as much as we want
+            // index
+            depths.forEach { depth ->
+                // index
+                ifZero {
+                    pop()
+                    branch(depth)
+                }
+                dec()
+                // index-1
+            }
+            // index
+            pop()
+            // index was >= depths.size, go to last label
+            branch(depths.last())
+        }
+    }
+
     companion object {
         fun ComplexFunction.initialize(
             params: List<ValType>,

@@ -256,6 +256,34 @@ class ControlFlowTests : FunSpec({
                     end
                 )
             )""".trimIndent(),
+
+        "br_table" to $$"""
+            (module
+              (func $flow (export "flow") (param $input i32) (result i32)
+                (block $outer_block
+                  (block $middle_block
+                    (block $inner_block
+                      local.get $input
+                      i32.const 4
+                      i32.rem_s
+                      ;; we should get -3,-2,-1,0,1,2,3
+                      ;; only 0,1,2 map to entries, others out of bounds should map to last label (middle_block)
+                      (br_table $inner_block $outer_block $middle_block)
+                      unreachable
+                    )
+                    local.get $input
+                    i32.const 1
+                    i32.add
+                    local.set $input
+                  )
+                  local.get $input
+                  i32.const 2
+                  i32.add
+                  local.set $input
+                )
+                local.get $input
+              )
+            )""".trimMargin()
     )
 
     withData(nameFn = { (name, _) -> name }, testCases) { (_, wat) ->
