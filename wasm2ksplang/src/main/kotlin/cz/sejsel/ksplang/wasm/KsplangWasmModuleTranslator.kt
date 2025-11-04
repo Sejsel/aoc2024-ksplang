@@ -116,6 +116,8 @@ class TranslatedWasmModule(
     val getInputSizeFunction: ProgramFunction0To1?,
     /** Forward declaration, needs to be implemented by embedder */
     val readInputFunction: ProgramFunction1To1?,
+    /** Forward declaration, needs to be implemented by embedder */
+    val getFunctionAddressFunction: ProgramFunction1To1? = null
 ) {
     fun KsplangProgramBuilder.installFunctions() {
         programFunctions.forEach { installFunction(it) }
@@ -127,6 +129,7 @@ class TranslatedWasmModule(
         growMemoryFunction?.let { installFunction(it) }
         getInputSizeFunction?.let { installFunction(it) }
         readInputFunction?.let { installFunction(it) }
+        getFunctionAddressFunction?.let { installFunction(it) }
     }
 
     fun getFunction(index: Int): ProgramFunctionBase? {
@@ -152,6 +155,15 @@ class ModuleTranslatorState {
     var growMemoryFunction: ProgramFunction1To1? = null
     var getInputSizeFunction: ProgramFunction0To1? = null
     var readInputFunction: ProgramFunction1To1? = null
+    var getFunctionAddressFunction: ProgramFunction1To1? = null
+
+    fun getFunctionAddressFunction(): ProgramFunction1To1 {
+        // Forward declaration.
+        return getFunctionAddressFunction ?: ProgramFunction1To1(
+            name = "wasm_getFunctionAddress",
+            body = null,
+        ).also { getFunctionAddressFunction = it }
+    }
 
     fun getMemorySizeFunction(): ProgramFunction0To1 {
         // Forward declaration.
@@ -272,7 +284,8 @@ class KsplangWasmModuleTranslator() {
             growMemoryFunction = state.growMemoryFunction,
             setMemoryFunction = state.setMemoryFunctionIndexValue,
             getInputSizeFunction = state.getInputSizeFunction,
-            readInputFunction = state.readInputFunction
+            readInputFunction = state.readInputFunction,
+            getFunctionAddressFunction = state.getFunctionAddressFunction,
         )
     }
 
@@ -360,7 +373,10 @@ class KsplangWasmModuleTranslator() {
                         }
                         OpCode.RETURN -> returnFromFunction()
                         OpCode.CALL -> callFunction(functions[instruction.operands()[0].toInt()])
-                        OpCode.CALL_INDIRECT -> TODO()
+                        OpCode.CALL_INDIRECT -> {
+                            val type = module.typeSection().getType(instruction.operands()[0].toInt())
+                            callIndirect(type)
+                        }
                         OpCode.RETURN_CALL -> unsupportedTailCall()
                         OpCode.RETURN_CALL_INDIRECT -> unsupportedTailCall()
                         OpCode.CALL_REF -> unsupportedTypedFunctionReferenceTypes()

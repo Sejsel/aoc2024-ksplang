@@ -55,6 +55,8 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
     /** Function for readInput, must have body set by the embedder. */
     fun getReadInputFunction(): ProgramFunction1To1? = module.readInputFunction
 
+    /** Function for getFunctionAddress, must have body set by the embedder. */
+    fun getGetFunctionAddressFunction(): ProgramFunction1To1? = module.getFunctionAddressFunction
 
     fun install(builder: KsplangProgramBuilder) {
         with(builder) {

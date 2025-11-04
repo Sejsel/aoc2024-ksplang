@@ -1,24 +1,21 @@
 package cz.sejsel
 
 import com.dylibso.chicory.runtime.GlobalInstance
+import com.dylibso.chicory.runtime.HostFunction
 import com.dylibso.chicory.runtime.Memory
 import com.dylibso.chicory.runtime.Store
-import com.dylibso.chicory.wasm.Parser;
+import com.dylibso.chicory.wasm.types.FunctionType
 import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.wasm.InstantiatedKsplangWasmModule
 import cz.sejsel.ksplang.builder.KsplangBuilder
-import cz.sejsel.ksplang.dsl.auto.auto
-import cz.sejsel.ksplang.dsl.auto.const
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
 import cz.sejsel.ksplang.dsl.core.KsplangProgram
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction0To1
-import cz.sejsel.ksplang.dsl.core.ProgramFunction2To1
 import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
-import cz.sejsel.ksplang.dsl.core.extract
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.program
@@ -34,7 +31,6 @@ import cz.sejsel.ksplang.std.dupThird
 import cz.sejsel.ksplang.std.mul
 import cz.sejsel.ksplang.std.negate
 import cz.sejsel.ksplang.std.push
-import cz.sejsel.ksplang.std.pushManyBottom
 import cz.sejsel.ksplang.std.pushOn
 import cz.sejsel.ksplang.std.roll
 import cz.sejsel.ksplang.std.sgn
@@ -46,7 +42,8 @@ import cz.sejsel.ksplang.std.yeet
 import cz.sejsel.ksplang.std.yoink
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.instantiateModuleFromPath
-import cz.sejsel.ksplang.wasm.instantiateModuleFromWat
+import getGlobals
+import getTables
 import java.io.File
 import kotlin.io.path.Path
 
@@ -130,12 +127,49 @@ fun main() {
         }
     }
 
+    /*
+    val referenceStore = Store()
+    val input = "CS CS lensum CS funkcia ++;20 30".map { it.code.toLong() }
+    referenceStore.addFunction(TestChicoryHostFunctions.readInput(input), TestChicoryHostFunctions.inputSize(input))
+    val func = referenceStore.instantiate("mod", module.module.chicoryModule).export("sum_ksplang_result")!!
+    val expectedResult = func.apply().single()
+    println(expectedResult)
+     */
+
+    println("Translated program tree")
+
     val annotated = builder.buildAnnotated(program)
     val ksplang = annotated.toRunnableProgram()
     val instructionCount = ksplang.trim().split("\\s+".toRegex()).count()
     File("wasmtest.ksplang").writeText(ksplang)
     println("Generated program with $instructionCount instructions")
 }
+
+/*
+object TestChicoryHostFunctions {
+    fun readInput(input: List<Long>): HostFunction {
+        return HostFunction(
+            "env",
+            "read_input",
+            FunctionType.of(listOf(ValType.I32), listOf(ValType.I64)),
+        ) { _, args ->
+            val index = args[0].toInt()
+            val value = input[index]
+            longArrayOf(value)
+        }
+    }
+
+    fun inputSize(input: List<Long>): HostFunction {
+        return HostFunction(
+            "env",
+            "input_size",
+            FunctionType.of(listOf(), listOf(ValType.I32)),
+        ) { _, args ->
+            longArrayOf(input.size.toLong())
+        }
+    }
+}
+ */
 
 /**
  * Build a ksplang program with one embedded WASM module, and run one of its functions as the main body.
@@ -229,6 +263,12 @@ fun buildSingleModuleProgram(
                 }
             }
 
+            module.getGetFunctionAddressFunction()?.let {
+                it.setBody {
+                    with(builder) { getFunctionAddress() }
+                }
+            }
+
             builder.block()
         }
     }
@@ -240,6 +280,7 @@ interface WasmBuilder {
     fun body(block: ComplexBlock.() -> Unit)
 
     fun ComplexBlock.getInputSize(): ComplexFunction
+    fun ComplexBlock.getFunctionAddress(): ComplexFunction
     fun ComplexBlock.yoinkInput(): ComplexFunction
     fun ComplexBlock.yoinkInput(index: Int): ComplexFunction
     fun ComplexBlock.yoinkGlobal(index: Int): ComplexFunction
@@ -272,6 +313,13 @@ class NoMemoryWasmBuilder(
 
     override fun ComplexBlock.getInputSize() = complexFunction("inputSize") {
         push(indices.inputLenIndex)
+        yoink()
+    }
+
+    override fun ComplexBlock.getFunctionAddress(): ComplexFunction = complexFunction("getFunctionAddress") {
+        // i
+        push(indices.funTableStartIndex)
+        add()
         yoink()
     }
 
@@ -352,6 +400,13 @@ class SingleModuleWasmBuilder(
 
     override fun ComplexBlock.getInputSize() = complexFunction("inputSize") {
         push(indices.inputLenIndex)
+        yoink()
+    }
+
+    override fun ComplexBlock.getFunctionAddress(): ComplexFunction = complexFunction("getFunctionAddress") {
+        // i
+        push(indices.funTableStartIndex)
+        add()
         yoink()
     }
 

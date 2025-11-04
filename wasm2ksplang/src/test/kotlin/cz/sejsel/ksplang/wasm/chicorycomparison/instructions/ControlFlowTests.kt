@@ -1,13 +1,16 @@
 package cz.sejsel.ksplang.wasm.chicorycomparison.instructions
 
 import com.dylibso.chicory.runtime.Store
+import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.buildSingleModuleProgram
+import getTables
 import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction1To1
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.std.dup
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
+import cz.sejsel.ksplang.wasm.bitsToLong
 import cz.sejsel.ksplang.wasm.instantiateModuleFromWat
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
@@ -30,13 +33,13 @@ class ControlFlowTests : FunSpec({
     // which takes one number as input, returns one number as output. The block/loop somehow affects the returned value,
     // which is based on the input (to ensure everything works when put together)
 
-    fun List<Long>.hasExpectedPrefixForInput(input: List<Long>) {
+    fun List<Long>.hasExpectedPrefixForInput(input: List<Long>, functionCount: Int) {
         this[1] shouldBe input.size
-        this.subList(2, 2 + input.size) shouldBe input
+        this.subList(2 + functionCount, 2 + functionCount + input.size) shouldBe input
     }
 
-    fun List<Long>.removePrefix(input: List<Long>): List<Long> =
-        this.drop(2 + input.size)
+    fun List<Long>.removePrefix(input: List<Long>, functionCount: Int): List<Long> =
+        this.drop(2 + functionCount + input.size)
 
     val testCases = listOf(
         "simple block with result with no br" to $$"""
@@ -339,7 +342,32 @@ class ControlFlowTests : FunSpec({
                 call $helper
               )
             )
-        """.trimMargin()
+        """.trimMargin(),
+
+        "indirect call with two functions" to $$"""
+            (module
+              (type $func_type (func (param i32) (result i32)))
+              (func $helper1 (type $func_type) (param $x i32) (result i32)
+                local.get $x
+                i32.const 200
+                i32.add
+              )
+              (func $helper2 (type $func_type) (param $x i32) (result i32)
+                local.get $x
+                i32.const 300
+                i32.add
+              )
+              (table 2 funcref)
+              (elem (i32.const 0) $helper1 $helper2)
+              (func $flow (export "flow") (param $input i32) (result i32)
+                local.get $input
+                local.get $input
+                i32.const 2
+                i32.rem_u ;; 0 or 1
+                call_indirect (type $func_type)
+              )
+            )
+        """.trimMargin(),
     )
 
     withData(nameFn = { (name, _) -> name }, testCases) { (_, wat) ->
@@ -357,15 +385,17 @@ class ControlFlowTests : FunSpec({
 
         test("chicory gets the same result") {
             checkAll<Int> { i ->
-                val input = listOf(i.toLong())
+                val input = listOf(i.bitsToLong())
 
                 val referenceStore = Store()
-                val func = referenceStore.instantiate("mod", module.module.chicoryModule).export("flow")!!
+                val instance = referenceStore.instantiate("mod", module.module.chicoryModule)
+                val func = instance.export("flow")!!
                 val expected = func.apply(*input.toLongArray()).single()
+                val functionsInTable = instance.getTables().singleOrNull { it.elementType() == ValType.FuncRef }?.size() ?: 0
 
                 val result = runner.run(ksplang, input)
-                result.hasExpectedPrefixForInput(input)
-                result.removePrefix(input).map { it.toInt() } shouldBe listOf(expected).map { it.toInt() }
+                result.hasExpectedPrefixForInput(input, functionsInTable)
+                result.removePrefix(input, functionsInTable).map { it.toInt() } shouldBe listOf(expected).map { it.toInt() }
             }
         }
     }

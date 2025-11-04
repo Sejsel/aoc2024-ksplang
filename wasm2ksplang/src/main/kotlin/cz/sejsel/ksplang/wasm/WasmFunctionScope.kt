@@ -1,6 +1,7 @@
 package cz.sejsel.ksplang.wasm
 
 import com.dylibso.chicory.wasm.types.AnnotatedInstruction
+import com.dylibso.chicory.wasm.types.FunctionType
 import com.dylibso.chicory.wasm.types.Instruction
 import com.dylibso.chicory.wasm.types.ValType
 import cz.sejsel.ksplang.dsl.core.CallInline
@@ -68,8 +69,6 @@ class WasmFunctionScope private constructor(
 
     fun ComplexFunction.endFunction() {
         +functionEndLabel
-        // TODO: Figure out why this is wrong (return?)
-        intermediateStackValues = returnTypes.size
         popLocals()
     }
 
@@ -101,6 +100,18 @@ class WasmFunctionScope private constructor(
         val outputCount = function.outputs
         instruction("callFunction(${function.name})", stackSizeChange = outputCount - inputCount) {
             call(function)
+        }
+    }
+
+    fun ComplexFunction.callIndirect(type: FunctionType) {
+        val inputCount = type.params().size
+        val outputCount = type.returns().size
+        instruction("callIndirect", stackSizeChange = outputCount - inputCount - 1) {
+            // i
+            call(globalState.getFunctionAddressFunction(), inline = CallInline.ALWAYS)
+            // fun_addr
+            call()
+            pop()
         }
     }
 

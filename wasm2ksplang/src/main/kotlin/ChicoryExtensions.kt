@@ -1,5 +1,3 @@
-package cz.sejsel
-
 import com.dylibso.chicory.runtime.GlobalInstance
 import com.dylibso.chicory.runtime.Instance
 import com.dylibso.chicory.runtime.TableInstance
