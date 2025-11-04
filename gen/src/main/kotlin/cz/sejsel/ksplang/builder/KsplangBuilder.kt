@@ -232,8 +232,34 @@ class KsplangBuilder(
         return null
     }
 
+    private fun filterBlocks(tree: Block, condition: (Block) -> Boolean): List<Block> {
+        val list = mutableListOf<Block>()
+        filterBlocksInternal(tree, condition, list)
+        return list
+    }
+
+    private fun filterBlocksInternal(tree: Block, condition: (Block) -> Boolean, list: MutableList<Block>) {
+        if (condition(tree)) {
+            list.add(tree)
+        }
+        val children = when (tree) {
+            is IfZero -> tree.children + listOfNotNull(tree.orElse)
+            is ComplexBlock -> tree.children
+            is SimpleFunction -> tree.children
+            is Instruction -> return
+        }
+        for (child in children) {
+            filterBlocksInternal(child, condition, list)
+        }
+    }
+
     private fun buildAnnotated(programTree: ComplexBlock, functions: List<ProgramFunctionBase>): Ksplang {
         require(functions.map { it.name }.distinct().size == functions.size) { "All functions must have unique names." }
+
+        val allLabelGotos: List<Block> = filterBlocks(programTree) { it is GoToLabel } + functions.flatMap {
+            filterBlocks(it.body ?: error("Function ${it.name} has no body - forward declaration without body?")) { it is GoToLabel }
+        }
+        val referencedLabels = allLabelGotos.map { (it as GoToLabel).label }.toSet()
 
         // For simplification, we use a global address padding (all addresses are padded to the same length)
         for (addressPad in 6..Int.MAX_VALUE) {
@@ -265,9 +291,9 @@ class KsplangBuilder(
                     check(state.program[push.programIndex].isEmpty()) { "Prepared push applied twice or program index is broken" }
                     state.program[push.programIndex] = buildList {
                         val blockId = state.getNextBlockId()
-                        add(AnnotatedKsplangSegment.BlockStart(paddedPush.name, blockId, BlockType.InlinedFunction))
-                        addAll(paddedPush.getInstructions().map { AnnotatedKsplangSegment.Op(it.text) })
-                        add(AnnotatedKsplangSegment.BlockEnd(blockId))
+                        add(BlockStart(paddedPush.name, blockId, BlockType.InlinedFunction))
+                        addAll(paddedPush.getInstructions().map { Op(it.text) })
+                        add(BlockEnd(blockId))
                     }
                 }
 
@@ -507,12 +533,8 @@ class KsplangBuilder(
                             e(goto)
                         }
                         is Label -> {
-                            val isUsed = (listOf(programTree) + functions.map { it.body }).filterNotNull().any {
-                                firstBlockOrNull(it) { it is GoToLabel && it.label === block } != null
-                            }
-
                             // No need to add anything for a label which is not used
-                            if (!isUsed) return
+                            if (block !in referencedLabels) return
 
                             val labelState = state.getLabelState(block)
                             if (labelState.index != null) {
