@@ -272,6 +272,35 @@ export function useWebSocket(url: string) {
     }
   }, [sendMessage]);
 
+  const loadProgramFromFile = useCallback(async (fileContent: string) => {
+    try {
+      // Try to parse as JSON
+      let program;
+      try {
+        program = JSON.parse(fileContent);
+      } catch (parseError) {
+        alert('File does not contain valid JSON.');
+        return;
+      }
+      
+      // Basic validation that it looks like a program structure
+      if (!program || typeof program !== 'object' || !program.type) {
+        alert('File does not contain a valid program. Expected a program object with a "type" field.');
+        return;
+      }
+      
+      // Send the set_program command
+      sendMessage({
+        type: 'set_program',
+        program: program,
+      });
+      
+    } catch (error) {
+      alert('Failed to load program from file.');
+      console.error('File load error:', error);
+    }
+  }, [sendMessage]);
+
   useEffect(() => {
     connect();
     
@@ -297,5 +326,6 @@ export function useWebSocket(url: string) {
     clearBreakpoints,
     setStack,
     loadProgramFromClipboard,
+    loadProgramFromFile,
   };
 }

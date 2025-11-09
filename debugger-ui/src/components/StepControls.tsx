@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
@@ -24,6 +24,7 @@ interface StepControlsProps {
   onRunToPreviousBreakpoint: () => void;
   onClearBreakpoints: () => void;
   onLoadProgramFromClipboard: () => Promise<void>;
+  onLoadProgramFromFile?: (fileContent: string) => Promise<void>;
 }
 
 export function StepControls({ 
@@ -36,14 +37,41 @@ export function StepControls({
   onRunToNextBreakpoint, 
   onRunToPreviousBreakpoint, 
   onClearBreakpoints, 
-  onLoadProgramFromClipboard 
+  onLoadProgramFromClipboard,
+  onLoadProgramFromFile
 }: StepControlsProps) {
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleConfirmClear = () => {
     onClearBreakpoints();
     setConfirmClearOpen(false);
   };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const content = await file.text();
+      if (onLoadProgramFromFile) {
+        await onLoadProgramFromFile(content);
+      }
+    } catch (error) {
+      console.error('Failed to load program from file:', error);
+      alert('Failed to load program from file. Please check the file format.');
+    }
+
+    // Reset input so same file can be loaded again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleFileButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const currentStep = currentState?.step ?? BigInt(0);
   const breakpointCount = currentState?.breakpoints?.length ?? 0;
   const hasBreakpoints = breakpointCount > 0;
@@ -65,6 +93,23 @@ export function StepControls({
       
       {/* Program Loading */}
       <div className="flex items-center gap-2 mb-4 pb-4 border-b">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json,.ksplang.json"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
+        <Button 
+          onClick={handleFileButtonClick}
+          disabled={!connected}
+          variant="outline"
+          size="sm"
+          title="Load program from file (.json)"
+          className="text-blue-600 hover:text-blue-700 hover:border-blue-300 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          📁 Load File
+        </Button>
         <Button 
           onClick={onLoadProgramFromClipboard}
           disabled={!connected}
@@ -73,9 +118,9 @@ export function StepControls({
           title="Load program from clipboard (JSON)"
           className="text-slate-600 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300"
         >
-          📋 Load Program
+          📋 Clipboard
         </Button>
-        <span className="text-xs text-muted-foreground">Load program from clipboard JSON</span>
+        <span className="text-xs text-muted-foreground">Load program JSON</span>
       </div>
       
       {/* Control Buttons */}

@@ -1583,51 +1583,51 @@ class WasmFunctionScope private constructor(
         i64Le() // we swapped the arguments, no swapping back (for perf)
     }
 
-    fun ComplexFunction.i8Load() = instruction("i8Load", stackSizeChange = 0) { loadInt(1) }
-    fun ComplexFunction.i16Load() = instruction("i16Load", stackSizeChange = 0) { loadInt(2) }
-    fun ComplexFunction.i32Load() = instruction("i32Load", stackSizeChange = 0) { loadInt(4) }
-    fun ComplexFunction.i64Load() = instruction("i64Load", stackSizeChange = 0) { loadInt(8) }
-    fun ComplexFunction.i32Load8Signed() = instruction("i32Load8Signed", stackSizeChange = 0) {
-        loadInt(1)
+    fun ComplexFunction.i8Load(offset: Int) = instruction("i8Load(+$offset)", stackSizeChange = 0) { loadInt(1, offset) }
+    fun ComplexFunction.i16Load(offset: Int) = instruction("i16Load(+$offset)", stackSizeChange = 0) { loadInt(2, offset) }
+    fun ComplexFunction.i32Load(offset: Int) = instruction("i32Load(+$offset)", stackSizeChange = 0) { loadInt(4, offset) }
+    fun ComplexFunction.i64Load(offset: Int) = instruction("i64Load(+$offset)", stackSizeChange = 0) { loadInt(8, offset) }
+    fun ComplexFunction.i32Load8Signed(offset: Int) = instruction("i32Load8Signed(+$offset)", stackSizeChange = 0) {
+        loadInt(1, offset)
         i8ToSigned()
         i32Mod()
     }
-    fun ComplexFunction.i32Load16Signed() = instruction("i32Load16Signed", stackSizeChange = 0) {
-        loadInt(2)
+    fun ComplexFunction.i32Load16Signed(offset: Int) = instruction("i32Load16Signed(+$offset)", stackSizeChange = 0) {
+        loadInt(2, offset)
         i16ToSigned()
         i32Mod()
     }
-    fun ComplexFunction.i64Load8Signed() = instruction("i64Load8Signed", stackSizeChange = 0) {
-        loadInt(1)
+    fun ComplexFunction.i64Load8Signed(offset: Int) = instruction("i64Load8Signed(+$offset)", stackSizeChange = 0) {
+        loadInt(1, offset)
         i8ToSigned()
     }
-    fun ComplexFunction.i64Load16Signed() = instruction("i64Load16Signed", stackSizeChange = 0) {
-        loadInt(2)
+    fun ComplexFunction.i64Load16Signed(offset: Int) = instruction("i64Load16Signed(+$offset)", stackSizeChange = 0) {
+        loadInt(2, offset)
         i16ToSigned()
     }
-    fun ComplexFunction.i64Load32Signed() = instruction("i64Load32Signed", stackSizeChange = 0) {
-        loadInt(4)
+    fun ComplexFunction.i64Load32Signed(offset: Int) = instruction("i64Load32Signed(+$offset)", stackSizeChange = 0) {
+        loadInt(4, offset)
         i32ToSigned()
     }
 
-    fun ComplexFunction.i8Store() = instruction("i8Store", stackSizeChange = -2) {
+    fun ComplexFunction.i8Store(offset: Int) = instruction("i8Store(+$offset)", stackSizeChange = -2) {
         // index value
-        storeInt(1)
+        storeInt(1, offset)
     }
 
-    fun ComplexFunction.i16Store() = instruction("i16Store", stackSizeChange = -2) {
+    fun ComplexFunction.i16Store(offset: Int) = instruction("i16Store(+$offset)", stackSizeChange = -2) {
         // index value
-        storeInt(2)
+        storeInt(2, offset)
     }
 
-    fun ComplexFunction.i32Store() = instruction("i32Store", stackSizeChange = -2) {
+    fun ComplexFunction.i32Store(offset: Int) = instruction("i32Store(+$offset)", stackSizeChange = -2) {
         // index value
-        storeInt(4)
+        storeInt(4, offset)
     }
 
-    fun ComplexFunction.i64Store() = instruction("i64Store", stackSizeChange = -2) {
+    fun ComplexFunction.i64Store(offset: Int) = instruction("i64Store(+$offset)", stackSizeChange = -2) {
         // index value
-        storeInt(8)
+        storeInt(8, offset)
     }
 
     fun ComplexFunction.memorySize() = instruction("memorySize", stackSizeChange = 1) {
@@ -1639,7 +1639,7 @@ class WasmFunctionScope private constructor(
         call(globalState.growMemoryFunction())
     }
 
-    private fun ComplexFunction.storeInt(bytes: Int) = complexFunction("storeInt(${bytes}B)") {
+    private fun ComplexFunction.storeInt(bytes: Int, offset: Int) = complexFunction("storeInt(${bytes}B, off$offset)") {
         require(bytes in 1..8) { "Can only store between 1 and 8 bytes into memory, got $bytes" }
         when (bytes) {
             1 -> i8Mod()
@@ -1655,9 +1655,16 @@ class WasmFunctionScope private constructor(
             // index value
             swap2()
             // value index
+            add(offset.toLong())
             setFromMemory()
             return@complexFunction
         }
+
+        // index value
+        swap2()
+        add(offset.toLong())
+        swap2()
+        // index+offset value
 
         // index value
         repeat(bytes) { i ->
@@ -1690,10 +1697,13 @@ class WasmFunctionScope private constructor(
         pop()
     }
 
-    private fun ComplexFunction.loadInt(bytes: Int) = complexFunction("loadInt(${bytes}B)") {
+    private fun ComplexFunction.loadInt(bytes: Int, offset: Int) = complexFunction("loadInt(${bytes}B, off$offset)") {
         // TODO: Compare with implementation with rolls
         require(bytes >= 1)
         require(bytes <= 8) { "Can fit at most 8 bytes into a i64, got $bytes" }
+        // i
+        add(offset.toLong())
+        // i+offset
 
         if (bytes == 1) {
             getFromMemory()
@@ -1731,6 +1741,7 @@ class WasmFunctionScope private constructor(
      */
     private fun ComplexBlock.getBytesFromMemory(count: Int) = complexFunction("getBytesFromMemory(${count}B)") {
         require(count in 1..8) { "Can only get between 1 and 8 bytes from memory, got $count" }
+
         if (count == 1) {
             getFromMemory()
             return@complexFunction

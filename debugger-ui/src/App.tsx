@@ -20,7 +20,8 @@ function App() {
     runToPreviousBreakpoint,
     clearBreakpoints,
     setStack,
-    loadProgramFromClipboard
+    loadProgramFromClipboard,
+    loadProgramFromFile
   } = useWebSocket('ws://localhost:8080/ws');
 
   return (
@@ -61,6 +62,7 @@ function App() {
                 onRunToPreviousBreakpoint={runToPreviousBreakpoint}
                 onClearBreakpoints={clearBreakpoints}
                 onLoadProgramFromClipboard={loadProgramFromClipboard}
+                onLoadProgramFromFile={loadProgramFromFile}
               />
               </div>
               <div className="flex-1 min-h-0">

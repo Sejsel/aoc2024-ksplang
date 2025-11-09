@@ -140,11 +140,11 @@ fun main() {
 
     val annotated = builder.buildAnnotated(program)
     val ksplang = annotated.toRunnableProgram()
-    File("wasmtest.ksplang").writeText(ksplang)
-    println("Saved program with ${ksplang.chars()} chars")
+    File("interpreter.ksplang").writeText(ksplang)
+    println("Saved program with ${ksplang.length} chars")
     val instructionCount = ksplang.trim().split("\\s+".toRegex()).count()
     println("Saved program with $instructionCount instructions")
-    File("wasmtest.ksplang.json").writeText(annotated.toAnnotatedTreeJson())
+    File("interpreter.ksplang.json").writeText(annotated.toAnnotatedTreeJson())
     println("Saved annotated json")
 }
 

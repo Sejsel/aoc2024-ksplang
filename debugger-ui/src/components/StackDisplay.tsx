@@ -174,12 +174,12 @@ export function StackDisplay({ currentState, onSetStack }: StackDisplayProps) {
                 
                 // Row renderer for virtualized list - Let TypeScript infer the props
                 const Row = (props: any) => {
-                  const { index, style, stackData, mode, itemsPerRow } = props;
+                  const { index, style, stackData, mode, itemsPerRow, ariaAttributes } = props;
                   const startIndex = index * itemsPerRow;
                   const rowItems = stackData.slice(startIndex, startIndex + itemsPerRow);
                   
                   return (
-                    <div style={style} className="flex items-center pr-2 pb-2">
+                    <div style={style} className="flex items-center pr-2 pb-2" {...(ariaAttributes || {})}>
                       <div className="w-8 text-muted-foreground text-right mr-2 text-xs flex-shrink-0">
                         {startIndex}:
                       </div>
