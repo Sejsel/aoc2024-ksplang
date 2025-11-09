@@ -18,19 +18,32 @@ import cz.sejsel.ksplang.dsl.core.whileNonZero
 import cz.sejsel.ksplang.std.*
 
 sealed interface BlockFrame {
-    val startInstruction: AnnotatedInstruction
+    val startInstruction: AnnotatedInstruction?
     val valuesReturned: Int
     val previousStackSize: Int
     val branchLabel: Label
+    val depth: Int
+    val isUnreachable: Boolean
 }
 
-/** Block or loop */
+data class FunctionBlockFrame(
+    override val valuesReturned: Int,
+    override val previousStackSize: Int,
+    override val branchLabel: Label = createLabel("func_end"),
+    override var isUnreachable: Boolean = false
+): BlockFrame {
+    override val depth: Int = 0
+    override val startInstruction: AnnotatedInstruction? = null
+}
+
+/** Block or loop or function */
 data class SimpleBlockFrame(
     override val startInstruction: AnnotatedInstruction,
     override val valuesReturned: Int,
     override val previousStackSize: Int,
     override val branchLabel: Label,
-    var containsReturn: Boolean
+    override val depth: Int,
+    override var isUnreachable: Boolean
 ) : BlockFrame
 
 /** If-else block */
@@ -38,7 +51,8 @@ data class IfElseBlockFrame(
     override val startInstruction: AnnotatedInstruction,
     override val valuesReturned: Int,
     override val previousStackSize: Int,
-    var containsReturn: Boolean,
+    override val depth: Int,
+    override var isUnreachable: Boolean,
     val elseLabel: Label,
     val endLabel: Label,
 ) : BlockFrame {
@@ -56,8 +70,12 @@ class WasmFunctionScope private constructor(
     // Then there may be intermediate values on top of the locals.
     private var intermediateStackValues = 0
     private var localsPopped: Boolean = false
-    private var blockStack: MutableList<BlockFrame> = mutableListOf()
     private var functionEndLabel: Label = createLabel("func_end")
+    private var blockStack: MutableList<BlockFrame> = mutableListOf(FunctionBlockFrame(
+        valuesReturned = returnTypes.size,
+        previousStackSize = 0,
+        branchLabel = functionEndLabel,
+    ))
 
     private fun ComplexBlock.dupLocalValue(index: Int) {
         dupKthZeroIndexed(localTypes.size + intermediateStackValues - index - 1)
@@ -85,13 +103,7 @@ class WasmFunctionScope private constructor(
             intermediateStackValues -= removedValues
         }
 
-        blockStack.forEach { frame ->
-            when (frame) {
-                is IfElseBlockFrame -> frame.containsReturn = true
-                is SimpleBlockFrame -> frame.containsReturn = true
-            }
-        }
-
+        setCurrentBlockUnreachable()
         gotoLabel(functionEndLabel)
     }
 
@@ -117,6 +129,16 @@ class WasmFunctionScope private constructor(
 
     fun ComplexFunction.unreachable() = instruction("unreachable", stackSizeChange = 0) {
         spanek() // trap
+        setCurrentBlockUnreachable()
+    }
+
+    private fun setCurrentBlockUnreachable() {
+        when (val frame = blockStack.lastOrNull()) {
+            is IfElseBlockFrame -> frame.isUnreachable = true
+            is SimpleBlockFrame -> frame.isUnreachable = true
+            is FunctionBlockFrame -> frame.isUnreachable = true
+            null -> error("No block frame")
+        }
     }
 
     fun ComplexFunction.drop() = instruction("drop", stackSizeChange = -1) {
@@ -1742,8 +1764,13 @@ class WasmFunctionScope private constructor(
 
     fun ComplexFunction.popLocals() {
         check(!localsPopped) { "Locals have already been popped in this scope" }
+        check(blockStack.size == 1) { "Pop locals should only be done when in function frame" }
+        val frame = blockStack.last()
+
         // There should be only return values + locals on the stack now.
-        check(intermediateStackValues == returnTypes.size) {
+        // Even if this unreachable through sequential execution (because of unreachable, br),
+        // it may still be reachable thanks to return, so we emit code every time.
+        check(frame.isUnreachable || intermediateStackValues == returnTypes.size) {
             "Inconsistent stack size: expected ${returnTypes.size} values on top of locals, got $intermediateStackValues values"
         }
 
@@ -1762,7 +1789,8 @@ class WasmFunctionScope private constructor(
             valuesReturned = returnedValues,
             previousStackSize = intermediateStackValues,
             branchLabel = createLabel("block_${instruction}"),
-            containsReturn = false,
+            depth = instruction.depth(),
+            isUnreachable = false,
         )
         blockStack.add(frame)
         // For blocks, the labels are at the end, so we emit them when we reach the end.
@@ -1774,7 +1802,8 @@ class WasmFunctionScope private constructor(
             valuesReturned = returnedValues,
             previousStackSize = intermediateStackValues,
             branchLabel = createLabel("loop_${instruction}"),
-            containsReturn = false,
+            depth = instruction.depth(),
+            isUnreachable = false,
         )
         blockStack.add(frame)
         // For loops, labels are at the start
@@ -1793,7 +1822,8 @@ class WasmFunctionScope private constructor(
             previousStackSize = intermediateStackValues,
             elseLabel = createLabel("else_${instruction}"),
             endLabel = createLabel("end_if_${instruction}"),
-            containsReturn = false,
+            depth = instruction.depth(),
+            isUnreachable = false,
         )
         blockStack.add(frame)
 
@@ -1812,14 +1842,14 @@ class WasmFunctionScope private constructor(
         val frame = blockStack.last() as IfElseBlockFrame
 
         // Due to validation, we know this should be the correct stack size already for the end of the `if` part.
-        if (!frame.containsReturn) {
+        if (!frame.isUnreachable) {
             check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
                 "Inconsistent stack size at else of ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
             }
         }
 
         // Reset the return tracking for the else part:
-        frame.containsReturn = false
+        frame.isUnreachable = false
 
         // The `if` part is done, so jump over the `else` part:
         gotoLabel(frame.endLabel)
@@ -1841,7 +1871,7 @@ class WasmFunctionScope private constructor(
 
         // We do not need to clean up the stack here at all, as the stack should be already at the correct size
         // (thanks to wasm validation).
-        if (!frame.containsReturn) {
+        if (!frame.isUnreachable) {
             check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
                 "Inconsistent stack size at end of if ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
             }
@@ -1860,7 +1890,7 @@ class WasmFunctionScope private constructor(
 
         // We do not need to clean up the stack here at all, as the stack should be already at the correct size
         // (thanks to wasm validation).
-        if (!frame.containsReturn) {
+        if (!frame.isUnreachable) {
             check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
                 "Inconsistent stack size at end of block ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
             }
@@ -1878,7 +1908,7 @@ class WasmFunctionScope private constructor(
 
         // We do not need to clean up the stack here at all, as the stack should be already at the correct size
         // (thanks to wasm validation).
-        if (!frame.containsReturn) {
+        if (!frame.isUnreachable) {
             check(intermediateStackValues == frame.previousStackSize + frame.valuesReturned) {
                 "Inconsistent stack size at end of loop ${scope}: expected ${frame.previousStackSize + frame.valuesReturned}, got $intermediateStackValues"
             }
@@ -1903,6 +1933,8 @@ class WasmFunctionScope private constructor(
             repeat(toRemove) { pop() }
             gotoLabel(targetBlock.branchLabel)
         }
+
+        setCurrentBlockUnreachable()
     }
 
     /** depth = 0 refers to the innermost block, 1 to the next-innermost, and so on. */
