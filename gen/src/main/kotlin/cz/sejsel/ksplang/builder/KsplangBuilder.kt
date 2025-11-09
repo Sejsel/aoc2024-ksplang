@@ -291,18 +291,13 @@ class KsplangBuilder(
                 }
 
                 fun applyPreparedPush(push: PreparedPush, n: Long) {
-                    try {
-                        val paddedPush = extract { pushPaddedTo(n, push.padding) }
-                        check(state.program[push.programIndex].isEmpty()) { "Prepared push applied twice or program index is broken" }
-                        state.program[push.programIndex] = buildList {
-                            val blockId = state.getNextBlockId()
-                            add(BlockStart(paddedPush.name, blockId, BlockType.InlinedFunction))
-                            paddedPush.asSequence().forEach { add(Op(it.text)) }
-                            add(BlockEnd(blockId))
-                        }
-                    } catch (e: PaddingFailureException) {
-                        // TODO: REMOVE
-                        throw e
+                    val paddedPush = extract { pushPaddedTo(n, push.padding) }
+                    check(state.program[push.programIndex].isEmpty()) { "Prepared push applied twice or program index is broken" }
+                    state.program[push.programIndex] = buildList {
+                        val blockId = state.getNextBlockId()
+                        add(BlockStart(paddedPush.name, blockId, BlockType.InlinedFunction))
+                        paddedPush.asSequence().forEach { add(Op(it.text)) }
+                        add(BlockEnd(blockId))
                     }
                 }
 
