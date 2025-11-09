@@ -7,6 +7,7 @@ package cz.sejsel.ksplang.dsl.core
 sealed interface SimpleBlock : Block {
     fun getInstructions(): List<Instruction>
     fun appendInstructions(list: MutableList<Instruction>)
+    fun asSequence(): Sequence<Instruction>
 }
 
 @KsplangMarker
@@ -18,6 +19,20 @@ data class SimpleFunction(val name: String? = null, var children: MutableList<Si
     override fun appendInstructions(list: MutableList<Instruction>) {
         for (child in children) {
             child.appendInstructions(list)
+        }
+    }
+
+
+    override fun asSequence(): Sequence<Instruction> = sequence {
+        for (child in children) {
+            if (child is Instruction) {
+                yield(child)
+                continue
+            }
+
+            for (inst in child.asSequence()) {
+                yield(inst)
+            }
         }
     }
 
@@ -37,6 +52,7 @@ sealed class Instruction(val text: String) : SimpleBlock {
     override fun appendInstructions(list: MutableList<Instruction>) {
         list.add(this)
     }
+    override fun asSequence(): Sequence<Instruction> = sequenceOf(this)
     override fun addChild(block: SimpleBlock) {
         // This is quite ugly API-wise, but not having Instructions
         // implement ComplexOrSimpleBlock ends up even worse.

@@ -22,7 +22,7 @@ data class RegisteredFunction(
     val nOut: Int,
     var index: Int? = null
 ) {
-    val hash = function.getInstructions().joinToString(" ") { it.toString() }.hashCode()
+    val hash = function.asSequence().joinToString(" ") { it.toString() }.hashCode()
     val name = function.name ?: "anonymous_$hash"
 
     fun toCallable(): SimpleFunction = buildFunction("callable_$name") {
@@ -265,7 +265,7 @@ class KsplangBuilder(
         val referencedLabels = allLabelGotos.map { (it as GoToLabel).label }.toSet()
 
         // For simplification, we use a global address padding (all addresses are padded to the same length)
-        for (addressPad in 498..Int.MAX_VALUE) {
+        for (addressPad in 6..Int.MAX_VALUE) {
             logger.debug { "Trying address padding: $addressPad instructions" }
             try {
                 val state = BuilderState()
@@ -297,7 +297,7 @@ class KsplangBuilder(
                         state.program[push.programIndex] = buildList {
                             val blockId = state.getNextBlockId()
                             add(BlockStart(paddedPush.name, blockId, BlockType.InlinedFunction))
-                            addAll(paddedPush.getInstructions().map { Op(it.text) })
+                            paddedPush.asSequence().forEach { add(Op(it.text)) }
                             add(BlockEnd(blockId))
                         }
                     } catch (e: PaddingFailureException) {
@@ -645,12 +645,16 @@ class KsplangBuilder(
     }
 
     private fun buildAnnotated(instructions: SimpleFunction): Ksplang {
-        return buildAnnotated(instructions.getInstructions())
+        return buildAnnotated(instructions.asSequence())
     }
 
     fun build(instructions: List<Instruction>): String = buildAnnotated(instructions).toRunnableProgram()
 
     fun buildAnnotated(instructions: List<Instruction>): Ksplang {
-        return Ksplang(instructions.map { AnnotatedKsplangSegment.Op(it.text) })
+        return Ksplang(instructions.map { Op(it.text) })
+    }
+
+    fun buildAnnotated(instructions: Sequence<Instruction>): Ksplang {
+        return Ksplang(instructions.map { Op(it.text) }.toList())
     }
 }

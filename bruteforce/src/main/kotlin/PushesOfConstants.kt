@@ -135,30 +135,18 @@ fun main() {
         if (loopIndex == 0) {
             // Praise the almighty hippo gods.
             listOf(
-                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80)
-                    to (solutions[2]!! + listOf(Op.Praise)),
-                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225, 109, 32, 114, 225, 100, 32)
-                    to (solutions[2]!! + listOf(Op.Praise, Op.Qeq)),
-                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225, 109, 32, 114)
-                    to (solutions[2]!! + listOf(Op.Praise, Op.Qeq, Op.Qeq)),
-                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225, 109, 1)
-                    to (solutions[2]!! + listOf(Op.Praise, Op.DigitSum, Op.GcdN)),
-                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 1)
-                    to (solutions[2]!! + listOf(Op.Praise, Op.Pop, Op.DigitSum, Op.GcdN)),
-                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225)
-                    to solutions[2]!! + listOf(Op.Praise, Op.Qeq, Op.Qeq, Op.Qeq),
-                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80)
-                    to solutions[1]!! + listOf(Op.Praise),
-                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 1)
-                    to solutions[2]!! + listOf(Op.Praise, Op.Pop, Op.Pop, Op.DigitSum, Op.GcdN),
-                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32)
-                    to solutions[1]!! + listOf(Op.Praise, Op.Qeq),
-                listOf<Long>(77, 225, 109, 32, 114)
-                    to solutions[1]!! + listOf(Op.Praise, Op.Qeq, Op.Qeq),
-                listOf<Long>(77, 225, 109, 1)
-                    to solutions[1]!! + listOf(Op.Praise, Op.DigitSum, Op.GcdN),
-                listOf<Long>(77, 225)
-                    to solutions[1]!! + listOf(Op.Praise, Op.Qeq, Op.Qeq, Op.Qeq),
+                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80) to (solutions[2]!! + listOf(Op.Praise)),
+                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225, 109, 32, 114, 225, 100, 32) to (solutions[2]!! + listOf(Op.Praise, Op.Qeq)),
+                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225, 109, 32, 114) to (solutions[2]!! + listOf(Op.Praise, Op.Qeq, Op.Qeq)),
+                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225, 109, 1) to (solutions[2]!! + listOf(Op.Praise, Op.DigitSum, Op.GcdN)),
+                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 1) to (solutions[2]!! + listOf(Op.Praise, Op.Pop, Op.DigitSum, Op.GcdN)),
+                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80, 77, 225) to solutions[2]!! + listOf(Op.Praise, Op.Qeq, Op.Qeq, Op.Qeq),
+                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 75, 83, 80) to solutions[1]!! + listOf(Op.Praise),
+                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32, 1) to solutions[2]!! + listOf(Op.Praise, Op.Pop, Op.Pop, Op.DigitSum, Op.GcdN),
+                listOf<Long>(77, 225, 109, 32, 114, 225, 100, 32) to solutions[1]!! + listOf(Op.Praise, Op.Qeq),
+                listOf<Long>(77, 225, 109, 32, 114) to solutions[1]!! + listOf(Op.Praise, Op.Qeq, Op.Qeq),
+                listOf<Long>(77, 225, 109, 1) to solutions[1]!! + listOf(Op.Praise, Op.DigitSum, Op.GcdN),
+                listOf<Long>(77, 225) to solutions[1]!! + listOf(Op.Praise, Op.Qeq, Op.Qeq, Op.Qeq),
             ).forEach { (praiseOutput, praiseInit) ->
                 trackImprovements("[total] praise output $praiseOutput") {
                     trackImprovements("praise keep one number") {

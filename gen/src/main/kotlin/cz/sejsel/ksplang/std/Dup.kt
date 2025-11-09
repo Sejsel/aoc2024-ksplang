@@ -8,6 +8,10 @@ import cz.sejsel.ksplang.dsl.core.Block
  * Signature: `a -> a a`
  */
 fun Block.dup() = function("dup") {
+    // Universal duplication by Erik Sabol with small push improvements by me
+    // source: https://discord.com/channels/726020980107116585/782937605427560470/1201176544920490055 (KSP discord)
+    // my push improvements: a better push(-2^63) onto 0/-1
+    // a better push(3) onto -2^63/2^63-1, confirmed optimal, these are all the 5 instruction ones:
     push(0); push(3); m()
     // x 0 3 clamp(x, 0-3)
     CS(); CS(); inc(); gcd(); inc()  // push(2) onto 0-3
