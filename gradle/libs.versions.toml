@@ -7,6 +7,7 @@ ktor = "3.2.3"
 logback = "1.5.20"
 mockk = "1.14.5"
 kotlin-logging = "7.0.13"
+clikt = "5.0.3"
 
 [libraries]
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
@@ -25,6 +26,7 @@ ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.re
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging"}
+clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 
 [plugins]
 kotest = { id = "io.kotest", version.ref = "kotest" }
