@@ -13,6 +13,7 @@ import cz.sejsel.ksplang.std.roll
 import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.pushOn
 import cz.sejsel.ksplang.std.pushPaddedTo
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.json.Json
 
 data class RegisteredFunction(
@@ -190,6 +191,8 @@ data class Ksplang(val segments: List<AnnotatedKsplangSegment>) {
 class KsplangBuilder(
     val enablePushOptimizations: Boolean = true
 ) {
+    private val logger = KotlinLogging.logger {}
+
     private val registeredFunctions = mutableListOf<RegisteredFunction>()
 
     fun registerFunction(function: SimpleFunction, nParams: Int, nOut: Int) {
@@ -262,7 +265,8 @@ class KsplangBuilder(
         val referencedLabels = allLabelGotos.map { (it as GoToLabel).label }.toSet()
 
         // For simplification, we use a global address padding (all addresses are padded to the same length)
-        for (addressPad in 6..Int.MAX_VALUE) {
+        for (addressPad in 498..Int.MAX_VALUE) {
+            logger.debug { "Trying address padding: $addressPad instructions" }
             try {
                 val state = BuilderState()
                 val pushNameRegex = """^push\((-?\d+)\)$""".toRegex()
@@ -287,13 +291,18 @@ class KsplangBuilder(
                 }
 
                 fun applyPreparedPush(push: PreparedPush, n: Long) {
-                    val paddedPush = extract { pushPaddedTo(n, push.padding) }
-                    check(state.program[push.programIndex].isEmpty()) { "Prepared push applied twice or program index is broken" }
-                    state.program[push.programIndex] = buildList {
-                        val blockId = state.getNextBlockId()
-                        add(BlockStart(paddedPush.name, blockId, BlockType.InlinedFunction))
-                        addAll(paddedPush.getInstructions().map { Op(it.text) })
-                        add(BlockEnd(blockId))
+                    try {
+                        val paddedPush = extract { pushPaddedTo(n, push.padding) }
+                        check(state.program[push.programIndex].isEmpty()) { "Prepared push applied twice or program index is broken" }
+                        state.program[push.programIndex] = buildList {
+                            val blockId = state.getNextBlockId()
+                            add(BlockStart(paddedPush.name, blockId, BlockType.InlinedFunction))
+                            addAll(paddedPush.getInstructions().map { Op(it.text) })
+                            add(BlockEnd(blockId))
+                        }
+                    } catch (e: PaddingFailureException) {
+                        // TODO: REMOVE
+                        throw e
                     }
                 }
 
@@ -624,6 +633,7 @@ class KsplangBuilder(
 
                 return Ksplang(state.program.flatten())
             } catch (e: PaddingFailureException) {
+                logger.debug { "Address padding $addressPad failed: ${e.message}" }
                 // Try again with a different address padding
                 registeredFunctions.forEach {
                     it.index = null

@@ -79,15 +79,20 @@ fun Block.push(n: Long): SimpleFunction {
             var numsToAdd = 0
 
             for (i in 0 until bitLength) {
-                if (n and (1L shl i) != 0L) {
-                    push(1)
-                    if (i == 1) {
-                        // We can duplicate the 1 by using m or CS
-                        CS()
+                val bit = 1L shl i
+                if (n and bit != 0L) {
+                    if (bit in ShortPushes.sequencesByNumber) {
+                        push(bit)
                     } else {
-                        push(i.toLong())
+                        push(1)
+                        if (i == 1) {
+                            // We can duplicate the 1 by using m or CS
+                            CS()
+                        } else {
+                            push(i.toLong())
+                        }
+                        bitshift()
                     }
-                    bitshift()
                     numsToAdd += 1
                 }
             }

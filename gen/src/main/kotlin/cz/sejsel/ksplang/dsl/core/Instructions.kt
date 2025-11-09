@@ -6,12 +6,19 @@ package cz.sejsel.ksplang.dsl.core
 @KsplangMarker
 sealed interface SimpleBlock : Block {
     fun getInstructions(): List<Instruction>
+    fun appendInstructions(list: MutableList<Instruction>)
 }
 
 @KsplangMarker
 data class SimpleFunction(val name: String? = null, var children: MutableList<SimpleBlock> = mutableListOf()) : SimpleBlock {
     override fun getInstructions(): List<Instruction> {
         return children.flatMap { it.getInstructions() }
+    }
+
+    override fun appendInstructions(list: MutableList<Instruction>) {
+        for (child in children) {
+            child.appendInstructions(list)
+        }
     }
 
     operator fun SimpleFunction.unaryPlus() {
@@ -27,6 +34,9 @@ data class SimpleFunction(val name: String? = null, var children: MutableList<Si
 @KsplangMarker
 sealed class Instruction(val text: String) : SimpleBlock {
     override fun getInstructions(): List<Instruction> = listOf(this)
+    override fun appendInstructions(list: MutableList<Instruction>) {
+        list.add(this)
+    }
     override fun addChild(block: SimpleBlock) {
         // This is quite ugly API-wise, but not having Instructions
         // implement ComplexOrSimpleBlock ends up even worse.

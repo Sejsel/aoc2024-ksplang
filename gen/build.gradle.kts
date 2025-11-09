@@ -11,6 +11,8 @@ repositories {
 dependencies {
     implementation(kotlin("reflect"))
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.logback.classic)
+    implementation(libs.kotlin.logging)
 
     testImplementation(libs.kotest.framework.engine)
     testImplementation(libs.kotest.assertions.core)
