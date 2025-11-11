@@ -10,6 +10,7 @@ repositories {
 
 dependencies {
     implementation(project(":gen"))
+    implementation(project(":interpreter"))
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.clikt)
 }

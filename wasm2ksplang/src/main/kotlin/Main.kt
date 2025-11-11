@@ -127,14 +127,12 @@ fun main() {
         }
     }
 
-    /*
     val referenceStore = Store()
     val input = "CS CS lensum CS funkcia ++;20 30".map { it.code.toLong() }
     referenceStore.addFunction(TestChicoryHostFunctions.readInput(input), TestChicoryHostFunctions.inputSize(input))
     val func = referenceStore.instantiate("mod", module.module.chicoryModule).export("sum_ksplang_result")!!
     val expectedResult = func.apply().single()
     println(expectedResult)
-     */
 
     println("Translated program tree")
 
@@ -148,7 +146,6 @@ fun main() {
     println("Saved annotated json")
 }
 
-/*
 object TestChicoryHostFunctions {
     fun readInput(input: List<Long>): HostFunction {
         return HostFunction(
@@ -172,7 +169,6 @@ object TestChicoryHostFunctions {
         }
     }
 }
- */
 
 /**
  * Build a ksplang program with one embedded WASM module, and run one of its functions as the main body.
