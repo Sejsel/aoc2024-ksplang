@@ -49,7 +49,7 @@ class InfoCommand : CliktCommand(name = "info") {
 
 fun main(args: Array<String>) {
     AnnoToolsCli()
-        .subcommands(InfoCommand(), LocateCommand(), CallstackCommand(), BrowseCommand())
+        .subcommands(InfoCommand(), LocateCommand(), BrowseCommand(), StepCommand())
         .main(args)
 }
 

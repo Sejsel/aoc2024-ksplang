@@ -9,6 +9,7 @@ import cz.sejsel.ksplang.dsl.core.program
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.bitsToLong
 import cz.sejsel.ksplang.wasm.chicorycomparison.createWasmModuleFromWat
+import cz.sejsel.ksplang.wasm.top32BitsShouldBeZero
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.checkAll
@@ -51,6 +52,7 @@ class MiscTests : FunSpec({
 
                 val expected = func.apply(*input.toLongArray()).single()
                 val result = runner.run(ksplang, input)
+                result.last().top32BitsShouldBeZero()
                 result.last().toInt() shouldBe expected.toInt()
             }
         }
@@ -67,6 +69,7 @@ class MiscTests : FunSpec({
 
                 val expected = func.apply(*input.toLongArray()).single()
                 val result = runner.run(ksplang, input)
+                result.last().top32BitsShouldBeZero()
                 result.last().toInt() shouldBe expected.toInt()
             }
         }

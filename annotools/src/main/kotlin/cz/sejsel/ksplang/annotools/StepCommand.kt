@@ -26,16 +26,14 @@ import kotlinx.serialization.json.Json
 import kotlin.collections.forEach
 import kotlin.io.path.readText
 
-class CallstackCommand : CliktCommand(name = "callstack") {/*
-    private val index by argument(
-        name = "index",
-        help = "Index of the instruction to get call stack for"
-    ).convert { it.toInt() }
-     */
-
+class StepCommand : CliktCommand(name = "step") {
     private val instructionCount by option(
         "--count", help = "Instruction count to run the program up to"
     ).convert { it.toLong() }.default(Long.MAX_VALUE)
+
+    private val ip by option(
+        "--ip", help = "Instruction index to run the program up to"
+    ).convert { it.toInt() }.default(Int.MAX_VALUE)
 
     private val inputStack by option(
         "--stack", help = "Initial stack values"
@@ -46,8 +44,8 @@ class CallstackCommand : CliktCommand(name = "callstack") {/*
     ).flag(default = false)
 
     private val printStack by option(
-        "--print-stack", help = "Whether to print the stack at the end"
-    ).flag(default = false)
+        "--print-stack", help = "How many top elements of the stack to print at the end"
+    ).convert { if (it.lowercase() == "all") Int.MAX_VALUE else it.toInt() }.default(0)
 
     private val inputFile by option(
         "--ksplang", help = "Input JSON file containing an AnnotatedKsplangTree"
@@ -57,13 +55,19 @@ class CallstackCommand : CliktCommand(name = "callstack") {/*
         "-m", "--max-stack-size", help = "Maximum stack size (amount of int64 elements on the program stack)"
     ).convert { it.toInt() }.default(2147483647)
 
+    private val printCallstack by option(
+        "--callstack", help = "Print callstack on each function call/return"
+    ).flag(default = false)
+
     override fun run() {
         val json = Json {
             ignoreUnknownKeys = true
         }
 
+        echo("Loading program...", trailingNewline = false)
         val jsonContent = inputFile.readText()
         val tree = json.decodeFromString<AnnotatedKsplangTree>(jsonContent)
+        echo("done")
 
         val ops = extractOps(tree).map { parseWord(it) }
 
@@ -96,23 +100,28 @@ class CallstackCommand : CliktCommand(name = "callstack") {/*
             if (counter == instructionCount) {
                 break
             }
+            if (state.getCurrentIp() == ip) {
+                break
+            }
 
-            if (prevOp == Op.Call) {
-                val parent = parentCache.getOrPut(prevIp!!) { getParent(tree = tree, targetIndex = prevIp) }
-                //echo("Call detected at IP=${state.getCurrentIp()}, parent = $parent")
-                if (parent is AnnotatedKsplangTree.Block && (parent.type == BlockType.FunctionCall || parent.type == BlockType.InlinedFunctionCall)) {
-                    // Function call
-                    echo("$counter Entering call to IP=${state.getCurrentIp()} (name = ${parent.name})")
-                    callstack.add(state.getCurrentIp().toLong())
-                }
-            } else if (prevOp == Op.Goto) {
-                //echo("Goto detected at IP=${state.getCurrentIp()}")
-                val parent = parentCache.getOrPut(prevIp!!) { getParent(tree = tree, targetIndex = prevIp) }
-                if (parent is AnnotatedKsplangTree.Block && parent.name?.startsWith("fun_wrapper_") ?: false) {
-                    // Function return
-                    echo("$counter Returning from call to IP=${state.getCurrentIp()} (name = ${parent.name})")
-                    if (callstack.isNotEmpty()) {
-                        callstack.removeAt(callstack.size - 1)
+            if (printCallstack) {
+                if (prevOp == Op.Call) {
+                    val parent = parentCache.getOrPut(prevIp!!) { getParent(tree = tree, targetIndex = prevIp) }
+                    //echo("Call detected at IP=${state.getCurrentIp()}, parent = $parent")
+                    if (parent is AnnotatedKsplangTree.Block && (parent.type == BlockType.FunctionCall || parent.type == BlockType.InlinedFunctionCall)) {
+                        // Function call
+                        echo("$counter Entering call to IP=${state.getCurrentIp()} (name = ${parent.name})")
+                        callstack.add(state.getCurrentIp().toLong())
+                    }
+                } else if (prevOp == Op.Goto) {
+                    //echo("Goto detected at IP=${state.getCurrentIp()}")
+                    val parent = parentCache.getOrPut(prevIp!!) { getParent(tree = tree, targetIndex = prevIp) }
+                    if (parent is AnnotatedKsplangTree.Block && parent.name?.startsWith("fun_wrapper_") ?: false) {
+                        // Function return
+                        echo("$counter Returning from call to IP=${state.getCurrentIp()} (name = ${parent.name})")
+                        if (callstack.isNotEmpty()) {
+                            callstack.removeAt(callstack.size - 1)
+                        }
                     }
                 }
             }
@@ -137,9 +146,10 @@ class CallstackCommand : CliktCommand(name = "callstack") {/*
         }
         //echo("Finished, IP=${state.getCurrentIp()}, current stack ${state.getStack()}")
         echo("Finished, IP=${state.getCurrentIp()}, instruction count = ${state.operationsRun()}")
-        if (printStack) {
-            echo("STACK")
-            state.getStack().forEach {
+        if (printStack > 0) {
+            val stack = state.getStack()
+            echo("STACK (size ${stack.size}):")
+            stack.takeLast(printStack).forEach {
                 echo("$it")
             }
         }
