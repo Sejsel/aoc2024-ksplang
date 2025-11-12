@@ -53,25 +53,29 @@ class BrowseCommand : CliktCommand(name = "browse") {
             val pathParts = path.split(".")
             val blocks = mutableListOf<AnnotatedKsplangTree>()
             var currentNode: AnnotatedKsplangTree = tree
-            val indexRegex = """\[(\d+)]""".toRegex()
-            for (part in pathParts) {
-                val indexMatch = indexRegex.matchEntire(part)
-                val nextNode = if (indexMatch != null) {
-                    val index = indexMatch.groupValues[1].toInt()
-                    findDirectChildByIndex(currentNode, index)
-                } else {
-                    findDirectChildByName(currentNode, part)
-                }
+            if (path == ".") {
+                // Nothing, use root
+            } else {
+                val indexRegex = """\[(\d+)]""".toRegex()
+                for (part in pathParts) {
+                    val indexMatch = indexRegex.matchEntire(part)
+                    val nextNode = if (indexMatch != null) {
+                        val index = indexMatch.groupValues[1].toInt()
+                        findDirectChildByIndex(currentNode, index)
+                    } else {
+                        findDirectChildByName(currentNode, part)
+                    }
 
-                if (nextNode == null) {
-                    echo(
-                        "Block '$part' not found under '${(currentNode as? AnnotatedKsplangTree.Block)?.name ?: "root"}'",
-                        err = true
-                    )
-                    return@let
-                } else {
-                    blocks.add(nextNode)
-                    currentNode = nextNode
+                    if (nextNode == null) {
+                        echo(
+                            "Block '$part' not found under '${(currentNode as? AnnotatedKsplangTree.Block)?.name ?: "root"}'",
+                            err = true
+                        )
+                        return@let
+                    } else {
+                        blocks.add(nextNode)
+                        currentNode = nextNode
+                    }
                 }
             }
 

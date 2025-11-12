@@ -26,10 +26,12 @@ import cz.sejsel.ksplang.std.auto.*
 import cz.sejsel.ksplang.std.dec
 import cz.sejsel.ksplang.std.dup
 import cz.sejsel.ksplang.std.dupAb
+import cz.sejsel.ksplang.std.dupFourth
 import cz.sejsel.ksplang.std.dupKthZeroIndexed
 import cz.sejsel.ksplang.std.dupThird
 import cz.sejsel.ksplang.std.mul
 import cz.sejsel.ksplang.std.negate
+import cz.sejsel.ksplang.std.popMany
 import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.pushOn
 import cz.sejsel.ksplang.std.roll
@@ -124,12 +126,18 @@ fun main() {
 
         body {
             call(sum)
+            // pointer
+            keepOnlyMemoryPtr() // destroys runtime layout
         }
     }
 
     val referenceStore = Store()
     val input = "CS CS lensum CS funkcia ++;20 30".map { it.code.toLong() }
-    referenceStore.addFunction(TestChicoryHostFunctions.readInput(input), TestChicoryHostFunctions.inputSize(input))
+    referenceStore.addFunction(
+        TestChicoryHostFunctions.readInput(input),
+        TestChicoryHostFunctions.inputSize(input),
+        TestChicoryHostFunctions.saveRaw()
+    )
     val func = referenceStore.instantiate("mod", module.module.chicoryModule).export("sum_ksplang_result")!!
     val expectedResult = func.apply().single()
     println(expectedResult)
@@ -166,6 +174,19 @@ object TestChicoryHostFunctions {
             FunctionType.of(listOf(), listOf(ValType.I32)),
         ) { _, args ->
             longArrayOf(input.size.toLong())
+        }
+    }
+
+    fun saveRaw(): HostFunction {
+        return HostFunction(
+            "env",
+            "save_raw_i64",
+            FunctionType.of(listOf(ValType.I64, ValType.I32), listOf()),
+        ) { _, args ->
+            val value = args[0]
+            val index = args[1].toInt()
+            println("Saving raw: [$index] = $value")
+            longArrayOf()
         }
     }
 }
@@ -268,6 +289,12 @@ fun buildSingleModuleProgram(
                 }
             }
 
+            module.getSaveRawFunction()?.let {
+                it.setBody {
+                    with(builder) { yeetMemory() }
+                }
+            }
+
             builder.block()
         }
     }
@@ -286,9 +313,17 @@ interface WasmBuilder {
     fun ComplexBlock.yeetGlobal(index: Int): ComplexFunction
     fun ComplexBlock.yoinkMemory(): ComplexFunction
     fun ComplexBlock.yoinkMemory(index: Int): ComplexFunction
+    /** Signature: ```v i -> memory[i] = v``` */
     fun ComplexBlock.yeetMemory(): ComplexFunction
     fun ComplexBlock.getMemorySize(): ComplexFunction
     fun ComplexBlock.growMemory(): ComplexFunction
+    /**
+     * Given a memory pointer to a slice (len as first element, then len elements), remove everything
+     * else on the ksplang stack. **Destroys the runtime layout**, useful at the end of programs.
+     *
+     * Signature: ```ptr -> mem[ptr+1] ... mem[ptr+1+mem[ptr]]```
+     */
+    fun ComplexBlock.keepOnlyMemoryPtr(): ComplexFunction
 
     fun build(): KsplangProgram
 }
@@ -374,6 +409,10 @@ class NoMemoryWasmBuilder(
     }
 
     override fun ComplexBlock.growMemory(): ComplexFunction {
+        error("Not supported")
+    }
+
+    override fun ComplexBlock.keepOnlyMemoryPtr(): ComplexFunction {
         error("Not supported")
     }
 
@@ -595,8 +634,8 @@ class SingleModuleWasmBuilder(
                     // [65536*pages * 0] oldSize pages newSize*65536 inputLen memStart
                     add()
                     add()
-                    stacklenWithMin()
                     // [65536*pages * 0] oldSize pages newSize*65536+inputLen+memStart
+                    stacklenWithMin()
                     // [65536*pages * 0] oldSize pages stacklen
                     dupThird()
                     // [65536*pages * 0] oldSize pages stacklen oldSize
@@ -630,6 +669,56 @@ class SingleModuleWasmBuilder(
                 }
             }
         }
+    }
+
+    override fun ComplexBlock.keepOnlyMemoryPtr(): ComplexFunction = complexFunction("keepOnlyMemoryPtr") {
+        // ptr
+        push(indices.inputLenIndex)
+        yoink()
+        // ptr inputLen
+        push(indices.memDataStartIndex)
+        // ptr inputLen memStart
+        push(indices.memSizeIndex)
+        yoink()
+        mul(65536)
+        // ptr inputLen memStart memSize*65536
+        add()
+        add()
+        // ptr inputLen+memStart+memSize*65536
+        stacklenWithMin()
+        // [stack] ptr stacklen+1
+        dec()
+        swap2()
+        // [stack] stacklen ptr
+        push(indices.memDataStartIndex); add()
+        // [stack] stacklen ptr_real
+        inc()
+        // [stack] stacklen ptr_real+1
+        // [stack] stacklen start
+
+        // Prepare data for access after roll. Thankfully, len is already where it needs to be (new top)
+        dup()
+        // [stack] stacklen start start
+        add(-2)
+        // [stack] stacklen start start-2
+        dupThird()
+        // [stack] stacklen start start-2 stacklen
+        swap2()
+        yeet()
+        // [stack] stacklen start
+        //   s[start-1] = len
+        //   s[start-2] = stacklen
+        // [stack] stacklen start
+        negate(); swap2()
+        // [stack] -start stacklen
+        lroll() // roll(stacklen, -start)
+        // [output] [stack] old_stacklen len
+        // [output] [stack] remove_len+2+len len
+        sub()
+        // [output] [stack] remove_len+2
+        add(-2)
+        // [output] [stack] remove_len
+        popMany()
     }
 
     override fun build(): KsplangProgram = builder.build()

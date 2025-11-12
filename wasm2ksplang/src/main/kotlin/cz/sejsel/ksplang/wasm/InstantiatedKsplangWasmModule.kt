@@ -22,6 +22,7 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
         // TODO: Do this for all imports, we have module here, so we can do it automatically
         store.addFunction(HostFunction("env", "input_size", FunctionType.of(listOf(), listOf(ValType.I32))) { _, _ -> error("Dummy function") })
         store.addFunction(HostFunction("env", "read_input", FunctionType.of(listOf(ValType.I32), listOf(ValType.I64))) { _, _ -> error("Dummy function") })
+        store.addFunction(HostFunction("env", "save_raw_i64", FunctionType.of(listOf(ValType.I64, ValType.I32), listOf())) { _, _ -> error("Dummy function") })
     }
     val instance: Instance = store.instantiate(moduleName, module.chicoryModule)
 
@@ -57,6 +58,8 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
 
     /** Function for getFunctionAddress, must have body set by the embedder. */
     fun getGetFunctionAddressFunction(): ProgramFunction1To1? = module.getFunctionAddressFunction
+
+    fun getSaveRawFunction(): ProgramFunction2To0? = module.saveRawFunction
 
     fun install(builder: KsplangProgramBuilder) {
         with(builder) {

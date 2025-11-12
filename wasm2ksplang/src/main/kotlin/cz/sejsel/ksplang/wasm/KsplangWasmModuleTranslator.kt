@@ -117,7 +117,9 @@ class TranslatedWasmModule(
     /** Forward declaration, needs to be implemented by embedder */
     val readInputFunction: ProgramFunction1To1?,
     /** Forward declaration, needs to be implemented by embedder */
-    val getFunctionAddressFunction: ProgramFunction1To1? = null
+    val getFunctionAddressFunction: ProgramFunction1To1?,
+    /** Forward declaration, needs to be implemented by embedder */
+    val saveRawFunction: ProgramFunction2To0?,
 ) {
     fun KsplangProgramBuilder.installFunctions() {
         programFunctions.forEach { installFunction(it) }
@@ -130,6 +132,7 @@ class TranslatedWasmModule(
         getInputSizeFunction?.let { installFunction(it) }
         readInputFunction?.let { installFunction(it) }
         getFunctionAddressFunction?.let { installFunction(it) }
+        saveRawFunction?.let { installFunction(it) }
     }
 
     fun getFunction(index: Int): ProgramFunctionBase? {
@@ -155,6 +158,7 @@ class ModuleTranslatorState {
     var growMemoryFunction: ProgramFunction1To1? = null
     var getInputSizeFunction: ProgramFunction0To1? = null
     var readInputFunction: ProgramFunction1To1? = null
+    var saveRawFunction: ProgramFunction2To0? = null
     var getFunctionAddressFunction: ProgramFunction1To1? = null
 
     fun getFunctionAddressFunction(): ProgramFunction1To1 {
@@ -273,6 +277,10 @@ class KsplangWasmModuleTranslator() {
             state.readInputFunction = it as ProgramFunction1To1
         }
 
+        importedFunctions["env" to "save_raw_i64"]?.let {
+            state.saveRawFunction = it as ProgramFunction2To0
+        }
+
         return TranslatedWasmModule(
             programFunctions = functions,
             chicoryModule = module,
@@ -286,6 +294,7 @@ class KsplangWasmModuleTranslator() {
             getInputSizeFunction = state.getInputSizeFunction,
             readInputFunction = state.readInputFunction,
             getFunctionAddressFunction = state.getFunctionAddressFunction,
+            saveRawFunction = state.saveRawFunction
         )
     }
 

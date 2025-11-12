@@ -387,5 +387,64 @@ class LayoutTests : FunSpec({
             result shouldBe expectedResult + 42L
         }
     }
+
+    context("keep only ptr") {
+        val memSize = 1
+        val maxMemSize = 2
+        val wat = $$"""
+                (module 
+                    (func $add (export "add") (param $a i32) (param $b i32) (result i32)
+                        local.get $a
+                        local.get $b
+                        i32.add
+                    )
+                    (func $sub (export "sub") (param $a i32) (param $b i32) (result i32)
+                        local.get $a
+                        local.get $b
+                        i32.sub
+                    )
+                    ;; initial 1 page, max 2 pages
+                    (memory (export "mem") $$memSize $$maxMemSize)
+                    ;; globals
+                    (global $g_mut (mut i32) i32.const 7)
+                    (global $g_imm i32 i32.const 42)
+                    ;; fun table
+                    (table 3 funcref)
+                    (elem (i32.const 0) $add $sub)
+                    
+                    ;; 8 bytes: 
+                    (data (i32.const 0x0008)
+                        "\03\01\02\03\04\05\06\07"
+                    )
+                    
+                )""".trimIndent()
+
+        val store = Store()
+        val module = instantiateModuleFromWat(translator, wat, "test", store)
+
+        // expected layout:
+        // 0 input_len [globals] [fun_table] [mem_size mem_max_size [mem_pages]] [input]
+        // 0 input_len [7 42   ] [?? ??? -1] [1 2 [0.. 3 1 2 3 4 5 6 7 ... 0]]   [input]
+
+        val emptyProgram = buildSingleModuleProgram(module) {
+            body {
+                push(8) // memory ptr (the first 03 in data)
+                keepOnlyMemoryPtr()
+            }
+        }
+        val annotated = builder.buildAnnotated(emptyProgram)
+        val ksplang = annotated.toRunnableProgram()
+
+        val input = listOf(40L, 2L)
+        val result = runner.run(ksplang, input)
+        test("only pointed at memory is kept") {
+            // mem[ptr] is 3 -> slice has size 3
+            // then 3 following values should be retained; everything else gone
+            result.size shouldBe 3
+            result[0] shouldBe 1L
+            result[1] shouldBe 2L
+            result[2] shouldBe 3L
+        }
+    }
 })
 
