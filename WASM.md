@@ -19,8 +19,8 @@ The original input to the ksplang program is also stored.
 > Will happen when I feel like implementing some more instructions (it's suprisingly fun!)
 
 ## Simple example
-Compile the following Rust code with `RUSTFLAGS=-Ctarget-cpu=mvp cargo +nightly build --release -Zbuild-std=panic_abort,std --target wasm32-unknown-unknown
-`
+Compile the following Rust code with `RUSTFLAGS=-Ctarget-cpu=mvp cargo +nightly build --release -Zbuild-std=panic_abort,std --target wasm32-unknown-unknown`:
+
 ```rust
 #[link(wasm_import_module = "env")]
 extern "C" {
