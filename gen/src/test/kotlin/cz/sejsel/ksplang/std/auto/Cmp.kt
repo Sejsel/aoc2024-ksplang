@@ -1,6 +1,6 @@
 package cz.sejsel.ksplang.std.auto
 
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.auto.auto
 import cz.sejsel.ksplang.dsl.auto.set
@@ -12,7 +12,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 
 
 class CmpTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val prefix = listOf<Long>(1000)
@@ -59,7 +59,7 @@ class CmpTests : FunSpec({
 
 
 class ComparisonTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val pairs = listOf(

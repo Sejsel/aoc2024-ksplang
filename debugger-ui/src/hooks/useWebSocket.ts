@@ -1,0 +1,331 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { DebuggerState, StepTo } from '../types/debugger';
+
+export function useWebSocket(url: string) {
+  const [state, setState] = useState<DebuggerState>({
+    currentState: null,
+    connected: false,
+    connecting: false,
+  });
+  
+  const ws = useRef<WebSocket | null>(null);
+  const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Mock state for testing UI (remove this when real backend is available)
+  const mockState = {
+    type: 'state' as const,
+    program: {
+      type: 'root' as const,
+      children: [
+        {
+          type: 'block' as const,
+          name: 'factorial',
+          blockType: { type: 'inlined_function' as const },
+          children: [
+            { type: 'op' as const, instruction: 'CS' },
+            { type: 'op' as const, instruction: '++' },
+            { type: 'op' as const, instruction: 'lensum' },
+          ]
+        },
+        {
+          type: 'block' as const,
+          name: null,
+          blockType: { type: 'function_call' as const },
+          children: [
+            { type: 'op' as const, instruction: 'pop2' },
+            { type: 'op' as const, instruction: 'lroll' },
+            { type: 'op' as const, instruction: 'swap' },
+          ]
+        }
+      ]
+    },
+    ip: 1,
+    step: BigInt(3),
+    stack: [BigInt(1), BigInt(2), BigInt(42), BigInt("9223372036854775807"), BigInt("-9223372036854775808")],
+    reversed: false,
+    error: null,
+    breakpoints: [2, 5] // Mock breakpoints at instruction indices 2 and 5
+  };
+
+  const connect = useCallback(() => {
+    if (ws.current?.readyState === WebSocket.CONNECTING || ws.current?.readyState === WebSocket.OPEN) {
+      return;
+    }
+
+    setState(prev => ({ ...prev, connecting: true }));
+
+    try {
+      ws.current = new WebSocket(url);
+
+      ws.current.onopen = () => {
+        setState(prev => ({ 
+          ...prev, 
+          connected: true, 
+          connecting: false,
+          currentState: mockState
+        }));
+      };
+
+      ws.current.onmessage = (event) => {
+        try {
+          // Handle large integers by preprocessing the JSON string
+          // This prevents JSON.parse from converting large numbers to floats
+          let jsonString = event.data;
+          
+          // Replace large integer values with quoted strings to preserve precision
+          // This regex finds numbers that might lose precision in JSON.parse
+          jsonString = jsonString.replace(
+            /"(step|stack)":\s*(\[[\d\s,\-]+\]|\d+)/g,
+            (_match: string, key: string, value: string) => {
+              if (key === 'stack') {
+                // Handle array of numbers - wrap each number in quotes
+                const processedArray = value.replace(/(-?\d+)/g, '"$1"');
+                return `"${key}":${processedArray}`;
+              } else {
+                // Handle single number - wrap in quotes
+                return `"${key}":"${value}"`;
+              }
+            }
+          );
+          
+          const message = JSON.parse(jsonString) as any;
+          
+          if (message.type === 'state') {
+            const stateWithBigInt = {
+              ...message,
+              step: BigInt(message.step.toString()),
+              stack: message.stack.map((val: any) => BigInt(val.toString()))
+            };
+            
+            setState(prev => ({ 
+              ...prev, 
+              currentState: stateWithBigInt 
+            }));
+          }
+        } catch (error) {
+          console.error('Failed to parse WebSocket message:', error);
+        }
+      };
+
+      ws.current.onclose = () => {
+        setState(prev => ({ 
+          ...prev, 
+          connected: false, 
+          connecting: false 
+        }));
+        
+        // Only reconnect if we don't already have a timeout scheduled
+        if (!reconnectTimeout.current) {
+          reconnectTimeout.current = setTimeout(() => {
+            reconnectTimeout.current = null;
+            connect();
+          }, 1000);
+        }
+      };
+
+      ws.current.onerror = () => {
+        // If connection fails, use mock data for testing
+        setState(prev => ({ 
+          ...prev, 
+          connected: false, 
+          connecting: false,
+          currentState: mockState
+        }));
+      };
+
+    } catch (error) {
+      // Fallback to mock data for testing
+      setState(prev => ({ 
+        ...prev, 
+        connecting: false,
+        currentState: mockState
+      }));
+    }
+  }, [url]);
+
+  const disconnect = useCallback(() => {
+    if (reconnectTimeout.current) {
+      clearTimeout(reconnectTimeout.current);
+      reconnectTimeout.current = null;
+    }
+    
+    if (ws.current) {
+      ws.current.close();
+      ws.current = null;
+    }
+  }, []);
+
+  const sendMessage = useCallback((message: any) => {
+    if (ws.current?.readyState === WebSocket.OPEN) {
+      const serializedMessage = JSON.stringify(message, (_, value) =>
+        typeof value === 'bigint' ? value.toString() : value
+      );
+      ws.current.send(serializedMessage);
+    }
+  }, []);
+
+  const stepTo = useCallback((instructionCount: bigint) => {
+    sendMessage({
+      type: 'step_to',
+      executedInstructions: instructionCount,
+    } as StepTo);
+  }, [sendMessage]);
+
+  const runToEnd = useCallback(() => {
+    sendMessage({
+      type: 'run_to_end',
+    });
+  }, [sendMessage]);
+
+  const runToInstruction = useCallback((fromStep: bigint, instructionIndex: number) => {
+    sendMessage({
+      type: 'run_to_instruction',
+      fromStep: fromStep,
+      instructionIndex: instructionIndex,
+    });
+  }, [sendMessage]);
+
+  const runToInstructionBackwards = useCallback((fromStep: bigint, instructionIndex: number) => {
+    sendMessage({
+      type: 'run_to_instruction_backwards',
+      fromStep: fromStep,
+      instructionIndex: instructionIndex,
+    });
+  }, [sendMessage]);
+
+  const addBreakpoint = useCallback((instructionIndex: number) => {
+    sendMessage({
+      type: 'add_breakpoint',
+      instructionIndex: instructionIndex,
+    });
+  }, [sendMessage]);
+
+  const removeBreakpoint = useCallback((instructionIndex: number) => {
+    sendMessage({
+      type: 'remove_breakpoint',
+      instructionIndex: instructionIndex,
+    });
+  }, [sendMessage]);
+
+  const toggleBreakpoint = useCallback((instructionIndex: number) => {
+    const currentBreakpoints = state.currentState?.breakpoints || [];
+    if (currentBreakpoints.includes(instructionIndex)) {
+      removeBreakpoint(instructionIndex);
+    } else {
+      addBreakpoint(instructionIndex);
+    }
+  }, [state.currentState?.breakpoints, addBreakpoint, removeBreakpoint]);
+
+  const runToNextBreakpoint = useCallback(() => {
+    sendMessage({
+      type: 'run_to_next_breakpoint',
+    });
+  }, [sendMessage]);
+
+  const runToPreviousBreakpoint = useCallback(() => {
+    sendMessage({
+      type: 'run_to_previous_breakpoint',
+    });
+  }, [sendMessage]);
+
+  const clearBreakpoints = useCallback(() => {
+    sendMessage({
+      type: 'clear_breakpoints',
+    });
+  }, [sendMessage]);
+
+  const setStack = useCallback((stack: bigint[]) => {
+    sendMessage({
+      type: 'set_stack',
+      stack: stack.map(val => val.toString()), // Convert BigInt to string for JSON
+    });
+  }, [sendMessage]);
+
+  const loadProgramFromClipboard = useCallback(async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      
+      // Try to parse as JSON
+      let program;
+      try {
+        program = JSON.parse(clipboardText);
+      } catch (parseError) {
+        alert('Clipboard does not contain valid JSON. Please copy a valid program to the clipboard.');
+        return;
+      }
+      
+      // Basic validation that it looks like a program structure
+      if (!program || typeof program !== 'object' || !program.type) {
+        alert('Clipboard does not contain a valid program. Expected a program object with a "type" field.');
+        return;
+      }
+      
+      // Send the set_program command
+      sendMessage({
+        type: 'set_program',
+        program: program,
+      });
+      
+    } catch (error) {
+      alert('Failed to read from clipboard. Please make sure you have clipboard access permissions.');
+      console.error('Clipboard read error:', error);
+    }
+  }, [sendMessage]);
+
+  const loadProgramFromFile = useCallback(async (fileContent: string) => {
+    try {
+      // Try to parse as JSON
+      let program;
+      try {
+        program = JSON.parse(fileContent);
+      } catch (parseError) {
+        alert('File does not contain valid JSON.');
+        return;
+      }
+      
+      // Basic validation that it looks like a program structure
+      if (!program || typeof program !== 'object' || !program.type) {
+        alert('File does not contain a valid program. Expected a program object with a "type" field.');
+        return;
+      }
+      
+      // Send the set_program command
+      sendMessage({
+        type: 'set_program',
+        program: program,
+      });
+      
+    } catch (error) {
+      alert('Failed to load program from file.');
+      console.error('File load error:', error);
+    }
+  }, [sendMessage]);
+
+  useEffect(() => {
+    connect();
+    
+    return () => {
+      disconnect();
+    };
+  }, [connect, disconnect]);
+
+  return {
+    ...state,
+    connect,
+    disconnect,
+    sendMessage,
+    stepTo,
+    runToEnd,
+    runToInstruction,
+    runToInstructionBackwards,
+    addBreakpoint,
+    removeBreakpoint,
+    toggleBreakpoint,
+    runToNextBreakpoint,
+    runToPreviousBreakpoint,
+    clearBreakpoints,
+    setStack,
+    loadProgramFromClipboard,
+    loadProgramFromFile,
+  };
+}

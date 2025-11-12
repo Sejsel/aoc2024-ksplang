@@ -71,20 +71,38 @@ fun Block.push(n: Long): SimpleFunction {
             repeat(n.toInt()) {
                 inc()
             }
+        } else if (n > 0 && (n + 1) in ShortPushes.sequencesByNumber) {
+            push(n + 1)
+            dec()
         } else if (n > 0) {
             val bitLength = Long.SIZE_BITS - n.countLeadingZeroBits()
             var numsToAdd = 0
 
-            for (i in 0 until bitLength) {
-                if (n and (1L shl i) != 0L) {
-                    push(1)
-                    if (i == 1) {
-                        // We can duplicate the 1 by using m or CS
-                        m()
+            // Try to find longest bit sequence (from LSB) which is still in short pushes
+            var maxKnownBitCount = 0
+            for (i in 1 until bitLength) {
+                val mask = (1L shl i) - 1
+                val maskedN = n and mask
+                if (maskedN in ShortPushes.sequencesByNumber) {
+                    maxKnownBitCount = i
+                }
+            }
+
+            val knownPart = n and ((1L shl maxKnownBitCount) - 1)
+            assert(knownPart in ShortPushes.sequencesByNumber)
+            push(knownPart)
+            numsToAdd += 1
+
+            for (i in maxKnownBitCount until bitLength) {
+                val bit = 1L shl i
+                if (n and bit != 0L) {
+                    if (bit in ShortPushes.sequencesByNumber) {
+                        push(bit)
                     } else {
+                        push(1)
                         push(i.toLong())
+                        bitshift()
                     }
-                    bitshift()
                     numsToAdd += 1
                 }
             }
@@ -118,6 +136,13 @@ fun Block.pushOn(stackTop: Long, n: Long): SimpleFunction = function("pushOn($st
 
     push(n)
 }
+
+/**
+ * Pushes a constant number to the top of the stack if there is a specific value on top of the stack already.
+ *
+ * Generally more useful as an optimization for generating ksplang code than being used manually.
+ */
+fun Block.pushOn(stackTop: Long, n: Int): SimpleFunction = pushOn(stackTop, n.toLong())
 
 /**
  * Pushes a constant number to the top of the stack, using the given number of operations exactly.

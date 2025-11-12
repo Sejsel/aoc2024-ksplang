@@ -2,7 +2,7 @@ package cz.sejsel.ksplang.std
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildFunction
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.VALUES_PER_DIGIT_SUM
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
@@ -10,7 +10,7 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
 
 class RollTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("roll(0, 0) does nothing") {
@@ -57,7 +57,7 @@ class RollTests : FunSpec({
 })
 
 class StacklenTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("stacklen on non-empty stack") {
@@ -77,11 +77,23 @@ class StacklenTests : FunSpec({
         val input = listOf(Long.MAX_VALUE, Long.MIN_VALUE)
         runner.run(program, input) shouldContainExactly input + listOf(2)
     }
+
+    test("stacklenWithMin on non-empty stack") {
+        val program = builder.build(buildComplexFunction { stacklenWithMin() })
+        val input = listOf(1L, 2L, 3L, 2L)
+        runner.run(program, input) shouldContainExactly input.dropLast(1) + listOf(input.size.toLong() - 1)
+    }
+
+    test("stacklenWithMin with size of stack excluding the param") {
+        val program = builder.build(buildComplexFunction { stacklenWithMin() })
+        val input = listOf(1L, 2L, 3L, 3L)
+        runner.run(program, input) shouldContainExactly input.dropLast(1) + listOf(input.size.toLong() - 1)
+    }
 })
 
 
 class YoinkTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     for (i in 0L..9L) {
@@ -95,7 +107,7 @@ class YoinkTests : FunSpec({
 })
 
 class YeetTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     for (i in 0L..9L) {
@@ -111,7 +123,7 @@ class YeetTests : FunSpec({
 })
 
 class LeaveTopTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     for (i in 0L..9L) {
@@ -124,7 +136,7 @@ class LeaveTopTests : FunSpec({
 })
 
 class PopManyTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     for (i in 0L..9L) {
@@ -137,7 +149,7 @@ class PopManyTests : FunSpec({
 })
 
 class PopKthTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("popKth(1)") {
@@ -168,7 +180,7 @@ class PopKthTests : FunSpec({
 
 
 class PopNthTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
     val program = builder.build(buildFunction { popNth() })
 
@@ -194,7 +206,7 @@ class PopNthTests : FunSpec({
 })
 
 class MoveNthToTopTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
     val program = builder.build(buildFunction { moveNthToTop() })
 
@@ -220,7 +232,7 @@ class MoveNthToTopTests : FunSpec({
 })
 
 class SetNthTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
     val program = builder.build(buildFunction { setNth() })
 
@@ -246,7 +258,7 @@ class SetNthTests : FunSpec({
 })
 
 class SetKthTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("setKth 1") {
@@ -276,7 +288,7 @@ class SetKthTests : FunSpec({
 })
 
 class PermuteTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("permute(a b c, a b c) does nothing") {
@@ -316,7 +328,7 @@ class PermuteTests : FunSpec({
 })
 
 class FindUnsafeTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val program = builder.build(buildComplexFunction { findUnsafe() })

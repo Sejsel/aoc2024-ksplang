@@ -1,0 +1,385 @@
+asyncapi: 3.0.0
+info:
+  title: ksplang Debugger WebSocket API
+  version: 1.0.0
+  description: |
+    WebSocket API for the ksplang debugger that allows real-time debugging of ksplang programs.
+    
+    The API provides functionality to:
+    - Set and modify programs
+    - Control the execution stack
+    - Step through program execution
+    - Receive real-time state updates
+
+servers:
+  development:
+    host: localhost:8080
+    protocol: ws
+    description: Development server
+
+channels:
+  debugger:
+    address: /ws
+    messages:
+      FrontendRequest:
+        $ref: '#/components/messages/FrontendRequest'
+      StateMessage:
+        $ref: '#/components/messages/StateMessage'
+
+operations:
+  receiveFrontendRequest:
+    action: receive
+    channel:
+      $ref: '#/channels/debugger'
+    messages:
+      - $ref: '#/channels/debugger/messages/FrontendRequest'
+    summary: Receive commands from frontend
+    description: Handle various debugging commands from the frontend client
+
+  sendStateMessage:
+    action: send
+    channel:
+      $ref: '#/channels/debugger'
+    messages:
+      - $ref: '#/channels/debugger/messages/StateMessage'
+    summary: Send state updates to frontend
+    description: Send current debugger state to the frontend client
+
+components:
+  messages:
+    FrontendRequest:
+      name: FrontendRequest
+      title: Frontend Request
+      summary: Commands sent from frontend to control the debugger
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/FrontendRequest'
+
+    StateMessage:
+      name: StateMessage
+      title: State Message
+      summary: State updates sent from debugger to frontend
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/StateMessage'
+
+  schemas:
+    FrontendRequest:
+      oneOf:
+        - $ref: '#/components/schemas/SetProgram'
+        - $ref: '#/components/schemas/SetStack'
+        - $ref: '#/components/schemas/StepTo'
+        - $ref: '#/components/schemas/RunToEnd'
+        - $ref: '#/components/schemas/RunToNextBreakpoint'
+        - $ref: '#/components/schemas/RunToPreviousBreakpoint'
+        - $ref: '#/components/schemas/RunToInstruction'
+        - $ref: '#/components/schemas/RunToInstructionBackwards'
+        - $ref: '#/components/schemas/AddBreakpoint'
+        - $ref: '#/components/schemas/RemoveBreakpoint'
+        - $ref: '#/components/schemas/ClearBreakpoints'
+      discriminator: type
+
+    SetProgram:
+      type: object
+      required:
+        - type
+        - program
+      properties:
+        type:
+          type: string
+          const: set_program
+        program:
+          $ref: '#/components/schemas/AnnotatedKsplangTree'
+      description: Set a new program to debug
+
+    SetStack:
+      type: object
+      required:
+        - type
+        - stack
+      properties:
+        type:
+          type: string
+          const: set_stack
+        stack:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: Initial stack values
+      description: Set the initial stack for program execution
+
+    StepTo:
+      type: object
+      required:
+        - type
+        - executedInstructions
+      properties:
+        type:
+          type: string
+          const: step_to
+        executedInstructions:
+          type: integer
+          format: int64
+          description: Target number of executed instructions (absolute)
+      description: Step execution to a specific instruction count
+
+    RunToEnd:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: run_to_end
+      description: Run the program to the end
+
+    RunToNextBreakpoint:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: run_to_next_breakpoint
+      description: Run the program to the next breakpoint
+
+    RunToPreviousBreakpoint:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: run_to_previous_breakpoint
+      description: Run the program to the previous breakpoint
+
+    RunToInstruction:
+      type: object
+      required:
+        - type
+        - fromStep
+        - instructionIndex
+      properties:
+        type:
+          type: string
+          const: run_to_instruction
+        fromStep:
+          type: integer
+          format: int64
+          description: Step to start searching from
+        instructionIndex:
+          type: integer
+          description: Target instruction index to run to
+      description: Run the program forwards to a specific instruction index
+
+    RunToInstructionBackwards:
+      type: object
+      required:
+        - type
+        - fromStep
+        - instructionIndex
+      properties:
+        type:
+          type: string
+          const: run_to_instruction_backwards
+        fromStep:
+          type: integer
+          format: int64
+          description: Step to start searching from
+        instructionIndex:
+          type: integer
+          description: Target instruction index to run to (backwards)
+      description: Run the program backwards to a specific instruction index
+
+    AddBreakpoint:
+      type: object
+      required:
+        - type
+        - instructionIndex
+      properties:
+        type:
+          type: string
+          const: add_breakpoint
+        instructionIndex:
+          type: integer
+          description: Instruction index to add as a breakpoint
+      description: Add a breakpoint at the specified instruction index
+
+    RemoveBreakpoint:
+      type: object
+      required:
+        - type
+        - instructionIndex
+      properties:
+        type:
+          type: string
+          const: remove_breakpoint
+        instructionIndex:
+          type: integer
+          description: Instruction index to remove from breakpoints
+      description: Remove a breakpoint at the specified instruction index
+
+    ClearBreakpoints:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: clear_breakpoints
+      description: Clear all breakpoints
+
+    StateMessage:
+      oneOf:
+        - $ref: '#/components/schemas/NewState'
+      discriminator: type
+
+    NewState:
+      type: object
+      required:
+        - type
+        - program
+        - ip
+        - step
+        - stack
+        - reversed
+        - breakpoints
+      properties:
+        type:
+          type: string
+          const: state
+        program:
+          $ref: '#/components/schemas/AnnotatedKsplangTree'
+          description: The current program being debugged
+        ip:
+          type: integer
+          description: Current instruction pointer
+        step:
+          type: integer
+          format: int64
+          description: Current step number (number of executed instructions)
+        stack:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: Current execution stack
+        reversed:
+          type: boolean
+          description: Whether execution is in reversed mode
+        error:
+          type: string
+          nullable: true
+          description: Error message if an error occurred during execution, null if no error
+        breakpoints:
+          type: array
+          items:
+            type: integer
+          description: List of instruction indices that are currently set as breakpoints
+      description: Current state of the debugger
+
+    AnnotatedKsplangTree:
+      oneOf:
+        - $ref: '#/components/schemas/KsplangOp'
+        - $ref: '#/components/schemas/KsplangBlock'
+        - $ref: '#/components/schemas/KsplangRoot'
+      discriminator: type
+
+    KsplangOp:
+      type: object
+      required:
+        - type
+        - instruction
+      properties:
+        type:
+          type: string
+          const: op
+        instruction:
+          type: string
+          description: The ksplang instruction/operation to execute (low-level ksplang instructions)
+          examples:
+            - "CS"
+            - "++"
+            - "lensum"
+            - "funkcia"
+            - "pop"
+            - "pop2"
+            - "j"
+            - "praise"
+            - "qeq"
+            - "lroll"
+            - "swap"
+            - "bitshift"
+            - "gcd"
+            - "max"
+            - "rem"
+            - "tetr"
+            - "m"
+            - "u"
+      description: A single ksplang operation/instruction
+
+    KsplangBlock:
+      type: object
+      required:
+        - type
+        - blockType
+        - children
+      properties:
+        type:
+          type: string
+          const: block
+        name:
+          type: string
+          nullable: true
+          description: Optional name of the block (e.g., function name)
+        blockType:
+          $ref: '#/components/schemas/BlockType'
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnnotatedKsplangTree'
+          description: Child nodes within this block
+      description: A code block containing other operations or blocks
+
+    KsplangRoot:
+      type: object
+      required:
+        - type
+        - children
+      properties:
+        type:
+          type: string
+          const: root
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnnotatedKsplangTree'
+          description: Top-level children in the program
+      description: Root node of the ksplang program tree
+
+    BlockType:
+      oneOf:
+        - $ref: '#/components/schemas/InlinedFunction'
+        - $ref: '#/components/schemas/FunctionCall'
+      discriminator: type
+
+    InlinedFunction:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: inlined_function
+      description: A function that has been inlined into the program
+
+    FunctionCall:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: function_call
+      description: A function call block

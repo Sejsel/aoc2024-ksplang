@@ -1,6 +1,6 @@
 package cz.sejsel.ksplang.std.auto
 
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.auto.auto
 import cz.sejsel.ksplang.dsl.auto.const
@@ -10,7 +10,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 
 class MathTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val prefix = listOf<Long>(1000)
@@ -111,6 +111,7 @@ class MathTests : FunSpec({
             auto {
                 val a = variable("a", 1)
                 set(a) to negate(a)
+                keepOnly(a)
             }
         })
         runner.run(program, prefix) shouldContainExactly prefix + listOf(-1)
@@ -136,6 +137,17 @@ class MathTests : FunSpec({
             }
         })
         runner.run(program, prefix) shouldContainExactly prefix + listOf(256)
+    }
+
+    test("bitnot") {
+        val number = 10L
+        val program = builder.build(buildComplexFunction {
+            auto {
+                val result = bitnot(number.const)
+                keepOnly(result)
+            }
+        })
+        runner.run(program, prefix) shouldContainExactly prefix + listOf(number.inv())
     }
 })
 

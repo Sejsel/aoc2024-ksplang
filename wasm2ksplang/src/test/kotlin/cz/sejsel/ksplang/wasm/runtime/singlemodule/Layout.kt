@@ -1,0 +1,450 @@
+package cz.sejsel.ksplang.wasm.runtime.singlemodule
+
+import com.dylibso.chicory.runtime.Store
+import cz.sejsel.buildSingleModuleProgram
+import cz.sejsel.ksplang.DefaultKsplangRunner
+import cz.sejsel.ksplang.builder.KsplangBuilder
+import cz.sejsel.ksplang.dsl.core.ProgramFunction2To1
+import cz.sejsel.ksplang.dsl.core.call
+import cz.sejsel.ksplang.std.push
+import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
+import cz.sejsel.ksplang.wasm.instantiateModuleFromWat
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.datatest.withData
+import io.kotest.matchers.comparables.shouldBeGreaterThan
+import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
+import io.kotest.matchers.shouldBe
+
+class LayoutTests : FunSpec({
+    val runner = DefaultKsplangRunner(defaultOpLimit = 100_000_000)
+    val builder = KsplangBuilder()
+    val translator = KsplangWasmModuleTranslator()
+
+    context("add with no memory or table or globals") {
+        val wat = $$"""
+                (module (func $fun (export "add") (param $a i32) (param $b i32) (result i32)
+                    local.get $a
+                    local.get $b
+                    i32.add
+                ))""".trimIndent()
+
+        val store = Store()
+        val module = instantiateModuleFromWat(translator, wat, "test", store)
+
+        // expected layout:
+        // 0 input_len [globals] [fun_table] [input]
+
+        test("invoking returns add") {
+            val program = buildSingleModuleProgram(module) {
+                val addFunction = getExportedFunction("add")!! as ProgramFunction2To1
+
+                body {
+                    // The input is at the end of the stack, so we can just call right away:
+                    call(addFunction)
+                }
+            }
+            val ksplang = builder.build(program)
+            val result = runner.run(ksplang, listOf(40, 2).map { it.toLong() })
+            result.last() shouldBe 42L
+        }
+
+        val emptyProgram = buildSingleModuleProgram(module) {}
+        val ksplang = builder.buildAnnotated(emptyProgram).toRunnableProgram()
+
+        test("first value is zero") {
+            val result = runner.run(ksplang, listOf(40, 2).map { it.toLong() })
+            result.first() shouldBe 0L
+        }
+
+        context("second value is input size") {
+            withData(listOf(1, 2, 3, 42, 100)) { it ->
+                val stack = List(it) { index -> index.toLong() }
+                val result = runner.run(ksplang, stack)
+                result[1] shouldBe it.toLong()
+            }
+        }
+
+        test("input starts right after input len") {
+            val result = runner.run(ksplang, listOf(1, 2, 3, 4, 5))
+            result.subList(2, result.size) shouldBe listOf(1L, 2L, 3L, 4L, 5L)
+            result.takeLast(5) shouldBe listOf(1L, 2L, 3L, 4L, 5L)
+        }
+
+        context("getInputSize returns input size") {
+            withData(listOf(1, 2, 3, 42, 100)) { it ->
+                val input = List(it) { index -> index.toLong() }
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        getInputSize()
+                    }
+                }
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input.size
+            }
+        }
+
+        context("yoinkInput - dynamic") {
+            withData(listOf(0, 1, 2)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        push(index)
+                        yoinkInput()
+                    }
+                }
+                val input = listOf(40L, 41L, 42L)
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input[index]
+            }
+        }
+
+        context("yoinkInput - static") {
+            withData(listOf(0, 1, 2)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        yoinkInput(index)
+                    }
+                }
+                val input = listOf(40L, 41L, 42L)
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input[index]
+            }
+        }
+    }
+
+    context("one memory") {
+        val memSize = 1
+        val maxMemSize = 2
+        val wat = $$"""
+                (module 
+                    (func $fun (export "add") (param $a i32) (param $b i32) (result i32)
+                        local.get $a
+                        local.get $b
+                        i32.add
+                    )
+                    ;; initial 1 page, max 2 pages
+                    (memory (export "mem") $$memSize $$maxMemSize)
+                    
+                    ;; 8 bytes: 
+                    (data (i32.const 0x0000)
+                        "\F0\0D\BE\EF\F0\CA\CC\1A"
+                    )
+                    
+                )""".trimIndent()
+
+        val store = Store()
+        val module = instantiateModuleFromWat(translator, wat, "test", store)
+
+        // expected layout:
+        // 0 input_len [globals] [fun_table] [mem_size mem_max_size [mem_pages]] [input]
+        // 0 input_len [1 2 [240 13 190 239 240 202 204 26 0 ... 0]] [input]
+
+        // The input is on the top, so we should be able to call right away
+        test("invoking returns add") {
+            val program = buildSingleModuleProgram(module) {
+                val addFunction = getExportedFunction("add")!! as ProgramFunction2To1
+
+                body {
+                    // The input is at the end of the stack, so we can just call right away:
+                    call(addFunction)
+                }
+            }
+
+            val ksplang = builder.build(program)
+            val result = runner.run(ksplang, listOf(40, 2).map { it.toLong() })
+            result.last() shouldBe 42L
+        }
+
+        val emptyProgram = buildSingleModuleProgram(module) {}
+        val ksplang = builder.buildAnnotated(emptyProgram).toRunnableProgram()
+        val expectedMemoryBytes = listOf(0xF0, 0x0D, 0xBE, 0xEF, 0xF0, 0xCA, 0xCC, 0x1A).map { it.toLong() }
+
+        test("first value is zero") {
+            val result = runner.run(ksplang, listOf(40, 2).map { it.toLong() })
+            result.first() shouldBe 0L
+        }
+
+        context("second value is input size") {
+            withData(listOf(1, 2, 3, 42, 100)) { it ->
+                val stack = List(it) { index -> index.toLong() }
+                val result = runner.run(ksplang, stack)
+                result[1] shouldBe it.toLong()
+            }
+        }
+
+        test("third value is mem size") {
+            val result = runner.run(ksplang, listOf(1, 2))
+            result[2] shouldBe memSize.toLong()
+        }
+
+        test("fourth value is max mem size") {
+            val result = runner.run(ksplang, listOf(1, 2))
+            result[3] shouldBe maxMemSize.toLong()
+        }
+
+        test("memory starts with data sequence") {
+            val result = runner.run(ksplang, listOf(1, 2))
+            result.subList(4, 12) shouldBe expectedMemoryBytes
+        }
+
+        test("memory continues with many zeroes") {
+            val expectedZeroes = List(65536 - 8) { 0L }
+            val result = runner.run(ksplang, listOf(1, 2))
+            result.subList(12, 12 + 65536 - 8) shouldBe expectedZeroes
+        }
+
+        test("input starts after memory") {
+            val result = runner.run(ksplang, listOf(1, 2, 3, 4, 5))
+            result.subList(12 + 65536 - 8, result.size) shouldBe listOf(1L, 2L, 3L, 4L, 5L)
+            result.takeLast(5) shouldBe listOf(1L, 2L, 3L, 4L, 5L)
+        }
+
+        context("getInputSize returns input size") {
+            withData(listOf(1, 2, 3, 42, 100)) { it ->
+                val input = List(it) { index -> index.toLong() }
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        getInputSize()
+                    }
+                }
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input.size
+            }
+        }
+
+        context("yoinkInput - dynamic") {
+            withData(listOf(0, 1, 2)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        push(index)
+                        yoinkInput()
+                    }
+                }
+                val input = listOf(40L, 41L, 42L)
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input[index]
+            }
+        }
+
+        context("yoinkInput - static") {
+            withData(listOf(0, 1, 2)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        yoinkInput(index)
+                    }
+                }
+                val input = listOf(40L, 41L, 42L)
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, input)
+                result.last() shouldBe input[index]
+            }
+        }
+
+        context("yoinkMemory - static") {
+            withData(listOf(0, 1, 2, 3, 4, 5, 6, 7)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        yoinkMemory(index)
+                    }
+                }
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, listOf(40, 2))
+                result.last() shouldBe expectedMemoryBytes[index]
+            }
+        }
+
+        context("yoinkMemory - dynamic") {
+            withData(listOf(0, 1, 2, 3, 4, 5, 6, 7)) { index ->
+                val program = buildSingleModuleProgram(module) {
+                    body {
+                        push(index)
+                        yoinkMemory()
+                    }
+                }
+                val ksplang = builder.build(program)
+                val result = runner.run(ksplang, listOf(40, 2))
+                result.last() shouldBe expectedMemoryBytes[index]
+            }
+        }
+    }
+
+    context("kitchen sink") {
+        val memSize = 1
+        val maxMemSize = 2
+        val wat = $$"""
+                (module 
+                    (func $add (export "add") (param $a i32) (param $b i32) (result i32)
+                        local.get $a
+                        local.get $b
+                        i32.add
+                    )
+                    (func $sub (export "sub") (param $a i32) (param $b i32) (result i32)
+                        local.get $a
+                        local.get $b
+                        i32.sub
+                    )
+                    ;; initial 1 page, max 2 pages
+                    (memory (export "mem") $$memSize $$maxMemSize)
+                    ;; globals
+                    (global $g_mut (mut i32) i32.const 7)
+                    (global $g_imm i32 i32.const 42)
+                    ;; fun table
+                    (table 3 funcref)
+                    (elem (i32.const 0) $add $sub)
+                    
+                    ;; 8 bytes: 
+                    (data (i32.const 0x0000)
+                        "\F0\0D\BE\EF\F0\CA\CC\1A"
+                    )
+                    
+                )""".trimIndent()
+
+        val store = Store()
+        val module = instantiateModuleFromWat(translator, wat, "test", store)
+
+        // expected layout:
+        // 0 input_len [globals] [fun_table] [mem_size mem_max_size [mem_pages]]           [input]
+        // 0 input_len [7 42   ] [?? ??? -1] [1 2 [240 13 190 239 240 202 204 26 0 ... 0]] [input]
+
+        val emptyProgram = buildSingleModuleProgram(module) {}
+        val ksplang = builder.buildAnnotated(emptyProgram).toRunnableProgram()
+
+        val input = listOf(40L, 2L)
+        val result = runner.run(ksplang, input)
+        test("placeholder is correct") {
+            result[0] shouldBe 0L // placeholder
+        }
+
+        test("input size is correct") {
+            result[1] shouldBe 2L // input size
+        }
+
+        test("globals are correct") {
+            // globals
+            result[2] shouldBe 7L
+            result[3] shouldBe 42L
+        }
+
+        test("function table is correct") {
+            // fun table
+            result[4] shouldBeGreaterThanOrEqual 16L // offset of add
+            result[5] shouldBeGreaterThan result[4] // offset of sub
+            result[6] shouldBe -1L // null entry
+        }
+
+        test("memory is correct") {
+            // memory
+            result[7] shouldBe memSize.toLong()
+            result[8] shouldBe maxMemSize.toLong()
+            val expectedData = listOf(0xF0, 0x0D, 0xBE, 0xEF, 0xF0, 0xCA, 0xCC, 0x1A).map { it.toLong() }
+            result.subList(9, 17) shouldBe expectedData
+
+            val expectedZeroes = List(65536 - 8) { 0L }
+            result.subList(17, 17 + 65536 - 8) shouldBe expectedZeroes
+        }
+
+        test("input is correct") {
+            // input starts after memory
+            result.subList(17 + 65536 - 8, result.size) shouldBe input
+        }
+
+        val expectedResult = result
+
+        test("yoinkInput works") {
+            val program = buildSingleModuleProgram(module) {
+                body {
+                    yoinkInput(0)
+                }
+            }
+            val ksplang = builder.build(program)
+            val result = runner.run(ksplang, input)
+            result shouldBe expectedResult + 40L
+        }
+
+        test("yoinkMemory works") {
+            val program = buildSingleModuleProgram(module) {
+                body {
+                    yoinkMemory(0)
+                }
+            }
+            val ksplang = builder.build(program)
+            val result = runner.run(ksplang, input)
+            result shouldBe expectedResult + 0xF0L
+        }
+
+        test("yoinkGlobal works") {
+            val program = buildSingleModuleProgram(module) {
+                body {
+                    yoinkGlobal(1)
+                }
+            }
+            val ksplang = builder.build(program)
+            val result = runner.run(ksplang, input)
+            result shouldBe expectedResult + 42L
+        }
+    }
+
+    context("keep only ptr") {
+        val memSize = 1
+        val maxMemSize = 2
+        val wat = $$"""
+                (module 
+                    (func $add (export "add") (param $a i32) (param $b i32) (result i32)
+                        local.get $a
+                        local.get $b
+                        i32.add
+                    )
+                    (func $sub (export "sub") (param $a i32) (param $b i32) (result i32)
+                        local.get $a
+                        local.get $b
+                        i32.sub
+                    )
+                    ;; initial 1 page, max 2 pages
+                    (memory (export "mem") $$memSize $$maxMemSize)
+                    ;; globals
+                    (global $g_mut (mut i32) i32.const 7)
+                    (global $g_imm i32 i32.const 42)
+                    ;; fun table
+                    (table 3 funcref)
+                    (elem (i32.const 0) $add $sub)
+                    
+                    ;; 8 bytes: 
+                    (data (i32.const 0x0008)
+                        "\03\01\02\03\04\05\06\07"
+                    )
+                    
+                )""".trimIndent()
+
+        val store = Store()
+        val module = instantiateModuleFromWat(translator, wat, "test", store)
+
+        // expected layout:
+        // 0 input_len [globals] [fun_table] [mem_size mem_max_size [mem_pages]] [input]
+        // 0 input_len [7 42   ] [?? ??? -1] [1 2 [0.. 3 1 2 3 4 5 6 7 ... 0]]   [input]
+
+        val emptyProgram = buildSingleModuleProgram(module) {
+            body {
+                push(8) // memory ptr (the first 03 in data)
+                keepOnlyMemoryPtr()
+            }
+        }
+        val annotated = builder.buildAnnotated(emptyProgram)
+        val ksplang = annotated.toRunnableProgram()
+
+        val input = listOf(40L, 2L)
+        val result = runner.run(ksplang, input)
+        test("only pointed at memory is kept") {
+            // mem[ptr] is 3 -> slice has size 3
+            // then 3 following values should be retained; everything else gone
+            result.size shouldBe 3
+            result[0] shouldBe 1L
+            result[1] shouldBe 2L
+            result[2] shouldBe 3L
+        }
+    }
+})
+

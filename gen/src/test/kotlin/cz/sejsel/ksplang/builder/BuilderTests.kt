@@ -1,22 +1,35 @@
 package cz.sejsel.ksplang.builder
 
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
+import cz.sejsel.ksplang.dsl.core.CallInline
+import cz.sejsel.ksplang.dsl.core.block
+import cz.sejsel.ksplang.dsl.core.breakBlock
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
+import cz.sejsel.ksplang.dsl.core.call
+import cz.sejsel.ksplang.dsl.core.createLabel
 import cz.sejsel.ksplang.dsl.core.doWhileNonNegative
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.doWhileZero
+import cz.sejsel.ksplang.dsl.core.gotoLabel
 import cz.sejsel.ksplang.dsl.core.ifZero
+import cz.sejsel.ksplang.dsl.core.label
 import cz.sejsel.ksplang.dsl.core.otherwise
+import cz.sejsel.ksplang.dsl.core.program
+import cz.sejsel.ksplang.dsl.core.pushAddressOf
 import cz.sejsel.ksplang.dsl.core.whileNonZero
 import cz.sejsel.ksplang.std.dec
 import cz.sejsel.ksplang.std.dup
+import cz.sejsel.ksplang.std.mul
+import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.swap2
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
+import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
 
 class IfZeroBuilderTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val a = buildComplexFunction {
@@ -38,7 +51,7 @@ class IfZeroBuilderTests : FunSpec({
 })
 
 class DoWhileZeroBuilderTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val a = buildComplexFunction {
@@ -58,7 +71,7 @@ class DoWhileZeroBuilderTests : FunSpec({
 })
 
 class DoWhileNonZeroBuilderTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val a = buildComplexFunction {
@@ -78,7 +91,7 @@ class DoWhileNonZeroBuilderTests : FunSpec({
 })
 
 class DoWhileNonNegativeBuilderTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val a = buildComplexFunction {
@@ -98,7 +111,7 @@ class DoWhileNonNegativeBuilderTests : FunSpec({
 })
 
 class WhileNonZeroTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("while nonzero") {
@@ -127,6 +140,311 @@ class WhileNonZeroTests : FunSpec({
         withData(0..20) {
             val stack = listOf(-1L) + (0L..it)
             runner.run(program, stack) shouldBe listOf(-1)
+        }
+    }
+})
+
+
+class FunctionTests : FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("2 functions if else") {
+        val program = program {
+            val max = function("max", 2, 1) {
+                max2()
+            }
+
+            val gcd = function("gcd", 2, 1) {
+                gcd()
+            }
+
+            body {
+                ifZero(popChecked = true) {
+                    call(gcd)
+                } otherwise {
+                    call(max)
+                }
+            }
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4, 0)) shouldBe listOf(4)
+        runner.run(ksplang, listOf(8, 4, 1)) shouldBe listOf(8)
+    }
+
+    test("factorial recursion") {
+        val program = program {
+            val factorial = function("factorial", 1, 1)
+
+            factorial.setBody {
+                // x
+                ifZero {
+                    // 0
+                    push(1)
+                    pop2()
+                    // 1
+                } otherwise {
+                    // x x
+                    dup()
+                    dec()
+                    // x x-1
+                    call(factorial)
+                    // x x-1!
+                    mul()
+                    // x * factorial(x-1)
+                }
+            }
+
+            body {
+                call(factorial)
+            }
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(3)) shouldBe listOf(6)
+        runner.run(ksplang, listOf(8)) shouldBe listOf(40320)
+    }
+
+    test("push address of") {
+        // There is no good way to write a test for this, so we just assume the first function ends up on index 16,
+        // which is the most sane default index.
+        // If this test fails when adjusting function generation, feel free to update the expected value.
+        val program = program {
+            val max = function("max", 2, 1) {
+                max2()
+            }
+            body {
+                pushAddressOf(max)
+            }
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4, 0)) shouldBe listOf(8, 4, 0, 16)
+    }
+
+    test("push address of self") {
+        // There is no good way to write a test for this, so we just assume the first function ends up on index 16,
+        // which is the most sane default index.
+        // If this test fails when adjusting function generation, feel free to update the expected value.
+        val program = program {
+            val pushSelf = function("pushSelf", 0, 1)
+
+            pushSelf.setBody {
+                pushAddressOf(pushSelf)
+            }
+            body {
+                call(pushSelf)
+            }
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4, 0)) shouldBe listOf(8, 4, 0, 16)
+    }
+
+    context("call inline") {
+        val programNotInlined = program {
+            val max = function("max", 2, 1) { max2() }
+            body { call(max, inline = CallInline.NEVER) }
+        }
+
+        val programInlined = program {
+            val max = function("max", 2, 1) { max2() }
+            body { call(max, inline = CallInline.ALWAYS) }
+        }
+
+        val ksplangNotInlined = builder.buildAnnotated(programNotInlined)
+        val ksplangInlined = builder.buildAnnotated(programInlined)
+
+        test("does not contain call") {
+            ksplangNotInlined.segments.contains(AnnotatedKsplangSegment.Op("call")) shouldBe true
+            ksplangInlined.segments.contains(AnnotatedKsplangSegment.Op("call")) shouldBe false
+        }
+
+        test("returns expected value") {
+            runner.run(ksplangInlined.toRunnableProgram(), listOf(8, 4)) shouldBe listOf(8)
+            runner.run(ksplangInlined.toRunnableProgram(), listOf(4, 8)) shouldBe listOf(8)
+        }
+    }
+})
+
+class BreakableBlockTests : FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("break jumps to end of block") {
+        val program = buildComplexFunction {
+            block {
+                inc()
+                breakBlock(this@block)
+                inc()
+                inc()
+            }
+            inc(); inc(); inc(); inc()
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 4 + 5)
+    }
+
+    test("break jumps to end of block - conditional") {
+        val program = buildComplexFunction {
+            block {
+                // a
+                ifZero {
+                    breakBlock(this@block)
+                } otherwise {}
+
+                inc()
+            }
+            inc()
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 6)
+        runner.run(ksplang, listOf(8, 0)) shouldBe listOf(8, 1)
+    }
+
+    test("break outer") {
+        val program = buildComplexFunction {
+            block outer@{
+                inc()
+                block {
+                    inc()
+                    breakBlock(this@outer)
+                    inc()
+                }
+                inc()
+                inc()
+            }
+            inc(); inc(); inc(); inc()
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 4 + 6)
+    }
+
+    test("break inner") {
+        val program = buildComplexFunction {
+            block {
+                inc()
+                block {
+                    inc()
+                    breakBlock(this)
+                    inc()
+                }
+                inc()
+                inc()
+            }
+            inc(); inc(); inc(); inc()
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 4 + 8)
+    }
+})
+
+class LabelTests : FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+
+    test("goto label backwards") {
+        val program = buildComplexFunction {
+            inc()
+            val x = label()
+            inc()
+            ifZero {
+                gotoLabel(x)
+            }
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 6)
+        runner.run(ksplang, listOf(8, -1)) shouldBe listOf(8, 1)
+        runner.run(ksplang, listOf(8, -2)) shouldBe listOf(8, 1)
+    }
+
+    test("goto label forwards") {
+        val label = createLabel()
+        val program = buildComplexFunction {
+            inc()
+            gotoLabel(label)
+            inc() // skipped
+            +label
+        }
+
+        val ksplang = builder.build(program)
+
+        runner.run(ksplang, listOf(8, 4)) shouldBe listOf(8, 5)
+    }
+
+    test("unused label does not change code") {
+        val programWithLabel = buildComplexFunction {
+            inc()
+            label("unused")
+            inc()
+        }
+
+        val programWithoutLabel = buildComplexFunction {
+            inc()
+            inc()
+        }
+
+        val ksplangWithLabel = builder.build(programWithLabel)
+        val ksplangWithoutLabel = builder.build(programWithoutLabel)
+
+        ksplangWithLabel shouldBeEqual ksplangWithoutLabel
+    }
+
+    test("goto to unplaced forward-declared label throws during build") {
+        val label = createLabel()
+        val program = buildComplexFunction {
+            inc()
+            gotoLabel(label)
+            inc()
+            // +label // not placed
+        }
+
+        shouldThrow<Exception> {
+            builder.build(program)
+        }
+    }
+
+    test("label placed multiple times throws during build - forward-declared") {
+        val label = createLabel()
+        val program = buildComplexFunction {
+            gotoLabel(label)
+            inc()
+            +label
+            inc()
+            +label // placed again
+        }
+
+        shouldThrow<Exception> {
+            builder.build(program)
+        }
+    }
+
+    test("label placed multiple times throws during build") {
+        val program = buildComplexFunction {
+            inc()
+            val label = label()
+            gotoLabel(label)
+            inc()
+            +label // placed again
+        }
+
+        shouldThrow<Exception> {
+            builder.build(program)
         }
     }
 })

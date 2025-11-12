@@ -286,7 +286,6 @@ infix fun IfZero.otherwise(init: ComplexFunction.() -> Unit) {
     this.orElse = f
 }
 
-
 fun ComplexBlock.auto(block: Scope.() -> Unit) {
     val autoBlock = Scope(emptyList(), this, parent = null)
     autoBlock.block()
@@ -464,4 +463,103 @@ fun Scope.runFun2(vararg params: Parameter, functionCode: ComplexBlock.() -> Uni
     return vars[0] to vars[1]
 }
 
+fun Scope.runFun3(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Triple<Variable, Variable, Variable> {
+    prepareParams(params.toList())
+    block.functionCode()
+
+    val vars = adoptVariables(
+        "runFun3Result1${randomVarSuffix()}",
+        "runFun3Result2${randomVarSuffix()}",
+        "runFun3Result3${randomVarSuffix()}"
+    )
+    check(vars.size == 3)
+    return Triple(vars[0], vars[1], vars[2])
+}
+
+fun Scope.runFun4(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Quadruple<Variable, Variable, Variable, Variable> {
+    prepareParams(params.toList())
+    block.functionCode()
+
+    val vars = adoptVariables(
+        "runFun4Result1${randomVarSuffix()}",
+        "runFun4Result2${randomVarSuffix()}",
+        "runFun4Result3${randomVarSuffix()}",
+        "runFun4Result4${randomVarSuffix()}"
+    )
+    check(vars.size == 4)
+    return Quadruple(vars[0], vars[1], vars[2], vars[3])
+}
+
+fun Scope.runFun5(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Quintuple<Variable, Variable, Variable, Variable, Variable> {
+    prepareParams(params.toList())
+    block.functionCode()
+
+    val vars = adoptVariables(
+        "runFun5Result1${randomVarSuffix()}",
+        "runFun5Result2${randomVarSuffix()}",
+        "runFun5Result3${randomVarSuffix()}",
+        "runFun5Result4${randomVarSuffix()}",
+        "runFun5Result5${randomVarSuffix()}"
+    )
+    check(vars.size == 5)
+    return Quintuple(vars[0], vars[1], vars[2], vars[3], vars[4])
+}
+
+fun Scope.runFun6(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Sextuple<Variable, Variable, Variable, Variable, Variable, Variable> {
+    prepareParams(params.toList())
+    block.functionCode()
+
+    val vars = adoptVariables(
+        "runFun6Result1${randomVarSuffix()}",
+        "runFun6Result2${randomVarSuffix()}",
+        "runFun6Result3${randomVarSuffix()}",
+        "runFun6Result4${randomVarSuffix()}",
+        "runFun6Result5${randomVarSuffix()}",
+        "runFun6Result6${randomVarSuffix()}"
+    )
+    check(vars.size == 6)
+    return Sextuple(vars[0], vars[1], vars[2], vars[3], vars[4], vars[5])
+}
+
+fun Scope.runFun7(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Septuple<Variable, Variable, Variable, Variable, Variable, Variable, Variable> {
+    prepareParams(params.toList())
+    block.functionCode()
+
+    val vars = adoptVariables(
+        "runFun7Result1${randomVarSuffix()}",
+        "runFun7Result2${randomVarSuffix()}",
+        "runFun7Result3${randomVarSuffix()}",
+        "runFun7Result4${randomVarSuffix()}",
+        "runFun7Result5${randomVarSuffix()}",
+        "runFun7Result6${randomVarSuffix()}",
+        "runFun7Result7${randomVarSuffix()}"
+    )
+    check(vars.size == 7)
+    return Septuple(vars[0], vars[1], vars[2], vars[3], vars[4], vars[5], vars[6])
+}
+
+fun Scope.runFun8(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Octuple<Variable, Variable, Variable, Variable, Variable, Variable, Variable, Variable> {
+    prepareParams(params.toList())
+    block.functionCode()
+
+    val vars = adoptVariables(
+        "runFun8Result1${randomVarSuffix()}",
+        "runFun8Result2${randomVarSuffix()}",
+        "runFun8Result3${randomVarSuffix()}",
+        "runFun8Result4${randomVarSuffix()}",
+        "runFun8Result5${randomVarSuffix()}",
+        "runFun8Result6${randomVarSuffix()}",
+        "runFun8Result7${randomVarSuffix()}",
+        "runFun8Result8${randomVarSuffix()}"
+    )
+    check(vars.size == 8)
+    return Octuple(vars[0], vars[1], vars[2], vars[3], vars[4], vars[5], vars[6], vars[7])
+}
+
 private fun randomVarSuffix(): String = java.util.UUID.randomUUID().toString()
+
+data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
+data class Quintuple<A, B, C, D, E>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E)
+data class Sextuple<A, B, C, D, E, F>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F)
+data class Septuple<A, B, C, D, E, F, G>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F, val seventh: G)
+data class Octuple<A, B, C, D, E, F, G, H>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F, val seventh: G, val eighth: H)

@@ -1,10 +1,35 @@
 [versions]
-kotest = "5.9.1"
+kotest = "6.0.3"
+chicory = "1.4.0"
+arrow = "2.1.0"
+kotlin = "2.2.0"
+ktor = "3.2.3"
+logback = "1.5.20"
+mockk = "1.14.5"
+kotlin-logging = "7.0.13"
+clikt = "5.0.3"
 
 [libraries]
-kotest-runner = { module ="io.kotest:kotest-runner-junit5", version.ref = "kotest" }
-kotest-framework-datatest = { module ="io.kotest:kotest-framework-datatest", version.ref = "kotest" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-framework-engine = { module ="io.kotest:kotest-framework-engine", version.ref = "kotest" }
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 guava = { module = "com.google.guava:guava", version = "33.4.0-jre" }
+arrow = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+chicory-wasm = { module = "com.dylibso.chicory:wasm", version.ref = "chicory" }
+chicory-wasm-tools = { module = "com.dylibso.chicory:wasm-tools", version.ref = "chicory" }
+chicory-runtime = { module = "com.dylibso.chicory:runtime", version.ref = "chicory" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.9.0" }
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging"}
+clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 
 [plugins]
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.0.0" }
+kotest = { id = "io.kotest", version.ref = "kotest" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ktor = { id = "io.ktor.plugin", version.ref = "ktor" }

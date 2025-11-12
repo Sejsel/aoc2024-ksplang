@@ -1,8 +1,8 @@
 package cz.sejsel.pushes
 
 import cz.sejsel.KsplangRunner
-import cz.sejsel.Op
 import cz.sejsel.VALUES_PER_DIGIT_SUM
+import cz.sejsel.ksplang.interpreter.Op
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job

@@ -1,6 +1,9 @@
 package cz.sejsel.ksplang.std
 
 import cz.sejsel.ksplang.dsl.core.Block
+import cz.sejsel.ksplang.dsl.core.ComplexBlock
+import cz.sejsel.ksplang.dsl.core.ifZero
+import cz.sejsel.ksplang.dsl.core.otherwise
 
 /**
  * Adds the top two values on the stack. Crashes in case of overflow.
@@ -44,6 +47,8 @@ fun Block.add(n: Long) = function("add($n)") {
 
 /**
  * Subtracts the top two values and returns the difference.
+ *
+ * This does not work with b = -2^63.
  *
  * Signature: `a b -> a-b`
  */
@@ -257,38 +262,117 @@ fun Block.min2() = function("min2") {
 
 
 /**
- * Does a 32-bit bitwise OR on two values, discarding the upper bits.
+ * Checks if the top value on the stack is -2^63.
  *
- * Signature: `a b -> (a&0xFF_FF_FF_FF)|(b&0xFF_FF_FF_FF)`
+ * Also check out [isMinRaw], which is faster.
+ *
+ * Signature: `a -> a == -2^63 ? 1 : 0`
  */
-fun Block.bitor32() = function("bitor32") {
-    // a b
-    bitnot32()
-    // a ~b&0xFFFFFFFF
-    swap2()
-    // ~b&0xFFFFFFFF a
-    bitnot32()
-    // ~b&0xFFFFFFFF ~a&0xFFFFFFFF
-    bitand()
-    // ~b&0xFFFFFFFF&~a&0xFFFFFFFF
-    bitnot32()
-    // (b&0xFFFFFFFF)|(a&0xFFFFFFFF)
+fun Block.isMin() = function("isMin") {
+    // a
+    isMinRaw()
+    // 0 for a = MIN, >0 for a > MIN
+    zeroNotPositive()
+    // 1 for a = MIN, 0 otherwise
 }
 
 /**
- * Does a 32-bit bitwise NOT on a value, discarding the upper bits.
+ * Checks if the top value on the stack is -2^63.
  *
- * Signature: `a -> ~(a&0xFF_FF_FF_FF)
+ * Note that the nonzero values can be very close to the MAX value.
+ *
+ * Signature: `a -> a == -2^63 ? 0 : nonzero`
  */
-fun Block.bitnot32() = function("bitnot32") {
+fun Block.isMinRaw() = function("isMinRaw") {
     // a
-    push(0xFF_FF_FF_FF)
+    dup()
+    // a a
+    sgn()
+    // a sgn(a)
+    subabs()
+    // |a-sgn(a)|
+    push(Long.MAX_VALUE)
+    // |a-sgn(a)| MAX
+    subabs()
+    // ||a-sgn(a)|-MAX|
+    // 0 for a = MIN, >0 for a > MIN
+}
+
+
+/**
+ * Does a bitwise OR on two values.
+ *
+ * Signature: `a b -> a|b`
+ */
+fun ComplexBlock.bitor() = complexFunction("bitor") {
+    // a b
+    bitnot()
+    // a ~b
+    swap2()
+    // ~b a
+    bitnot()
+    // ~b ~a
     bitand()
-    // a&0xFFFFFFFF
-    inc()
-    negate()
-    // -(a + 1)
-    push(0xFF_FF_FF_FF)
+    // ~b & ~a
+    bitnot()
+    // ~(~b & ~a)
+}
+
+fun ComplexBlock.bitxor() = complexFunction("bitxor") {
+    // a b
+    dupAb()
+    // a b a b
+    bitor()
+    // a b a|b
+    roll(3, 1)
+    // a|b a b
     bitand()
-    // remove the MSB sign
+    // a|b a&b
+    bitnot()
+    // a|b ~(a&b)
+    bitand()
+    // (a|b)&~(a&b)
+    // -- or also a^b
+}
+
+/**
+ * Does a bitwise NOT on a value. Works on all values except for -2^63. Fast.
+ * If you need to also handle -2^63, see [bitnot] instead.
+ *
+ * Signature: `a -> ~a`
+ */
+fun Block.bitnotMinUnsafe() = function("bitnotMinUnsafe") {
+    // a
+    push(-1)
+    // a -1
+    swap2()
+    // -1 a
+    sub()
+    // -1-a
+    // ~a
+}
+
+/**
+ * Does a bitwise NOT on a value.
+ * If you do not need to handle -2^63, see [bitnotMinUnsafe] instead for a faster alternative.
+ *
+ * Signature: `a -> ~a`
+ */
+fun ComplexBlock.bitnot() = complexFunction("bitnot") {
+    // a
+    dup()
+    isMinRaw()
+    // a (0 if MIN, nonzero otherwise)
+    ifZero(popChecked = true) {
+        // MIN
+        // we cannot pop here because this may be the bottom of the stack
+        push(Long.MAX_VALUE)
+        // MIN MAX
+        pop2()
+        // MAX
+    } otherwise {
+        // a
+        bitnotMinUnsafe()
+        // ~a
+    }
 }

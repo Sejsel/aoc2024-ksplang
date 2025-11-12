@@ -1,0 +1,24 @@
+plugins {
+    // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.ktor)
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(project(":gen"))
+    implementation(project(":interpreter"))
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.websockets)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.logback.classic)
+}
+
+kotlin {
+    jvmToolchain(21)
+}

@@ -3,15 +3,18 @@ package cz.sejsel.ksplang.std
 import cz.sejsel.ksplang.VALUES_PER_DIGIT_SUM
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildFunction
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
+import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.comparables.shouldBeGreaterThan
 import kotlin.math.abs
 import kotlin.math.min
 
 class AddTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     context("Add zero does not change value") {
@@ -37,7 +40,7 @@ class AddTests : FunSpec({
 })
 
 class SubTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     context("Sub zero does not change value") {
@@ -63,7 +66,7 @@ class SubTests : FunSpec({
 })
 
 class MulTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val digitSumCases =
@@ -88,8 +91,9 @@ class MulTests : FunSpec({
 })
 
 class DivTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
+    val program = builder.build(buildFunction { div() })
 
     val digitSumCases =
         VALUES_PER_DIGIT_SUM.map { 1L to it } + VALUES_PER_DIGIT_SUM.map { 2L to it } + VALUES_PER_DIGIT_SUM.map { 3L to it }
@@ -100,19 +104,23 @@ class DivTests : FunSpec({
         Long.MAX_VALUE to 0,
         10L to 10,
         1000L to 1000,
-        -1000L to 1000
+        -1000L to 1000,
+        1000L to -1000,
+        -1L to 2,
+        -2L to 1,
+        1L to -2,
+        2L to -1,
     )
 
     context("div") {
         withData(digitSumCases + extraCases) { (a, b) ->
-            val program = builder.build(buildFunction { div() })
             runner.run(program, listOf(a, b)) shouldContainExactly listOf(b / a)
         }
     }
 })
 
 class AbsSubTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     context("abssub zero does not change positive value") {
@@ -138,7 +146,7 @@ class AbsSubTests : FunSpec({
 })
 
 class NegateTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("negate zero results in zero") {
@@ -162,7 +170,7 @@ class NegateTests : FunSpec({
 })
 
 class SgnTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("sgn(1) = 1") {
@@ -188,7 +196,7 @@ class SgnTests : FunSpec({
 })
 
 class AbsTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     test("abs(1) = 1") {
@@ -214,7 +222,7 @@ class AbsTests : FunSpec({
 })
 
 class Min2Tests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val digitSumCases =
@@ -241,7 +249,7 @@ class Min2Tests : FunSpec({
 })
 
 class DecTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     context("dec subtracts 1") {
@@ -259,32 +267,97 @@ class DecTests : FunSpec({
     }
 })
 
-class Bitor32Tests : FunSpec({
-    val runner = KsplangRunner()
+class IsMinTests : FunSpec({
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
-    val program = builder.build(buildFunction { bitor32() })
-    println(program)
-
-    test("bitor32 all combinations") {
-        runner.run(program, listOf(0b1100, 0b1010)) shouldContainExactly listOf(0b1110)
+    val program = builder.build(buildFunction { isMin() })
+    test("isMin returns 1 for -2^63") {
+        runner.run(program, listOf(Long.MIN_VALUE)) shouldContainExactly listOf(1)
     }
-    test("bitor32 removes extra bits") {
-        runner.run(program, listOf(0xFF_FF_FF_FF, 0x7F_FF_FF_FF_FF_FF_FF_FF)) shouldContainExactly listOf(0xFF_FF_FF_FF)
+
+    context("isMin returns 0 for values that are not -2^63") {
+        withData(VALUES_PER_DIGIT_SUM + listOf(Long.MIN_VALUE + 1, Long.MAX_VALUE, -1)) {
+            runner.run(program, listOf(it)) shouldContainExactly listOf(0)
+        }
+    }
+
+    val programRaw = builder.build(buildFunction { isMinRaw() })
+    test("isMinRaw returns 0 for -2^63") {
+        runner.run(programRaw, listOf(Long.MIN_VALUE)) shouldContainExactly listOf(0)
+    }
+
+    context("isMinRaw returns positive value for values that are not -2^63") {
+        withData(VALUES_PER_DIGIT_SUM + listOf(Long.MIN_VALUE + 1, Long.MAX_VALUE, -1)) {
+            val output = runner.run(programRaw, listOf(it))
+            output shouldHaveSize 1
+            output[0] shouldBeGreaterThan 0
+        }
     }
 })
 
-class Bitnot32Tests : FunSpec({
-    val runner = KsplangRunner()
+class BitorTests : FunSpec({
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
-    val program = builder.build(buildFunction { bitnot32() })
+    val program = builder.build(buildComplexFunction { bitor() })
 
-    test("bitnot32 - basic") {
-        runner.run(program, listOf(0b1010)) shouldContainExactly listOf(0b11111111_11111111_11111111_11110101)
+    test("bitor all combinations") {
+        runner.run(program, listOf(0b1100, 0b1010)) shouldContainExactly listOf(0b1110)
     }
-    test("bitnot32 removes extra bits") {
-        runner.run(program, listOf(0x7F_FF_FF_FF_FF_FF_FF_FF)) shouldContainExactly listOf(0)
-        runner.run(program, listOf(0xFF_FF_FF_FF)) shouldContainExactly listOf(0)
+    test("bitor MIN and MAX") {
+        runner.run(program, listOf(Long.MIN_VALUE, Long.MAX_VALUE)) shouldContainExactly listOf(Long.MIN_VALUE.or(Long.MAX_VALUE))
+    }
+    test("bitor MIN and MIN") {
+        runner.run(program, listOf(Long.MIN_VALUE, Long.MIN_VALUE)) shouldContainExactly listOf(Long.MIN_VALUE.or(Long.MIN_VALUE))
+    }
+    test("bitor MAX and MAX") {
+        runner.run(program, listOf(Long.MAX_VALUE, Long.MAX_VALUE)) shouldContainExactly listOf(Long.MAX_VALUE.or(Long.MAX_VALUE))
+    }
+})
+
+class BitXorTests : FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+
+    val program = builder.build(buildComplexFunction { bitxor() })
+
+    test("bitxor all combinations") {
+        runner.run(program, listOf(0b1100, 0b1010)) shouldContainExactly listOf(0b0110)
+    }
+    test("bitxor MIN and MAX") {
+        runner.run(program, listOf(Long.MIN_VALUE, Long.MAX_VALUE)) shouldContainExactly listOf(Long.MIN_VALUE.xor(Long.MAX_VALUE))
+    }
+    test("bitxor MIN and MIN") {
+        runner.run(program, listOf(Long.MIN_VALUE, Long.MIN_VALUE)) shouldContainExactly listOf(Long.MIN_VALUE.xor(Long.MIN_VALUE))
+    }
+    test("bitxor MAX and MAX") {
+        runner.run(program, listOf(Long.MAX_VALUE, Long.MAX_VALUE)) shouldContainExactly listOf(Long.MAX_VALUE.xor(Long.MAX_VALUE))
+    }
+})
+
+class BitnotMinUnsafeTests : FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+
+    val program = builder.build(buildFunction { bitnotMinUnsafe() })
+
+    context("bitnotMinUnsafe inverts bits") {
+        withData(VALUES_PER_DIGIT_SUM + listOf(0b1010, Long.MAX_VALUE, -1, -10)) {
+            runner.run(program, listOf(it)) shouldContainExactly listOf(it.inv())
+        }
+    }
+})
+
+class BitnotTests : FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+
+    val program = builder.build(buildComplexFunction { bitnot() })
+
+    context("bitnot inverts bits") {
+        withData(VALUES_PER_DIGIT_SUM + listOf(0b1010, Long.MAX_VALUE, Long.MIN_VALUE, -1, -10)) {
+            runner.run(program, listOf(it)) shouldContainExactly listOf(it.inv())
+        }
     }
 })

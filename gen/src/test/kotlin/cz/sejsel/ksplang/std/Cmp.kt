@@ -2,7 +2,7 @@ package cz.sejsel.ksplang.std
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.buildFunction
-import cz.sejsel.ksplang.KsplangRunner
+import cz.sejsel.ksplang.DefaultKsplangRunner
 import cz.sejsel.ksplang.VALUES_PER_DIGIT_SUM
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import io.kotest.core.spec.style.FunSpec
@@ -12,7 +12,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
 
 class CmpTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val pairs = listOf(
@@ -37,7 +37,7 @@ class CmpTests : FunSpec({
 })
 
 class IsInRangeTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val pairs = listOf<Pair<Long, LongRange>>(
@@ -67,7 +67,7 @@ class IsInRangeTests : FunSpec({
 })
 
 class GeqTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val pairs = listOf(
@@ -92,7 +92,7 @@ class GeqTests : FunSpec({
 })
 
 class GtTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val pairs = listOf(
@@ -117,7 +117,7 @@ class GtTests : FunSpec({
 })
 
 class LeqTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val pairs = listOf(
@@ -142,7 +142,7 @@ class LeqTests : FunSpec({
 })
 
 class LtTests : FunSpec({
-    val runner = KsplangRunner()
+    val runner = DefaultKsplangRunner()
     val builder = KsplangBuilder()
 
     val pairs = listOf(

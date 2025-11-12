@@ -88,6 +88,20 @@ sealed interface Block {
         addChild(lroll)
     }
 
+    /**
+     * Universal arithmetic operation.
+     *
+     * Pops the top value from the stack, this is the operation id. If operation id is:
+     * - 0, replaces next two top values with their sum.
+     * - 1, replaces next two top values with their absolute difference.
+     * - 2, replaces next two top values with their product.
+     * - 3, divides the top value by the second top value,
+     *     - if the result is an integer, replaces the two values with the quotient
+     *     - if the result is not an integer, replaces the two values with the remainder (like `a % b` in C)
+     * - 4, replaces the top value with its factorial of its absolute value
+     * - 5, replaces the top value with its sign (1 for positive, -1 for negative, 0 for zero)
+     * - otherwise, program execution ends with an error.
+     */
     fun u() {
         addChild(u)
     }
@@ -187,8 +201,8 @@ data class ComplexFunction(val name: String? = null, override var children: Muta
     }
 }
 
-fun ComplexBlock.ifZero(init: IfZero.() -> Unit): IfZero {
-    val f = IfZero()
+fun ComplexBlock.ifZero(popChecked: Boolean = false, init: IfZero.() -> Unit): IfZero {
+    val f = IfZero(popChecked = popChecked)
     f.init()
     children.add(f)
     return f
@@ -212,6 +226,114 @@ data class WhileNonZero(override var children: MutableList<Block> = mutableListO
     override fun addChild(block: SimpleBlock) {
         children.add(block)
     }
+}
+
+@KsplangMarker
+class BreakableBlock(override var children: MutableList<Block> = mutableListOf()) : ComplexBlock {
+    override fun addChild(block: SimpleBlock) {
+        children.add(block)
+    }
+}
+
+@KsplangMarker
+class Break(val block: BreakableBlock): ComplexBlock {
+    // This is quite ugly API-wise
+    override var children: MutableList<Block>
+        get() = mutableListOf()
+        set(_) = error("Break does not have children.")
+
+    override fun addChild(block: SimpleBlock) {
+        throw UnsupportedOperationException("Breaks cannot contain other blocks.")
+    }
+}
+
+fun ComplexBlock.block(init: BreakableBlock.() -> Unit): BreakableBlock {
+    val block = BreakableBlock()
+    block.init()
+    children.add(block)
+    return block
+}
+
+fun ComplexBlock.breakBlock(block: BreakableBlock) {
+    val brk = Break(block)
+    children.add(brk)
+}
+
+class Label(val name: String?) : ComplexBlock {
+    // This is quite ugly API-wise
+    override var children: MutableList<Block>
+        get() = mutableListOf()
+        set(_) = error("Label does not have children.")
+
+    override fun addChild(block: SimpleBlock) {
+        throw UnsupportedOperationException("Labels cannot contain other blocks.")
+    }
+}
+
+/**
+ * Prepares a label which can be used as a target for [gotoLabel]. Required if you need jumps forward.
+ *
+ * Place into code where you want the label to be with unary plus:
+ * ```
+ * buildComplexFunction {
+ *     val label = createLabel()
+ *
+ *     gotoLabel(label)
+ *     // ...
+ *     +label
+ * }
+ * ```
+ *
+ * Obviously only place the label once, or the builder will cry when presented with such a program.
+ * And you wouldn't want that, would you?
+ */
+fun createLabel(name: String? = null): Label {
+    return Label(name)
+}
+
+/**
+ * Places a label which can be used as a target for [gotoLabel]. If you need forward jumps, use [createLabel].
+ *
+ * ```
+ * buildComplexFunction {
+ *     val x = label()
+ *     // ...
+ *     gotoLabel(x) // jump back
+ * }
+ * ```
+ */
+fun ComplexBlock.label(name: String? = null): Label {
+    val label = Label(name)
+    children.add(label)
+    return label
+}
+
+class GoToLabel(val label: Label) : ComplexBlock {
+    // This is quite ugly API-wise
+    override var children: MutableList<Block>
+        get() = mutableListOf()
+        set(_) = error("GoToLabel does not have children.")
+
+    override fun addChild(block: SimpleBlock) {
+        throw UnsupportedOperationException("GoToLabel cannot contain other blocks.")
+    }
+}
+
+/**
+ * Jumps to the given label.
+ *
+ * Example:
+ * ```
+ * buildComplexFunction {
+ *     val loopStart = label()
+ *     // ...
+ *     gotoLabel(loopStart) // jump back
+ * }
+ * ```
+ */
+fun ComplexBlock.gotoLabel(label: Label) {
+    val goTo = GoToLabel(label)
+    children.add(goTo)
 }
 
 /**
@@ -250,6 +372,9 @@ data class DoWhileZero(override var children: MutableList<Block> = mutableListOf
     }
 }
 
+/**
+ * Consumes the value at the end of the stack at the end of each loop.
+ */
 fun ComplexBlock.doWhileZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     val f = DoWhileZero()
     f.init()
@@ -257,6 +382,9 @@ fun ComplexBlock.doWhileZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     return f
 }
 
+/**
+ * Consumes the value at the end of the stack at the end of each loop.
+ */
 fun ComplexBlock.doWhileNonZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     val f = DoWhileZero()
     f.init()
@@ -267,6 +395,9 @@ fun ComplexBlock.doWhileNonZero(init: DoWhileZero.() -> Unit): DoWhileZero {
     return f
 }
 
+/**
+ * Consumes the value at the end of the stack at the end of each loop.
+ */
 fun ComplexBlock.doWhileNonNegative(init: DoWhileZero.() -> Unit): DoWhileZero {
     val f = DoWhileZero()
     f.init()

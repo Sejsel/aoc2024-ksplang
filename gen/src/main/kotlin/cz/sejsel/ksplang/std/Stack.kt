@@ -32,7 +32,19 @@ fun Block.swap2() = roll(2, 1)
  */
 fun ComplexBlock.stacklen(): ComplexFunction = complexFunction("stacklen") {
     push(0)
-    // 0
+    stacklenWithMin()
+}
+
+/**
+ * Finds the length of the stack, if it is known that it is at least `minStackLen`.
+ *
+ * - `minStackLen` must be non-negative.
+ * - `minStackLen` must not count itself (it has to be at most the size of the stack without it).
+ *
+ * Signature: `<stack> minStackLen -> <stack> len(stack)`
+ */
+fun ComplexBlock.stacklenWithMin(): ComplexFunction = complexFunction("stacklenWithMin") {
+    // minStackLen
     // i
     doWhileZero {
         // i
@@ -279,7 +291,7 @@ fun Block.setNth() = function("setNth") {
 
 /**
  * Sets the *k*-th element from the top of the stack to a new value.
- * 1-indexed, not counting the top value. **Requires *x* to be 1 or bigger.**
+ * 1-indexed, not counting the top value. **Requires *k* to be 1 or bigger.**
  *
  * Example: `1 2 3 4 42 -> 1 2 42 4` (*k* was 2)
  *
@@ -289,7 +301,7 @@ fun Block.setKth(k: Int) = setKth(k.toLong())
 
 /**
  * Sets the *k*-th element from the top of the stack to a new value.
- * 1-indexed, not counting the top value. **Requires *x* to be 1 or bigger.**
+ * 1-indexed, not counting the top value. **Requires *k* to be 1 or bigger.**
  *
  * Example: `1 2 3 4 42 -> 1 2 42 4` (*k* was 2)
  *

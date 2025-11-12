@@ -1,16 +1,50 @@
 package cz.sejsel.ksplang
 
+import arrow.core.getOrElse
+import cz.sejsel.ksplang.builder.Ksplang
+import cz.sejsel.ksplang.interpreter.VMOptions
+import cz.sejsel.ksplang.interpreter.parseProgram
 import java.nio.file.Path
 import kotlin.io.path.createTempFile
 import kotlin.io.path.writeText
 
-class KsplangRunner(
+interface KsplangRunner {
+    fun run(program: String, input: List<Long>): List<Long>
+    fun run(program: Ksplang, input: List<Long>) = run(program.toRunnableProgram(), input)
+}
+
+typealias DefaultKsplangRunner = KotlinKsplangRunner
+
+class KotlinKsplangRunner(
     /** Maximum stack size (amount of int64 elements on the program stack) */
     val maxStackSize: Long = 2097152,
     /** Maximum operation limit (amount of operations that can be executed) */
     val defaultOpLimit: Long = 100000
-) {
-    fun run(program: String, input: List<Long>, opLimit: Long = defaultOpLimit): List<Long> {
+) : KsplangRunner {
+    override fun run(program: String, input: List<Long>): List<Long> {
+        val ops = parseProgram(program)
+
+        val result = cz.sejsel.ksplang.interpreter.run(
+            ops = ops,
+            options = VMOptions(
+                maxStackSize = maxStackSize.toInt(),
+                initialStack = input,
+                maxOpCount = defaultOpLimit,
+            ),
+        )
+
+        return result.getOrElse { throw RuntimeException("Program execution failed: $it") }.stack
+    }
+}
+
+class RustKsplangRunner(
+    /** Maximum stack size (amount of int64 elements on the program stack) */
+    val maxStackSize: Long = 2097152,
+    /** Maximum operation limit (amount of operations that can be executed) */
+    val defaultOpLimit: Long = 100000
+) : KsplangRunner {
+
+    override fun run(program: String, input: List<Long>): List<Long> {
         var programFile: Path? = null
         try {
             // Store the program as a temporary file
@@ -23,7 +57,7 @@ class KsplangRunner(
             val process = ProcessBuilder(
                 "ksplang",
                 "--max-stack-size", maxStackSize.toString(),
-                "--op-limit", opLimit.toString(),
+                "--op-limit", defaultOpLimit.toString(),
                 programFile.toString()
             ).start()
 

@@ -1,0 +1,10 @@
+/* Minimal debugger-specific styles */
+.debugger-container {
+  max-width: none;
+}
+
+/* Ensure proper spacing for code blocks */
+.code-block {
+  white-space: pre;
+  tab-size: 2;
+}
