@@ -94,7 +94,7 @@ class VMTests : FunSpec({
                             RunError.Timeout -> error("should not happen")
                         }
                     }
-                    is Either.Right -> Either.Right(state.stack.toList())
+                    is Either.Right -> Either.Right(state.getStack())
                 }
             }
             val iLikeKsp = "Mám rád KSP".map { it.code.toLong() }
@@ -177,7 +177,7 @@ class VMTests : FunSpec({
             fun runFF(initialStack: List<Long>, stackSize: Int): List<Long> {
                 val state = State(listOf(Op.FF), initialStack, stackSize.toLong(), PI_TEST_VALUES)
                 state.runNextOp()
-                return state.stack
+                return state.getStack()
             }
             runFF(listOf(1L, 2L), 8) shouldBe List(8) { Long.MIN_VALUE }
             runFF(List(8) { 0L }, 8) shouldBe List(8) { Long.MIN_VALUE }

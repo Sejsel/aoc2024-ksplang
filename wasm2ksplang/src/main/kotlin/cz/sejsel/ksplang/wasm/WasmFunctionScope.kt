@@ -162,8 +162,7 @@ class WasmFunctionScope private constructor(
     }
 
     fun ComplexFunction.i32Const(const: Long) = instruction("i32Const($const)", stackSizeChange = 1) {
-        push(const)
-        i32Mod()
+        push(const.mod(4294967296))
     }
 
     fun ComplexFunction.i64Const(const: Long) = instruction("i64Const($const)", stackSizeChange = 1) {
