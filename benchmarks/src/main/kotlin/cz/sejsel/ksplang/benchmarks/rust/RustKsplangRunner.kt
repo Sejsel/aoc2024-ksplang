@@ -18,6 +18,7 @@ class RustKsplangRunner(
     /** Maximum operation limit (amount of operations that can be executed) */
     val defaultOpLimit: Long = Long.MAX_VALUE,
     val optimize: Boolean = false,
+    val environmentVariables: Map<String, String> = emptyMap(),
 ) {
     fun run(
         program: String,
@@ -32,14 +33,21 @@ class RustKsplangRunner(
             programFile.writeText(program)
 
             // Run the program
-            val process = ProcessBuilder(buildList {
+            val builder = ProcessBuilder(buildList {
                 add(pathToInterpreter)
                 add("--stats")
                 add("--max-stack-size"); add(maxStackSize.toString())
                 add("--op-limit"); add(defaultOpLimit.toString())
                 if (optimize) add("--optimize")
                 add(programFile.toString())
-            }).start()
+            })
+
+            val env = builder.environment()
+            for ((key, value) in environmentVariables) {
+                env[key] = value
+            }
+
+            val process = builder.start()
 
             // Write the input to the stdin
             process.outputStream.buffered().use { it.write(input.joinToString(" ").toByteArray()) }

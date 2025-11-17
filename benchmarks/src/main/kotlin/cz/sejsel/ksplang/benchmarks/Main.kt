@@ -80,7 +80,8 @@ fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean) {
     ksplangs.forEach { (interpreterName, pathToInterpreter, optimize) ->
         val runner = RustKsplangRunner(
             pathToInterpreter = pathToInterpreter,
-            optimize = optimize
+            optimize = optimize,
+            environmentVariables = mapOf("KSPLANGJIT_VERBOSITY" to "0")
         )
         val benchmarks = RustBenchmarks(runner)
         benchmarks.ALL_BENCHMARKS.forEach { benchmark ->
@@ -133,7 +134,7 @@ fun printResultsTable(
         colWidths.add(name.length.coerceAtLeast(12))
     }
 
-    fun pad(str: String, width: Int) = str.padEnd(width)
+    fun pad(str: String, width: Int) = str.padStart(width)
     val RED = "\u001B[31m"
     val RESET = "\u001B[0m"
 
