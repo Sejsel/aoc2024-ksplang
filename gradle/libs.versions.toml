@@ -8,6 +8,7 @@ logback = "1.5.20"
 mockk = "1.14.5"
 kotlin-logging = "7.0.13"
 clikt = "5.0.3"
+kotlinx-benchmark = "0.4.14"
 
 [libraries]
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
@@ -20,6 +21,7 @@ chicory-wasm = { module = "com.dylibso.chicory:wasm", version.ref = "chicory" }
 chicory-wasm-tools = { module = "com.dylibso.chicory:wasm-tools", version.ref = "chicory" }
 chicory-runtime = { module = "com.dylibso.chicory:runtime", version.ref = "chicory" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.9.0" }
+kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinx-benchmark"}
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
@@ -33,3 +35,7 @@ kotest = { id = "io.kotest", version.ref = "kotest" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
+kotlinx-benchmark = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "kotlinx-benchmark" }
+allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
+champeau-jmh = { id = "me.champeau.jmh", version = "0.7.3" }
+kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
