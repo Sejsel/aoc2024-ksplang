@@ -17,6 +17,8 @@ fun main() {
         KsplangInterpreter("exyi optimize", "../exyi-ksplang/target/release/ksplang-cli", optimize = true),
     )
 
+    val enableKotlin = true
+
     val resultsByBenchmark = mutableMapOf<String, MutableMap<String, Double??>>()
 
     ksplangs.forEach { (interpreterName, pathToInterpreter, optimize) ->
@@ -38,26 +40,26 @@ fun main() {
         }
     }
 
-    /*
     runJMHBenchmarks().forEach { (benchmarkName, time) ->
         println("JMH $benchmarkName average time: $time ms")
         resultsByBenchmark.getOrPut(benchmarkName) { mutableMapOf() }["Kotlin"] = time
     }
-     */
 
-    printResultsTable(resultsByBenchmark, ksplangs.map { it.name })
+    val tableHeaders = ksplangs.map { it.name } + if (enableKotlin) listOf("Kotlin") else emptyList()
+    printResultsTable(resultsByBenchmark, tableHeaders)
 }
 
 private fun runJMHBenchmarks(): Map<String, Double> {
     val options = OptionsBuilder()
         .include("cz.sejsel.benchmarks.*")
-        .forks(1)
+        .forks(0)
         .build()
 
     val runner = org.openjdk.jmh.runner.Runner(options)
     val results = runner.run()
-    //results.map { it.primaryResult.score }.average()
-    TODO()
+    return results.associate {
+        it.primaryResult.label to it.primaryResult.score
+    }
 }
 
 fun printResultsTable(
