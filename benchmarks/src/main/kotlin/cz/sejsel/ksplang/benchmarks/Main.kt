@@ -54,6 +54,8 @@ class DumpProgramsCommand : CliktCommand(
         .default(Path.of("."))
 
     override fun run() {
+        outputDir.toFile().mkdirs()
+
         val programs = listOf(
             Programs.stacklen10000,
             Programs.sort100,

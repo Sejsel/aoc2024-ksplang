@@ -25,8 +25,8 @@ Also benchmark the kotlin interpreter:
 ```
 
 ## Dumping benchmark programs
-You can dump all the benchmark programs to a file. For inputs, see [Programs.kt](/benchmarks/src/main/kotlin/cz/sejsel/ksplang/benchmarks/Programs.kt).
+You can dump all the benchmark programs and their inputs to a file.
 
 ```
-./gradlew :benchmarks:run --args "dump-programs"
+./gradlew :benchmarks:run --args "dump-programs --output-dir programs"
 ```
