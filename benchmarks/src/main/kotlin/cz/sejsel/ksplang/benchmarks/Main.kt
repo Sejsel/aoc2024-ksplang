@@ -84,7 +84,7 @@ fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean) {
             environmentVariables = mapOf("KSPLANGJIT_VERBOSITY" to "0")
         )
         val benchmarks = RustBenchmarks(runner)
-        benchmarks.ALL_BENCHMARKS.forEach { benchmark ->
+        benchmarks.allBenchmarks.forEach { benchmark ->
             try {
                 val result = benchmarks.runBenchmark(benchmark)
                 val mean = result.map { it.toMillis() }.average()

@@ -11,15 +11,14 @@ data class RustBenchmark(
 }
 
 class RustBenchmarks(val runner: RustKsplangRunner) {
-    val ALL_BENCHMARKS = listOf(
+    val allBenchmarks = listOf(
         RustBenchmark(Programs.stacklen10000, runs = 20),
         RustBenchmark(Programs.sort100, runs = 20),
         RustBenchmark(Programs.sumloop10000, runs = 20),
     )
 
     fun runBenchmark(benchmark: RustBenchmark): List<Duration> {
-        val runs = 20
-        return List(runs) {
+        return List(benchmark.runs) {
             val result = runner.run(benchmark.program.program, benchmark.program.inputStack)
             result.executionTime
         }
