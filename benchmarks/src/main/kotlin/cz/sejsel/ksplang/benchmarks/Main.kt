@@ -1,7 +1,17 @@
-package cz.sejsel.benchmarks
+package cz.sejsel.ksplang.benchmarks
 
-import cz.sejsel.benchmarks.rust.RustKsplangRunner
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.path
+import cz.sejsel.ksplang.benchmarks.rust.RustKsplangRunner
+import org.openjdk.jmh.runner.Runner
 import org.openjdk.jmh.runner.options.OptionsBuilder
+import java.nio.file.Path
+import kotlin.io.path.writeText
 
 data class KsplangInterpreter(
     val name: String,
@@ -9,16 +19,60 @@ data class KsplangInterpreter(
     val optimize: Boolean
 )
 
-fun main() {
-    val ksplangs = listOf(
-        KsplangInterpreter("system ksplang", "ksplang", optimize = false),
-        KsplangInterpreter("fast funkcia", "../ksplang/target/release/ksplang-cli", optimize = false),
-        KsplangInterpreter("exyi", "../exyi-ksplang/target/release/ksplang-cli", optimize = false),
-        KsplangInterpreter("exyi optimize", "../exyi-ksplang/target/release/ksplang-cli", optimize = true),
-    )
+fun main(args: Array<String>) {
+    BenchmarksCli()
+        .subcommands(BenchmarkCommand(), DumpProgramsCommand())
+        .main(args)
+}
 
-    val enableKotlin = true
+class BenchmarksCli : CliktCommand(name = "benchmarks") {
+    override fun run() {}
+}
 
+class BenchmarkCommand : CliktCommand(
+    name = "benchmark",
+) {
+    private val enableKotlin by option("--enable-kotlin", help = "Enable Kotlin JMH benchmarks").flag(default = false)
+
+    override fun run() {
+        val ksplangs = buildList {
+            add(KsplangInterpreter("system ksplang", "ksplang", optimize = false))
+            add(KsplangInterpreter("fast funkcia", "../ksplang/target/release/ksplang-cli", optimize = false))
+            add(KsplangInterpreter("exyi", "../exyi-ksplang/target/release/ksplang-cli", optimize = false))
+            add(KsplangInterpreter("exyi optimize", "../exyi-ksplang/target/release/ksplang-cli", optimize = true))
+        }
+
+        runBenchmarks(ksplangs, enableKotlin)
+    }
+}
+
+class DumpProgramsCommand : CliktCommand(
+    name = "dump-programs",
+) {
+    private val outputDir by option("--output-dir", "-o", help = "Output directory for programs")
+        .path(canBeFile = false)
+        .default(Path.of("."))
+
+    override fun run() {
+        val programs = listOf(
+            Programs.stacklen10000,
+            Programs.sort100,
+            Programs.sumloop10000,
+        )
+
+        programs.forEach { program ->
+            val programFile = outputDir.resolve("${program.name}.ksplang")
+            programFile.writeText(program.program)
+            echo("Wrote ${program.name}.ksplang")
+            val inputFile = outputDir.resolve("${program.name}.ksplang.input")
+            inputFile.writeText(program.inputStack.joinToString("\n"))
+        }
+
+        echo("Dumped ${programs.size} programs to $outputDir")
+    }
+}
+
+fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean) {
     val resultsByBenchmark = mutableMapOf<String, MutableMap<String, Double??>>()
 
     ksplangs.forEach { (interpreterName, pathToInterpreter, optimize) ->
@@ -40,9 +94,11 @@ fun main() {
         }
     }
 
-    runJMHBenchmarks().forEach { (benchmarkName, time) ->
-        println("JMH $benchmarkName average time: $time ms")
-        resultsByBenchmark.getOrPut(benchmarkName) { mutableMapOf() }["Kotlin"] = time
+    if (enableKotlin) {
+        runJMHBenchmarks().forEach { (benchmarkName, time) ->
+            println("JMH $benchmarkName average time: $time ms")
+            resultsByBenchmark.getOrPut(benchmarkName) { mutableMapOf() }["Kotlin"] = time
+        }
     }
 
     val tableHeaders = ksplangs.map { it.name } + if (enableKotlin) listOf("Kotlin") else emptyList()
@@ -55,7 +111,7 @@ private fun runJMHBenchmarks(): Map<String, Double> {
         .forks(0)
         .build()
 
-    val runner = org.openjdk.jmh.runner.Runner(options)
+    val runner = Runner(options)
     val results = runner.run()
     return results.associate {
         it.primaryResult.label to it.primaryResult.score

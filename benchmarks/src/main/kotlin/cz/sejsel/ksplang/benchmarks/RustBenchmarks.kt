@@ -1,6 +1,6 @@
-package cz.sejsel.benchmarks
+package cz.sejsel.ksplang.benchmarks
 
-import cz.sejsel.benchmarks.rust.RustKsplangRunner
+import cz.sejsel.ksplang.benchmarks.rust.RustKsplangRunner
 import java.time.Duration
 
 data class RustBenchmark(

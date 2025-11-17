@@ -1,4 +1,4 @@
-package cz.sejsel.benchmarks
+package cz.sejsel.ksplang.benchmarks
 
 import arrow.core.Either
 import cz.sejsel.ksplang.interpreter.RunError

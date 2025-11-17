@@ -1,4 +1,4 @@
-package cz.sejsel.benchmarks.rust
+package cz.sejsel.ksplang.benchmarks.rust
 
 import java.nio.file.Path
 import java.time.Duration

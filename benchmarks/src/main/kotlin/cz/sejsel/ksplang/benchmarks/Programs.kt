@@ -1,4 +1,4 @@
-package cz.sejsel.benchmarks
+package cz.sejsel.ksplang.benchmarks
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
