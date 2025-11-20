@@ -53,6 +53,7 @@ data class IfElseBlockFrame(
     override val previousStackSize: Int,
     override val depth: Int,
     override var isUnreachable: Boolean,
+    var elseLabelEmitted: Boolean,
     val elseLabel: Label,
     val endLabel: Label,
 ) : BlockFrame {
@@ -1835,6 +1836,7 @@ class WasmFunctionScope private constructor(
             endLabel = createLabel("end_if_${instruction}"),
             depth = instruction.depth(),
             isUnreachable = false,
+            elseLabelEmitted = false,
         )
         blockStack.add(frame)
 
@@ -1870,12 +1872,17 @@ class WasmFunctionScope private constructor(
         intermediateStackValues = frame.previousStackSize
 
         +frame.elseLabel
+        frame.elseLabelEmitted = true
     }
 
     fun ComplexFunction.endIf(scope: Instruction) {
         val frame = blockStack.removeLast() as IfElseBlockFrame
         check(frame.startInstruction.scope() == scope) {
             "Mismatched end of if: expected end of ${frame.startInstruction}, got end of $scope"
+        }
+        // If else label was not placed (no else block), place it now.
+        if (!frame.elseLabelEmitted) {
+            +frame.elseLabel
         }
         // For ifs, labels are at the end
         +frame.endLabel

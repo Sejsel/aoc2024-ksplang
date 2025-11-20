@@ -96,4 +96,7 @@ whether Chicory produces the same result for a program as the translated ksplang
 
 This approach worked quite well, there were only two bugs to solve when running the first large programs:
 - missing support for offset in load/store instructions (oops)
-- i32.const violating our invariant that top 32 bits should be zero, when used with negative numbers (a missing MOD)
+- `i32.const` violating our invariant that top 32 bits should be zero, when used with negative numbers (a missing MOD)
+
+Eventually more bugs were found:
+- `if` did not support missing `else` (not produced when compiling rust to wasm, but wasm-opt might produce it)

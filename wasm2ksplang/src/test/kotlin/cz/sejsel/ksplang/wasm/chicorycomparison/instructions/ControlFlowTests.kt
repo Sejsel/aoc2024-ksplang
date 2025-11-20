@@ -222,6 +222,22 @@ class ControlFlowTests : FunSpec({
                 )
             )""".trimIndent(),
 
+        "if without else" to $$"""
+            (module
+                (func $flow (export "flow") (param $input i32) (result i32)
+                    local.get $input
+                    i32.const 0
+                    i32.gt_s
+                    if
+                        local.get $input
+                        i32.const 1
+                        i32.add
+                        local.set $input
+                    end
+                    local.get $input
+                )
+            )""".trimIndent(),
+
         "if else with result - br in if" to $$"""
             (module
                 (func $flow (export "flow") (param $input i32) (result i32)
