@@ -9,7 +9,7 @@ repositories {
 
 dependencies {
     implementation(libs.chicory.wasm)
-    implementation(libs.chicory.runtime)
+    api(libs.chicory.runtime)
     implementation(libs.chicory.wasm.tools)
     implementation(project(":gen"))
 

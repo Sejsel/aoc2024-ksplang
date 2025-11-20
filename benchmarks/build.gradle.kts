@@ -18,6 +18,7 @@ repositories {
 dependencies {
     implementation(project(":gen"))
     implementation(project(":interpreter"))
+    implementation(project(":wasm2ksplang"))
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.clikt)
     // JMH dependencies needed to execute benchmarks from main
