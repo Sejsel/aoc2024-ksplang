@@ -16,8 +16,7 @@ class RustBenchmarks(val runner: RustKsplangRunner) {
         RustBenchmark(Programs.sort100, runs = 20),
         RustBenchmark(Programs.sumloop10000, runs = 20),
         RustBenchmark(Programs.wasmaoc24day2, runs = 2),
-        // this one takes quite long to generate for now:
-        //RustBenchmark(Programs.wasmksplangpush1, runs = 2),
+        RustBenchmark(Programs.wasmksplangpush1, runs = 2),
         RustBenchmark(Programs.wasmi32factorial10000, runs = 5),
         RustBenchmark(Programs.wasmi64factorial10000, runs = 5),
     )

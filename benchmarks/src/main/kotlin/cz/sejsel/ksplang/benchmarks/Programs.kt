@@ -21,10 +21,14 @@ import cz.sejsel.ksplang.std.swap2
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.instantiateModuleFromPath
 import java.nio.file.Path
+import java.time.Duration
 import kotlin.io.path.Path
+import kotlin.reflect.KProperty
 
-class BenchmarkProgram(val name: String, val program: String, val inputStack: List<Long>) {
-    val ops = parseProgram(program)
+class BenchmarkProgram(val name: String, private val lazyProgram: MeasuredLazy<String>, val inputStack: List<Long>) {
+    val program by lazyProgram
+    val buildDuration get() = lazyProgram.duration
+    val ops by lazy { parseProgram(program) }
     val vmOptions = VMOptions(
         initialStack = inputStack,
         maxStackSize = 1_000_000,
@@ -33,29 +37,46 @@ class BenchmarkProgram(val name: String, val program: String, val inputStack: Li
     )
 }
 
+class MeasuredLazy<T>(val initializer: () -> T) {
+    /** If the value has been initialized, contains the duration of the initialization. Otherwise null. **/
+    var duration: Duration? = null
+
+    private val lazy: Lazy<T> = lazy {
+        val start = System.nanoTime()
+        val value = initializer()
+        val end = System.nanoTime()
+        duration = Duration.ofNanos(end - start)
+        value
+    }
+
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T = lazy.value
+}
+
+fun measuredLazy(initializer: () -> String): MeasuredLazy<String> = MeasuredLazy(initializer)
+
 object Programs {
     private val builder = KsplangBuilder()
 
     val sumloop10000 = BenchmarkProgram(
         name = "sumloop10000",
-        program = builder.build(buildComplexFunction { sum() }),
+        lazyProgram = measuredLazy { builder.build(buildComplexFunction { sum() }) },
         inputStack = (1..10000L) + 10000L
     )
     val stacklen10000 = BenchmarkProgram(
         name = "stacklen10000",
-        program = builder.build(buildComplexFunction { stacklen() }),
+        lazyProgram = measuredLazy { builder.build(buildComplexFunction { stacklen() }) },
         inputStack = (1..10000L).toList()
     )
 
     val sort100 = BenchmarkProgram(
         name = "sort100",
-        program = builder.build(buildComplexFunction { sort() }),
+        lazyProgram = measuredLazy { builder.build(buildComplexFunction { sort() }) },
         inputStack = (1..100L).reversed() + 100L
     )
 
     val wasmaoc24day2 = BenchmarkProgram(
         name = "wasmaoc24day2",
-        program = buildWasmI64Program(builder, Path("benchmarks/wasm/aoc24day2.wasm"), "day2part1"),
+        lazyProgram = measuredLazy { buildWasmI64Program(builder, Path("benchmarks/wasm/aoc24day2.wasm"), "day2part1") },
         inputStack = aoc24day2SampleInput.map { it.code.toLong() }
     )
 
@@ -63,20 +84,45 @@ object Programs {
         name = "wasmksplangpush1",
         // not really sum, name kept for historical reasons, it returns a ptr to the stack len,
         // followed by len elements of the result stack
-        program = buildWasmSlicePtrProgram(builder, Path("benchmarks/wasm/ksplang_wasm.wasm"), "sum_ksplang_result"),
+        lazyProgram = measuredLazy {
+            buildWasmSlicePtrProgram(
+                builder,
+                Path("benchmarks/wasm/ksplang_wasm.wasm"),
+                "sum_ksplang_result"
+            )
+        },
         inputStack = "CS CS lensum CS funkcia ++;20 30".map { it.code.toLong() }
     )
 
     val wasmi32factorial10000 = BenchmarkProgram(
         name = "wasmi32factorial10000",
-        program = buildWasmI64Program(builder, Path("benchmarks/wasm/i32_factorial.wasm"), "factorial"),
-        inputStack = listOf(200L)
+        lazyProgram = measuredLazy {
+            buildWasmI64Program(
+                builder,
+                Path("benchmarks/wasm/i32_factorial.wasm"),
+                "factorial"
+            )
+        },
+        inputStack = listOf(10000L, 0L) // TODO: Remove second value, it's a workaround for a bug in exyi optimize
     )
     val wasmi64factorial10000 = BenchmarkProgram(
         name = "wasmi64factorial10000",
-        program = buildWasmI64Program(builder, Path("benchmarks/wasm/i64_factorial.wasm"), "factorial"),
-        inputStack = listOf(200L)
+        lazyProgram = measuredLazy {
+            buildWasmI64Program(
+                builder,
+                Path("benchmarks/wasm/i64_factorial.wasm"),
+                "factorial"
+            )
+        },
+        inputStack = listOf(10000L, 0L) // TODO: Remove second value, it's a workaround for a bug in exyi optimize
     )
+
+    // Use reflection to get all BenchmarkProgram properties so we don't have to maintain a separate list
+    fun allPrograms(): List<BenchmarkProgram> =
+        Programs::class.members
+            .filterIsInstance<KProperty<*>>()
+            .filter { it.returnType.classifier == BenchmarkProgram::class }
+            .map { it.getter.call(this) as BenchmarkProgram }
 }
 
 // TODO: Replace will real input or subset

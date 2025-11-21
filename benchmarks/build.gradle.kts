@@ -16,6 +16,7 @@ repositories {
 }
 
 dependencies {
+    implementation(kotlin("reflect"))
     implementation(project(":gen"))
     implementation(project(":interpreter"))
     implementation(project(":wasm2ksplang"))

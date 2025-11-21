@@ -55,17 +55,7 @@ class DumpProgramsCommand : CliktCommand(
     override fun run() {
         outputDir.toFile().mkdirs()
 
-        val programs = listOf(
-            Programs.stacklen10000,
-            Programs.sort100,
-            Programs.sumloop10000,
-            Programs.wasmaoc24day2,
-            Programs.wasmksplangpush1,
-            Programs.wasmi32factorial10000,
-            Programs.wasmi64factorial10000,
-        )
-
-        programs.forEach { program ->
+        Programs.allPrograms().forEach { program ->
             val programFile = outputDir.resolve("${program.name}.ksplang")
             programFile.writeText(program.program)
             echo("Wrote ${program.name}.ksplang")
@@ -73,7 +63,7 @@ class DumpProgramsCommand : CliktCommand(
             inputFile.writeText(program.inputStack.joinToString("\n"))
         }
 
-        echo("Dumped ${programs.size} programs to $outputDir")
+        echo("Dumped programs to $outputDir")
     }
 }
 
@@ -110,7 +100,12 @@ fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean) {
         }
     }
 
-    val tableHeaders = ksplangs.map { it.name } + if (enableKotlin) listOf("Kotlin") else emptyList()
+    Programs.allPrograms().forEach {
+        resultsByBenchmark.getOrPut(it.name) { mutableMapOf() }["BUILD"] =
+            it.buildDuration?.toMillis()?.toDouble() ?: -1.0
+    }
+
+    val tableHeaders = listOf("BUILD") + ksplangs.map { it.name } + if (enableKotlin) listOf("Kotlin") else emptyList()
     printResultsTable(resultsByBenchmark, tableHeaders)
 }
 
