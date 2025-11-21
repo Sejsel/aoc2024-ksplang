@@ -36,16 +36,6 @@ class BenchmarkProgram(val name: String, val program: String, val inputStack: Li
 object Programs {
     private val builder = KsplangBuilder()
 
-    private val ksplangInterpreterProgram by lazy {
-        // not really sum, name kept for historical reasons, it returns a ptr to the stack len,
-        // followed by len elements of the result stack
-        buildWasmSlicePtrProgram(
-            builder,
-            Path("benchmarks/wasm/ksplang_wasm.wasm"),
-            "sum_ksplang_result"
-        )
-    }
-
     val sumloop10000 = BenchmarkProgram(
         name = "sumloop10000",
         program = builder.build(buildComplexFunction { sum() }),
@@ -71,17 +61,19 @@ object Programs {
 
     val wasmksplangpush1 = BenchmarkProgram(
         name = "wasmksplangpush1",
-        program = ksplangInterpreterProgram,
+        // not really sum, name kept for historical reasons, it returns a ptr to the stack len,
+        // followed by len elements of the result stack
+        program = buildWasmSlicePtrProgram(builder, Path("benchmarks/wasm/ksplang_wasm.wasm"), "sum_ksplang_result"),
         inputStack = "CS CS lensum CS funkcia ++;20 30".map { it.code.toLong() }
     )
 
-    val wasmi32factorial200 = BenchmarkProgram(
-        name = "wasmi32factorial200",
+    val wasmi32factorial10000 = BenchmarkProgram(
+        name = "wasmi32factorial10000",
         program = buildWasmI64Program(builder, Path("benchmarks/wasm/i32_factorial.wasm"), "factorial"),
         inputStack = listOf(200L)
     )
-    val wasmi64factorial200 = BenchmarkProgram(
-        name = "wasmi64factorial200",
+    val wasmi64factorial10000 = BenchmarkProgram(
+        name = "wasmi64factorial10000",
         program = buildWasmI64Program(builder, Path("benchmarks/wasm/i64_factorial.wasm"), "factorial"),
         inputStack = listOf(200L)
     )

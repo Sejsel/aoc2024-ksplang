@@ -61,8 +61,8 @@ class DumpProgramsCommand : CliktCommand(
             Programs.sumloop10000,
             Programs.wasmaoc24day2,
             Programs.wasmksplangpush1,
-            Programs.wasmi32factorial200,
-            Programs.wasmi64factorial200,
+            Programs.wasmi32factorial10000,
+            Programs.wasmi64factorial10000,
         )
 
         programs.forEach { program ->
