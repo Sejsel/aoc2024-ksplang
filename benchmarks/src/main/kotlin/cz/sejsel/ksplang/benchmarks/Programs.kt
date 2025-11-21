@@ -1,9 +1,7 @@
 package cz.sejsel.ksplang.benchmarks
 
 import com.dylibso.chicory.runtime.Store
-import cz.sejsel.TestChicoryHostFunctions
 import cz.sejsel.buildSingleModuleProgram
-import cz.sejsel.ksplang.benchmarks.aoc24day2SampleInput
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.ProgramFunction0To1
@@ -38,6 +36,16 @@ class BenchmarkProgram(val name: String, val program: String, val inputStack: Li
 object Programs {
     private val builder = KsplangBuilder()
 
+    private val ksplangInterpreterProgram by lazy {
+        // not really sum, name kept for historical reasons, it returns a ptr to the stack len,
+        // followed by len elements of the result stack
+        buildWasmSlicePtrProgram(
+            builder,
+            Path("benchmarks/wasm/ksplang_wasm.wasm"),
+            "sum_ksplang_result"
+        )
+    }
+
     val sumloop10000 = BenchmarkProgram(
         name = "sumloop10000",
         program = builder.build(buildComplexFunction { sum() }),
@@ -66,6 +74,12 @@ object Programs {
         program = buildWasmI64Program(builder, Path("benchmarks/wasm/aoc24day2-opt-o4.wasm"), "day2part1"),
         inputStack = aoc24day2SampleInput.map { it.code.toLong() }
     )
+
+    val ksplangpush1 = BenchmarkProgram(
+        name = "ksplangpush1",
+        program = ksplangInterpreterProgram,
+        inputStack = "CS CS lensum CS funkcia ++;20 30".map { it.code.toLong() }
+    )
 }
 
 // TODO: Replace will real input or subset
@@ -82,10 +96,10 @@ private fun buildWasmI64Program(builder: KsplangBuilder, wasmPath: Path, functio
     val store = Store()
     val module = instantiateModuleFromPath(translator, wasmPath, "module", store)
     val program = buildSingleModuleProgram(module) {
-        val solve = getExportedFunction(functionName) as ProgramFunction0To1
+        val mainFunction = getExportedFunction(functionName) as ProgramFunction0To1
 
         body {
-            call(solve)
+            call(mainFunction)
             // i64
             leaveTop() // destroys runtime layout
         }
@@ -95,6 +109,27 @@ private fun buildWasmI64Program(builder: KsplangBuilder, wasmPath: Path, functio
     return annotated.toRunnableProgram()
 }
 
+private fun buildWasmSlicePtrProgram(
+    builder: KsplangBuilder,
+    wasmPath: Path,
+    functionName: String
+): String {
+    val translator = KsplangWasmModuleTranslator()
+
+    val store = Store()
+    val module = instantiateModuleFromPath(translator, wasmPath, "module", store)
+    val program = buildSingleModuleProgram(module) {
+        val mainFunction = getExportedFunction(functionName) as ProgramFunction0To1
+        body {
+            call(mainFunction)
+            // pointer
+            keepOnlyMemoryPtr() // destroys runtime layout
+        }
+    }
+
+    val annotated = builder.buildAnnotated(program)
+    return annotated.toRunnableProgram()
+}
 
 private fun ComplexBlock.sum() {
     // n

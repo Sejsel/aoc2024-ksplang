@@ -62,6 +62,7 @@ class DumpProgramsCommand : CliktCommand(
             Programs.sumloop10000,
             Programs.wasmaoc24day2,
             Programs.wasmaoc24day2Opt,
+            Programs.ksplangpush1,
         )
 
         programs.forEach { program ->
