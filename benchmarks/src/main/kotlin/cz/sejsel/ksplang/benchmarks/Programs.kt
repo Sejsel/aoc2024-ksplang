@@ -69,16 +69,16 @@ object Programs {
         inputStack = aoc24day2SampleInput.map { it.code.toLong() }
     )
 
-    val wasmaoc24day2Opt = BenchmarkProgram(
-        name = "wasmaoc24day2Opt",
-        program = buildWasmI64Program(builder, Path("benchmarks/wasm/aoc24day2-opt-o4.wasm"), "day2part1"),
-        inputStack = aoc24day2SampleInput.map { it.code.toLong() }
-    )
-
     val ksplangpush1 = BenchmarkProgram(
         name = "ksplangpush1",
         program = ksplangInterpreterProgram,
         inputStack = "CS CS lensum CS funkcia ++;20 30".map { it.code.toLong() }
+    )
+
+    val i64factorial200 = BenchmarkProgram(
+        name = "i64factorial200",
+        program = buildWasmI64Program(builder, Path("benchmarks/wasm/i64_factorial.wasm"), "factorial"),
+        inputStack = listOf(200L)
     )
 }
 

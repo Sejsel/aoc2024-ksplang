@@ -37,8 +37,7 @@ class BenchmarkCommand : CliktCommand(
     override fun run() {
         val ksplangs = buildList {
             add(KsplangInterpreter("system ksplang", "ksplang", optimize = false))
-            add(KsplangInterpreter("fast funkcia", "../ksplang/target/release/ksplang-cli", optimize = false))
-            add(KsplangInterpreter("exyi", "../exyi-ksplang/target/release/ksplang-cli", optimize = false))
+            //add(KsplangInterpreter("exyi", "../exyi-ksplang/target/release/ksplang-cli", optimize = false))
             add(KsplangInterpreter("exyi optimize", "../exyi-ksplang/target/release/ksplang-cli", optimize = true))
         }
 
@@ -61,8 +60,8 @@ class DumpProgramsCommand : CliktCommand(
             Programs.sort100,
             Programs.sumloop10000,
             Programs.wasmaoc24day2,
-            Programs.wasmaoc24day2Opt,
             Programs.ksplangpush1,
+            Programs.i64factorial200,
         )
 
         programs.forEach { program ->
@@ -84,7 +83,10 @@ fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean) {
         val runner = RustKsplangRunner(
             pathToInterpreter = pathToInterpreter,
             optimize = optimize,
-            environmentVariables = mapOf("KSPLANGJIT_VERBOSITY" to "0")
+            environmentVariables = mapOf(
+                "KSPLANGJIT_VERBOSITY" to "0",
+                "KSPLANGJIT_TRIGGER_COUNT" to "500"
+            )
         )
         val benchmarks = RustBenchmarks(runner)
         benchmarks.allBenchmarks.forEach { benchmark ->
