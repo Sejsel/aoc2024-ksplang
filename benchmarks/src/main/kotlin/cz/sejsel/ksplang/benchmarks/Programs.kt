@@ -69,14 +69,19 @@ object Programs {
         inputStack = aoc24day2SampleInput.map { it.code.toLong() }
     )
 
-    val ksplangpush1 = BenchmarkProgram(
-        name = "ksplangpush1",
+    val wasmksplangpush1 = BenchmarkProgram(
+        name = "wasmksplangpush1",
         program = ksplangInterpreterProgram,
         inputStack = "CS CS lensum CS funkcia ++;20 30".map { it.code.toLong() }
     )
 
-    val i64factorial200 = BenchmarkProgram(
-        name = "i64factorial200",
+    val wasmi32factorial200 = BenchmarkProgram(
+        name = "wasmi32factorial200",
+        program = buildWasmI64Program(builder, Path("benchmarks/wasm/i32_factorial.wasm"), "factorial"),
+        inputStack = listOf(200L)
+    )
+    val wasmi64factorial200 = BenchmarkProgram(
+        name = "wasmi64factorial200",
         program = buildWasmI64Program(builder, Path("benchmarks/wasm/i64_factorial.wasm"), "factorial"),
         inputStack = listOf(200L)
     )
