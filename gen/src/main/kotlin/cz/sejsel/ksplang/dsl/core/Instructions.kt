@@ -43,6 +43,15 @@ data class SimpleFunction(val name: String? = null, var children: MutableList<Si
     override fun addChild(block: SimpleBlock) {
         children.add(block)
     }
+
+    // TODO: Really need to fix the type hierarchy
+    fun asComplexFunction(): ComplexFunction {
+        return buildComplexFunction(name) {
+            this@SimpleFunction.children.forEach {
+                +it
+            }
+        }
+    }
 }
 
 

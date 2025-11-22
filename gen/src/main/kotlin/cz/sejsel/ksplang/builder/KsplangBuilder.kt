@@ -24,19 +24,10 @@ data class RegisteredFunction(
 ) {
     val hash = function.asSequence().joinToString(" ") { it.toString() }.hashCode()
     val name = function.name ?: "anonymous_$hash"
+    val programFunction = ProgramFunction("registered_$name", nParams, nOut, function.asComplexFunction())
 
-    fun toCallable(): SimpleFunction = buildFunction("callable_$name") {
-        pop2()
-        roll(1L + nParams, 1)
-        +function
-        roll(1L + nOut, nOut.toLong())
-        goto()
-    }
-
-    fun toCall(): SimpleFunction = buildFunction("call_$name") {
-        push(index!!)
-        call()
-        pop()
+    fun call(inline: CallInline = CallInline.NEVER): FunctionCall {
+        return FunctionCall(programFunction, inline)
     }
 }
 
@@ -200,18 +191,17 @@ class KsplangBuilder(
             "Function ${function.name} is already registered"
         }
         registeredFunctions.add(RegisteredFunction(function, nParams, nOut))
-        TODO("Currently not wired up")
     }
 
     fun build(program: KsplangProgram) = buildAnnotated(program).toRunnableProgram()
     fun build(programTree: Block) = buildAnnotated(programTree).toRunnableProgram()
 
     fun buildAnnotated(program: KsplangProgram): Ksplang {
-        return buildAnnotated(program.body, program.definedFunctions)
+        return buildAnnotated(program.body, registeredFunctions.map { it.programFunction } + program.definedFunctions)
     }
 
     fun buildAnnotated(programTree: Block): Ksplang = when (programTree) {
-        is ComplexBlock -> buildAnnotated(programTree, functions = emptyList())
+        is ComplexBlock -> buildAnnotated(programTree, functions = registeredFunctions.map { it.programFunction })
         is SimpleFunction -> buildAnnotated(programTree)
         is Instruction -> buildAnnotated(programTree)
     }
@@ -314,11 +304,11 @@ class KsplangBuilder(
                 fun expand(
                     block: Block,
                     isLast: Boolean = false,
-                    useCalls: Boolean = true
+                    useRegisteredCalls: Boolean = true
                 ) {
                     // A shorthand to expand recursively with correct params
                     fun e(block: Block) {
-                        expand(block, isLast, useCalls)
+                        expand(block, isLast, useRegisteredCalls)
                     }
 
                     when (block) {
@@ -354,12 +344,11 @@ class KsplangBuilder(
                             }
 
                             if (!optimized) {
-                                if (useCalls) {
+                                if (useRegisteredCalls) {
                                     val registered =
-                                        registeredFunctions.find { it.name == block.name && it.index != null }
+                                        registeredFunctions.find { it.name == block.name }
                                     if (registered != null) {
-                                        TODO()
-                                        e(registered.toCall())
+                                        e(registered.call())
                                     } else {
                                         block.children.forEach { e(it) }
                                     }

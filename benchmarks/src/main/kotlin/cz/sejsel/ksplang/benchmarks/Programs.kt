@@ -8,10 +8,12 @@ import cz.sejsel.ksplang.dsl.core.ProgramFunction0To1
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
+import cz.sejsel.ksplang.dsl.core.extract
 import cz.sejsel.ksplang.interpreter.VMOptions
 import cz.sejsel.ksplang.interpreter.parseProgram
 import cz.sejsel.ksplang.std.add
 import cz.sejsel.ksplang.std.dec
+import cz.sejsel.ksplang.std.dup
 import cz.sejsel.ksplang.std.leaveTop
 import cz.sejsel.ksplang.std.permute
 import cz.sejsel.ksplang.std.push
@@ -56,6 +58,11 @@ fun measuredLazy(initializer: () -> String): MeasuredLazy<String> = MeasuredLazy
 
 object Programs {
     private val builder = KsplangBuilder()
+    /*
+    init {
+        builder.registerFunction(extract { dup() }, 1, 2)
+    }
+     */
 
     val sumloop10000 = BenchmarkProgram(
         name = "sumloop10000",
