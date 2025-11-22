@@ -25,7 +25,7 @@ import java.time.Duration
 import kotlin.io.path.Path
 import kotlin.reflect.KProperty
 
-class BenchmarkProgram(val name: String, private val lazyProgram: MeasuredLazy<String>, val inputStack: List<Long>) {
+class BenchmarkProgram(val name: String, private val lazyProgram: MeasuredLazy<String>, val inputStack: List<Long>, val expectedResult: List<Long>) {
     val program by lazyProgram
     val buildDuration get() = lazyProgram.duration
     val ops by lazy { parseProgram(program) }
@@ -60,24 +60,28 @@ object Programs {
     val sumloop10000 = BenchmarkProgram(
         name = "sumloop10000",
         lazyProgram = measuredLazy { builder.build(buildComplexFunction { sum() }) },
-        inputStack = (1..10000L) + 10000L
+        inputStack = (1..10000L) + 10000L,
+        expectedResult = listOf(50005000L)
     )
     val stacklen10000 = BenchmarkProgram(
         name = "stacklen10000",
         lazyProgram = measuredLazy { builder.build(buildComplexFunction { stacklen() }) },
-        inputStack = (1..10000L).toList()
+        inputStack = (1..10000L).toList(),
+        expectedResult = (1..10000L).toList() + 10000L
     )
 
     val sort100 = BenchmarkProgram(
         name = "sort100",
         lazyProgram = measuredLazy { builder.build(buildComplexFunction { sort() }) },
-        inputStack = (1..100L).reversed() + 100L
+        inputStack = (1..100L).reversed() + 100L,
+        expectedResult = (1..100L).toList()
     )
 
     val wasmaoc24day2 = BenchmarkProgram(
         name = "wasmaoc24day2",
         lazyProgram = measuredLazy { buildWasmI64Program(builder, Path("benchmarks/wasm/aoc24day2.wasm"), "day2part1") },
-        inputStack = aoc24day2SampleInput.map { it.code.toLong() }
+        inputStack = aoc24day2SampleInput.map { it.code.toLong() },
+        expectedResult = listOf(2L)
     )
 
     val wasmksplangpush1 = BenchmarkProgram(
@@ -91,7 +95,8 @@ object Programs {
                 "sum_ksplang_result"
             )
         },
-        inputStack = "CS CS lensum CS funkcia ++;20 30".map { it.code.toLong() }
+        inputStack = "CS CS lensum CS funkcia ++;20 30".map { it.code.toLong() },
+        expectedResult = listOf(20, 30, 1),
     )
 
     val wasmi32factorial10000 = BenchmarkProgram(
@@ -103,7 +108,8 @@ object Programs {
                 "factorial"
             )
         },
-        inputStack = listOf(10000L, 0L) // TODO: Remove second value, it's a workaround for a bug in exyi optimize
+        inputStack = listOf(10000L, 0L), // TODO: Remove second value, it's a workaround for a bug in exyi optimize
+        expectedResult = listOf(0L)
     )
     val wasmi64factorial10000 = BenchmarkProgram(
         name = "wasmi64factorial10000",
@@ -114,7 +120,8 @@ object Programs {
                 "factorial"
             )
         },
-        inputStack = listOf(10000L, 0L) // TODO: Remove second value, it's a workaround for a bug in exyi optimize
+        inputStack = listOf(10000L, 0L), // TODO: Remove second value, it's a workaround for a bug in exyi optimize
+        expectedResult = listOf(0L)
     )
 
     // Use reflection to get all BenchmarkProgram properties so we don't have to maintain a separate list
