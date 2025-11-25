@@ -39,6 +39,7 @@ class BenchmarkCommand : CliktCommand(
             add(KsplangInterpreter("system ksplang", "ksplang", optimize = false))
             //add(KsplangInterpreter("exyi", "../exyi-ksplang/target/release/ksplang-cli", optimize = false))
             add(KsplangInterpreter("exyi optimize", "../exyi-ksplang/target/release/ksplang-cli", optimize = true))
+            add(KsplangInterpreter("exyi optimize last known working", "../exyi-ksplang/ksplang-last-known-working", optimize = true))
         }
 
         runBenchmarks(ksplangs, enableKotlin)
