@@ -20,11 +20,11 @@ We have multiple interpreters:
 
 ### Progress table
 
-╔══════════════════╦══════════════╦══════════════╦══════════════╦══════════════╦════════════════╗
-║        Benchmark ║ Instructions ║        BUILD ║      ksplang ║   KsplangJIT ║ KsplangJIT old ║
-╠══════════════════╬══════════════╬══════════════╬══════════════╬══════════════╬════════════════╣
-║ aoc25-day1-part1 ║         4032 ║   2518.00 ms ║    282.00 ms ║     72.00 ms ║       74.00 ms ║
-╚══════════════════╩══════════════╩══════════════╩══════════════╩══════════════╩════════════════╝
+| Benchmark                                                                   |                      Instructions |   ksplang | KsplangJIT | KsplangJIT old |
+|-----------------------------------------------------------------------------|----------------------------------:|----------:|-----------:|---------------:|
+| [Day 1 - part 1](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt) | [4032](aoc25/ksplang/1-1.ksplang) | 289.00 ms |   71.33 ms |       71.67 ms |
+
+*Note that the build time measurement may be significantly off because of JVM warmup, it is not a good measurement, it's more*
 
 ## Journal
 

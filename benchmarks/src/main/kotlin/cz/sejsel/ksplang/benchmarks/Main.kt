@@ -19,6 +19,120 @@ data class KsplangInterpreter(
     val optimize: Boolean
 )
 
+data class BenchmarkResults(
+    val resultsByBenchmark: Map<String, Map<String, Double?>>,
+    val interpreters: List<String>
+) {
+    fun printPretty() {
+        val benchmarks = resultsByBenchmark.keys.sorted()
+
+        // Table header
+        val colWidths = mutableListOf<Int>()
+        colWidths.add(benchmarks.maxOf { it.length }.coerceAtLeast("Benchmark".length))
+        interpreters.forEach { name ->
+            colWidths.add(name.length.coerceAtLeast(12))
+        }
+
+        fun pad(str: String, width: Int) = str.padStart(width)
+        val RED = "\u001B[31m"
+        val RESET = "\u001B[0m"
+
+        // Top border
+        print("╔")
+        print("═".repeat(colWidths[0] + 2))
+        interpreters.forEachIndexed { idx, _ ->
+            print("╦" + "═".repeat(colWidths[idx + 1] + 2))
+        }
+        println("╗")
+
+        // Header row
+        print("║ " + pad("Benchmark", colWidths[0]) + " ")
+        interpreters.forEachIndexed { idx, name ->
+            print("║ " + pad(name, colWidths[idx + 1]) + " ")
+        }
+        println("║")
+
+        // Header separator
+        print("╠")
+        print("═".repeat(colWidths[0] + 2))
+        interpreters.forEachIndexed { idx, _ ->
+            print("╬" + "═".repeat(colWidths[idx + 1] + 2))
+        }
+        println("╣")
+
+        // Data rows
+        for (benchmark in benchmarks) {
+            print("║ " + pad(benchmark, colWidths[0]) + " ")
+            for ((idx, interpreter) in interpreters.withIndex()) {
+                val value = resultsByBenchmark[benchmark]?.get(interpreter)
+                if (value != null) {
+                    val cell = when (interpreter) {
+                        "Instructions" -> String.format("%d", value.toInt())
+                        else -> String.format("%.2f ms", value)
+                    }
+                    print("║ " + pad(cell, colWidths[idx + 1]) + " ")
+                } else {
+                    val cell = pad("ERROR", colWidths[idx + 1])
+                    print("║ $RED$cell$RESET ")
+                }
+            }
+            println("║")
+        }
+
+        // Bottom border
+        print("╚")
+        print("═".repeat(colWidths[0] + 2))
+        interpreters.forEachIndexed { idx, _ ->
+            print("╩" + "═".repeat(colWidths[idx + 1] + 2))
+        }
+        println("╝")
+    }
+
+    fun toMarkdown(includeBuildTime: Boolean = false): String {
+        val benchmarks = resultsByBenchmark.keys.sorted()
+        val filteredInterpreters = if (includeBuildTime) {
+            interpreters
+        } else {
+            interpreters.filter { it != "BUILD" }
+        }
+        val result = StringBuilder()
+
+        // Header row
+        result.append("| Benchmark ")
+        filteredInterpreters.forEach { name ->
+            result.append("| $name ")
+        }
+        result.appendLine("|")
+
+        // Separator row
+        result.append("| --- ")
+        filteredInterpreters.forEach { _ ->
+            result.append("| ---: ")
+        }
+        result.appendLine("|")
+
+        // Data rows
+        for (benchmark in benchmarks) {
+            result.append("| $benchmark ")
+            for (interpreter in filteredInterpreters) {
+                val value = resultsByBenchmark[benchmark]?.get(interpreter)
+                if (value != null) {
+                    val cell = when (interpreter) {
+                        "Instructions" -> String.format("%d", value.toInt())
+                        else -> String.format("%.2f ms", value)
+                    }
+                    result.append("| $cell ")
+                } else {
+                    result.append("| ERROR ")
+                }
+            }
+            result.appendLine("|")
+        }
+        
+        return result.toString()
+    }
+}
+
 fun main(args: Array<String>) {
     BenchmarksCli()
         .subcommands(BenchmarkCommand(), DumpProgramsCommand())
@@ -42,7 +156,8 @@ class BenchmarkCommand : CliktCommand(
             add(KsplangInterpreter("exyi optimize last known working", "../exyi-ksplang/ksplang-last-known-working", optimize = true))
         }
 
-        runBenchmarks(ksplangs, enableKotlin, Programs) { RustBenchmarks(it) }
+        val results = runBenchmarks(ksplangs, enableKotlin, Programs) { RustBenchmarks(it) }
+        results.printPretty()
     }
 }
 
@@ -68,7 +183,7 @@ class DumpProgramsCommand : CliktCommand(
     }
 }
 
-fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean, programs: ProgramList, benchmarksFactory: (RustKsplangRunner) -> Benchmarks = { RustBenchmarks(it) }) {
+fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean, programs: ProgramList, benchmarksFactory: (RustKsplangRunner) -> Benchmarks = { RustBenchmarks(it) }): BenchmarkResults {
     val resultsByBenchmark = mutableMapOf<String, MutableMap<String, Double??>>()
 
     ksplangs.forEach { (interpreterName, pathToInterpreter, optimize) ->
@@ -109,7 +224,7 @@ fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean, pro
     }
 
     val tableHeaders = listOf("Instructions", "BUILD") + ksplangs.map { it.name } + if (enableKotlin) listOf("Kotlin") else emptyList()
-    printResultsTable(resultsByBenchmark, tableHeaders)
+    return BenchmarkResults(resultsByBenchmark, tableHeaders)
 }
 
 private fun runJMHBenchmarks(): Map<String, Double> {
@@ -123,72 +238,4 @@ private fun runJMHBenchmarks(): Map<String, Double> {
     return results.associate {
         it.primaryResult.label to it.primaryResult.score
     }
-}
-
-fun printResultsTable(
-    resultsByBenchmark: Map<String, Map<String, Double?>>,
-    interpreters: List<String>
-) {
-    val benchmarks = resultsByBenchmark.keys.sorted()
-
-    // Table header
-    val colWidths = mutableListOf<Int>()
-    colWidths.add(benchmarks.maxOf { it.length }.coerceAtLeast("Benchmark".length))
-    interpreters.forEachIndexed { idx, name ->
-        colWidths.add(name.length.coerceAtLeast(12))
-    }
-
-    fun pad(str: String, width: Int) = str.padStart(width)
-    val RED = "\u001B[31m"
-    val RESET = "\u001B[0m"
-
-    // Top border
-    print("╔")
-    print("═".repeat(colWidths[0] + 2))
-    interpreters.forEachIndexed { idx, _ ->
-        print("╦" + "═".repeat(colWidths[idx + 1] + 2))
-    }
-    println("╗")
-
-    // Header row
-    print("║ " + pad("Benchmark", colWidths[0]) + " ")
-    interpreters.forEachIndexed { idx, name ->
-        print("║ " + pad(name, colWidths[idx + 1]) + " ")
-    }
-    println("║")
-
-    // Header separator
-    print("╠")
-    print("═".repeat(colWidths[0] + 2))
-    interpreters.forEachIndexed { idx, _ ->
-        print("╬" + "═".repeat(colWidths[idx + 1] + 2))
-    }
-    println("╣")
-
-    // Data rows
-    for (benchmark in benchmarks) {
-        print("║ " + pad(benchmark, colWidths[0]) + " ")
-        for ((idx, interpreter) in interpreters.withIndex()) {
-            val value = resultsByBenchmark[benchmark]?.get(interpreter)
-            if (value != null) {
-                val cell = when (interpreter) {
-                    "Instructions" -> String.format("%d", value.toInt())
-                    else -> String.format("%.2f ms", value)
-                }
-                print("║ " + pad(cell, colWidths[idx + 1]) + " ")
-            } else {
-                val cell = pad("ERROR", colWidths[idx + 1])
-                print("║ $RED$cell$RESET ")
-            }
-        }
-        println("║")
-    }
-
-    // Bottom border
-    print("╚")
-    print("═".repeat(colWidths[0] + 2))
-    interpreters.forEachIndexed { idx, _ ->
-        print("╩" + "═".repeat(colWidths[idx + 1] + 2))
-    }
-    println("╝")
 }
