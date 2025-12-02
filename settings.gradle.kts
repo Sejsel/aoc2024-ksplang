@@ -4,7 +4,8 @@ plugins {
 
 rootProject.name = "ksplang"
 include("gen")
-include("aoc")
+include("aoc24")
+include("aoc25")
 include("bruteforce")
 include("interpreter")
 include("wasm2ksplang")
