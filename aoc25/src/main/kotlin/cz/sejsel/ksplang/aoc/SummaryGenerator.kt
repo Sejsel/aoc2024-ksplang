@@ -1,5 +1,6 @@
 package cz.sejsel.ksplang.aoc
 
+import cz.sejsel.ksplang.benchmarks.BenchmarkResults
 import cz.sejsel.ksplang.benchmarks.KsplangInterpreter
 import cz.sejsel.ksplang.benchmarks.runBenchmarks
 
@@ -11,60 +12,71 @@ fun main() {
     }
 
     val results = runBenchmarks(ksplangs, enableKotlin = false, Programs, ::AoC25Solutions)
-    val markdown = results.toMarkdown()
-    val linkedMarkdown = injectLinksToMarkdown(markdown)
-    println(linkedMarkdown)
+    val markdown = toEnrichedMarkdown(results, Programs.allAoCPrograms())
+    println(markdown)
 }
 
-fun injectLinksToMarkdown(markdown: String): String {
-    val lines = markdown.lines()
-    val result = StringBuilder()
+fun toEnrichedMarkdown(results: BenchmarkResults, programs: List<AoCBenchmarkProgram>, includeBuildTime: Boolean = false): String {
+    val benchmarks = results.resultsByBenchmark.keys.sorted()
+    val filteredInterpreters = if (includeBuildTime) {
+        results.interpreters
+    } else {
+        results.interpreters.filter { it != "BUILD" }
+    }
     
-    for ((index, line) in lines.withIndex()) {
-        // Skip header (first 2 lines) and empty lines
-        if (index < 2 || line.isBlank()) {
-            result.appendLine(line)
-            continue
-        }
+    // Create a map from benchmark name to AoCBenchmarkProgram
+    val programsByName = programs.associateBy { it.name }
+    
+    val result = StringBuilder()
+
+    // Header row
+    result.append("| Benchmark ")
+    filteredInterpreters.forEach { name ->
+        result.append("| $name ")
+    }
+    result.appendLine("|")
+
+    // Separator row
+    result.append("| --- ")
+    filteredInterpreters.forEach { _ ->
+        result.append("| ---: ")
+    }
+    result.appendLine("|")
+
+    // Data rows
+    for (benchmarkName in benchmarks) {
+        val program = programsByName[benchmarkName]
         
-        // Parse the row
-        val columns = line.split("|").map { it.trim() }.filter { it.isNotEmpty() }
-        if (columns.isEmpty()) {
-            result.appendLine(line)
-            continue
-        }
-        
-        // Extract day and part from first column (e.g., "Day 1 - part 1")
-        val benchmarkName = columns[0]
-        val dayPartRegex = """Day (\d+) - part (\d+)""".toRegex()
-        val match = dayPartRegex.find(benchmarkName)
-        
-        if (match != null) {
-            val day = match.groupValues[1]
-            val part = match.groupValues[2]
-            
-            // Create linked version of columns
-            val linkedColumns = columns.toMutableList()
-            
-            // Link first column to Day$day.kt
-            linkedColumns[0] = "[$benchmarkName](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day$day.kt)"
-            
-            // Find Instructions column and link to ksplang file
-            // The Instructions column should be at index 1 (after Benchmark column)
-            if (columns.size > 1) {
-                // Link the Instructions column (assuming it's the second column)
-                val instructionsValue = columns[1]
-                linkedColumns[1] = "[$instructionsValue](/aoc25/ksplang/$day-$part.ksplang)"
-            }
-            
-            // Reconstruct the row
-            result.append("| ")
-            result.append(linkedColumns.joinToString(" | "))
-            result.appendLine(" |")
+        // Create linked benchmark name
+        val benchmarkCell = if (program != null) {
+            "[$benchmarkName](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/${program.sourceFilename})"
         } else {
-            // If the row doesn't match the pattern, keep it as-is
-            result.appendLine(line)
+            benchmarkName
         }
+        
+        result.append("| $benchmarkCell ")
+        
+        for (interpreter in filteredInterpreters) {
+            val value = results.resultsByBenchmark[benchmarkName]?.get(interpreter)
+            if (value != null) {
+                val cell = when (interpreter) {
+                    "Instructions" -> {
+                        val formatted = String.format("%d", value.toInt())
+                        // Link Instructions column to ksplang file
+                        if (program != null) {
+                            "[$formatted](/aoc25/ksplang/${program.ksplangFilename})"
+                        } else {
+                            formatted
+                        }
+                    }
+                    else -> String.format("%.2f ms", value)
+                }
+                result.append("| $cell ")
+            } else {
+                result.append("| ERROR ")
+            }
+        }
+        result.appendLine("|")
     }
     
     return result.toString()
