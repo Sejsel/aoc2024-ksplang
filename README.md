@@ -1,6 +1,6 @@
 # ksplang programs
 
-This is a collection of various programs written in [ksplang](https://github.com/ksp/ksplang).
+This is a collection of various programs written in [ksplang](https://esolangs.org/wiki/ksplang).
 Or rather, the programs used to generate ksplang programs. And programs used to generate programs used to generate ksplang programs.
 It's written mainly in Kotlin, it has pretty nice DSLs for this.
 
@@ -12,10 +12,10 @@ It's written mainly in Kotlin, it has pretty nice DSLs for this.
 > It can then be expanded into building better and better tooling for yourself
 > to write more complex programs, like I have done here.
 
-## Webassembly (WASM) runtime
+## WebAssembly (WASM) runtime
 
 Yep, you read that right. There is a lib here that can take a wasm binary, translate its functions to a
-ksplang program, and get output from it. [See more](WASM.md).
+ksplang program, and get output from it. [See more](wasm2ksplang/README.md).
 
 Yes, it can be used to run the Rust ksplang interpreter in ksplang. 
 
@@ -25,7 +25,7 @@ The core of everything here is the gen module. It contains DSLs to define high-l
 which translates these programs into real ksplang, and a standard library of sorts.
 
 The builder and standard library do try to optimize programs to be short when possible, generally fewer
-instructions = better (although not necessarily faster, in practice).
+instructions = better (although not necessarily faster in practice).
 
 ## Advent of Code 2024
 In 2024, I tried to solve Advent of Code tasks using ksplang. Rules are simple: the input is passed to a ksplang
@@ -58,8 +58,8 @@ it would have been possible to continue, I might get back to it at some point. [
 ## Table of contents
 ... or rather a bullet list of contents, really.
 
-- [Advent of Code 2024](AOC24.md) - solutions to Advent of Code 2024
-- [WASM](WASM.md) - read about the ksplang WASM runtime
+- [Advent of Code 2024](aoc24/README.md) - solutions to Advent of Code 2024
+- [WASM](wasm2ksplang/README.md) - read about the ksplang WASM runtime
 - [gen](/gen) - the ksplang preprocessor (Kotlin DSL to generate ksplang code)
 - [wasm2ksplang](/wasm2ksplang) - a full-blown WASM -> ksplang translation; can run the Rust ksplang interpreter in ksplang
 - [bruteforce](/bruteforce) - tools for finding shorter/optimal ksplang sequences (pushes of constants...)
