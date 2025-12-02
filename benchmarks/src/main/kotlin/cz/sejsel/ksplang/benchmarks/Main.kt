@@ -102,11 +102,13 @@ fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean) {
     }
 
     Programs.allPrograms().forEach {
+        resultsByBenchmark.getOrPut(it.name) { mutableMapOf() }["Instructions"] =
+            it.ops.size.toDouble()
         resultsByBenchmark.getOrPut(it.name) { mutableMapOf() }["BUILD"] =
             it.buildDuration?.toMillis()?.toDouble() ?: -1.0
     }
 
-    val tableHeaders = listOf("BUILD") + ksplangs.map { it.name } + if (enableKotlin) listOf("Kotlin") else emptyList()
+    val tableHeaders = listOf("Instructions", "BUILD") + ksplangs.map { it.name } + if (enableKotlin) listOf("Kotlin") else emptyList()
     printResultsTable(resultsByBenchmark, tableHeaders)
 }
 
@@ -169,7 +171,10 @@ fun printResultsTable(
         for ((idx, interpreter) in interpreters.withIndex()) {
             val value = resultsByBenchmark[benchmark]?.get(interpreter)
             if (value != null) {
-                val cell = String.format("%.2f ms", value)
+                val cell = when (interpreter) {
+                    "Instructions" -> String.format("%d", value.toInt())
+                    else -> String.format("%.2f ms", value)
+                }
                 print("║ " + pad(cell, colWidths[idx + 1]) + " ")
             } else {
                 val cell = pad("ERROR", colWidths[idx + 1])
