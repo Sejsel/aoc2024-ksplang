@@ -51,3 +51,10 @@ Might need to, because of part 2, anyway.
 #### Part 2
 Well, at least I guessed what the second part is going to be exactly before even seeing it.
 Unfortunately, it's going to be quite painful.
+
+In the end, I went for `auto` - my DSL which tracks the stack for me on its own and allows
+some more comfortable variable reuse. It's not quite as effective because it eagerly generates code and cannot
+tell when an intermediate variable is used for the latest time, so it stays there on the stack until the end of the scope, slowing everything down a bit.
+Not that *that* really matters, because I am also missing a support for breaks or continues in loops and it really, really hurts in this task.
+
+So, super slow solution for now, might come back later if I improve tooling.
