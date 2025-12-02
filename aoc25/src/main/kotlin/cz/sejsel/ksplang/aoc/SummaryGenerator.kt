@@ -47,14 +47,14 @@ fun injectLinksToMarkdown(markdown: String): String {
             val linkedColumns = columns.toMutableList()
             
             // Link first column to Day$day.kt
-            linkedColumns[0] = "[$benchmarkName](aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day$day.kt)"
+            linkedColumns[0] = "[$benchmarkName](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day$day.kt)"
             
             // Find Instructions column and link to ksplang file
             // The Instructions column should be at index 1 (after Benchmark column)
             if (columns.size > 1) {
                 // Link the Instructions column (assuming it's the second column)
                 val instructionsValue = columns[1]
-                linkedColumns[1] = "[$instructionsValue](aoc25/ksplang/$day-$part.ksplang)"
+                linkedColumns[1] = "[$instructionsValue](/aoc25/ksplang/$day-$part.ksplang)"
             }
             
             // Reconstruct the row
