@@ -1,5 +1,6 @@
 package cz.sejsel.ksplang.aoc.days
 
+import com.sun.org.apache.xalan.internal.lib.ExsltMath.power
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.CallInline
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
@@ -15,17 +16,20 @@ import cz.sejsel.ksplang.std.dec
 import cz.sejsel.ksplang.std.div
 import cz.sejsel.ksplang.std.dup
 import cz.sejsel.ksplang.std.dupAb
+import cz.sejsel.ksplang.std.dupKthZeroIndexed
 import cz.sejsel.ksplang.std.dupSecond
 import cz.sejsel.ksplang.std.leaveTop
 import cz.sejsel.ksplang.std.map
 import cz.sejsel.ksplang.std.parseNonNegativeNum
 import cz.sejsel.ksplang.std.permute
 import cz.sejsel.ksplang.std.push
+import cz.sejsel.ksplang.std.pushManyBottom
 import cz.sejsel.ksplang.std.pushOn
 import cz.sejsel.ksplang.std.roll
 import cz.sejsel.ksplang.std.stacklen
 import cz.sejsel.ksplang.std.subabs
 import cz.sejsel.ksplang.std.swap2
+import cz.sejsel.ksplang.std.yoink
 import cz.sejsel.ksplang.std.zeroNotPositive
 import java.io.File
 
@@ -44,6 +48,28 @@ fun main() {
     println("Generated program for day 2 part 2")
      */
 }
+
+val powersLookup = listOf(
+    1,
+    10,
+    100,
+    1000,
+    10000,
+    100000,
+    1000000,
+    10000000,
+    100000000,
+    1000000000,
+    10000000000,
+    100000000000,
+    1000000000000,
+    10000000000000,
+    100000000000000,
+    1000000000000000,
+    10000000000000000,
+    100000000000000000,
+    1000000000000000000
+)
 
 fun day2Part2(): ComplexFunction = TODO()
 
@@ -66,8 +92,7 @@ fun day2Part1() = program {
             // id len
             div(2)
             // id half_len
-            // TODO: Surely we can store this lookup table somewhere on the stack instead of recreating it every time
-            map(listOf(1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000, 100000000000, 1000000000000, 10000000000000, 100000000000000, 1000000000000000, 10000000000000000, 100000000000000000, 1000000000000000000))
+            yoink() // Look up power of zero in lookup table at bottom of stack
             // id 10^half_len
             dupAb()
             // id 10^half_len id 10^half_len
@@ -103,15 +128,28 @@ fun day2Part1() = program {
 
         stacklen()
         // stacklen
+        // Now set up a lookup table for powers of 10 at the bottom of the stack
+        powersLookup.forEach { push(it) }
+        // inputlen [1,10,100,...]
+        dupKthZeroIndexed(powersLookup.size)
+        // inputlen [1,10,100,...] inputlen
+        add(powersLookup.size + 1L)
+        // inputlen [1,10,100,...] stacklen
+        push(powersLookup.size)
+        swap2()
+        // inputlen [1,10,100,...] stacklen
+        lroll()
+        // [1,10,100,...] [input] inputlen
+
         push(','.code)
-        push(0)
-        // stacklen ',' 0
+        push(powersLookup.size)
+        // inputlen ',' start
         roll(3, 2)
-        // ',' 0 stacklen
+        // ',' start inputlen
         countOccurrences()
         // range_count
         push(0)
-        push(0)
+        push(powersLookup.size)
         // range_count result input_index
         roll(3, 2)
         // result input_index range_count

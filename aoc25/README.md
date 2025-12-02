@@ -22,9 +22,9 @@ We have multiple interpreters:
 
 | Program        |                                                                                          Instructions |     ksplang | KsplangJIT | KsplangJIT old |
 |----------------|------------------------------------------------------------------------------------------------------:|------------:|-----------:|---------------:|
-| Day 1 - part 1 | [4032](/aoc25/ksplang/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt)) |   279.67 ms |   78.00 ms |       72.67 ms |
-| Day 1 - part 2 | [4894](/aoc25/ksplang/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt)) |   295.00 ms |   92.67 ms |       94.00 ms |
-| Day 2 - part 1 | [9960](/aoc25/ksplang/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day2.kt)) | 52245.00 ms |      ERROR |     1087.00 ms |
+| Day 1 - part 1 | [4032](/aoc25/ksplang/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt)) |   281.67 ms |   80.00 ms |       71.67 ms |
+| Day 1 - part 2 | [4894](/aoc25/ksplang/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt)) |   319.67 ms |   98.33 ms |       98.67 ms |
+| Day 2 - part 1 | [9940](/aoc25/ksplang/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day2.kt)) | 14392.00 ms |      ERROR |      613.00 ms |
 
 ## Journal
 
