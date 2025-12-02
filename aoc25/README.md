@@ -36,3 +36,17 @@ There are only 12 days of tasks this year, so hopefully I will have enough time 
 While I have some new [tooling](/wasm2ksplang) since last year, this task is simple enough that I just want to do this
 in the most simple way, just using my "stdlib" and maybe the automatic stack tracking.
 
+In the end, it was pretty straightforward, it runs fast, no need for anything fancy. A nice first task.
+And the second part did not require massive rewrites either, so that's neat.
+
+### [Day 2](https://adventofcode.com/2025/day/2) (2025-12-02)
+
+#### Part 1
+This one looked super scary at first, but ksplang is actually equipped with the most important instruction for this.
+Neat. I can see quite a few optimizations I could make, a 52 second runtime on the reference implementation is not great.
+But 1 second runtime with KsplangJIT is pretty great, considering. Might come back to this to make it faster.
+Might need to, because of part 2, anyway.
+
+#### Part 2
+Well, at least I guessed what the second part is going to be exactly before even seeing it.
+Unfortunately, it's going to be quite painful.
