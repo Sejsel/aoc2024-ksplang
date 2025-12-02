@@ -4,14 +4,16 @@ import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
 import cz.sejsel.ksplang.dsl.core.IfZero
 import cz.sejsel.ksplang.dsl.core.KsplangMarker
+import cz.sejsel.ksplang.dsl.core.Label
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.whileNonZero
 import cz.sejsel.ksplang.std.auto.copy
 import cz.sejsel.ksplang.std.auto.dec
+import cz.sejsel.ksplang.std.auto.inc
 import cz.sejsel.ksplang.std.auto.max2
-import cz.sejsel.ksplang.std.auto.sgn
+import cz.sejsel.ksplang.std.auto.sub
 import cz.sejsel.ksplang.std.auto.subabs
 import cz.sejsel.ksplang.std.dupKthZeroIndexed
 import cz.sejsel.ksplang.std.popKth
@@ -22,7 +24,8 @@ import cz.sejsel.ksplang.std.zeroNot
 
 sealed interface Parameter
 
-data class Variable(val name: String, val ownerScope: Scope) : Parameter
+class MutableVariable(name: String, ownerScope: Scope) : Variable(name, ownerScope)
+open class Variable(val name: String, val ownerScope: Scope) : Parameter
 data class Constant(val value: Long) : Parameter
 
 fun const(value: Int): Constant = const(value.toLong())
@@ -33,21 +36,23 @@ val Long.const: Constant get() = const(this)
 
 
 @KsplangMarker
-class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, private val parent: Scope?) {
+open class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, private val parent: Scope?) {
     init {
         require(initVariableNames.toSet().size == initVariableNames.size) { "Variable names must be unique" }
     }
 
-    internal val variables = initVariableNames.map { Variable(it, this) }.toMutableList()
+    val name = "scope_${randomVarSuffix()}"
+
+    internal val variables = initVariableNames.map { MutableVariable(it, this) }.toMutableList()
 
     /** Create a new stack variable */
-    fun variable(name: String? = null, defaultValue: Long = 0): Variable {
+    fun variable(name: String? = null, defaultValue: Long = 0): MutableVariable {
         if (name == null) {
             return variable("anon${variables.size}_${randomVarSuffix()}", defaultValue)
         }
 
         require(name !in variables.map { it.name }) { "Variable $name already exists" }
-        val variable = Variable(name, this)
+        val variable = MutableVariable(name, this)
         variables.add(variable)
 
         block.push(defaultValue)
@@ -70,9 +75,9 @@ class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, p
      * Adopt non-tracked values on top of the stack as variables (while the stack layout invariant is broken).
      * Mainly used to capture results of function calls and similar.
      */
-    internal fun adoptVariables(vararg names: String): List<Variable> {
+    internal fun adoptVariables(vararg names: String): List<MutableVariable> {
         require(names.all { it !in variables.map { it.name } }) { "Variable names must be unique" }
-        val newVariables = names.map { Variable(it, this) }
+        val newVariables = names.map { MutableVariable(it, this) }
         variables.addAll(newVariables)
         return newVariables
     }
@@ -207,6 +212,23 @@ class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, p
         return IfBool(this, ifZero)
     }
 
+
+    /** If checked variable is zero, execute the inner block */
+    fun ifNotBool(checkedVariable: Variable, inner: Scope.() -> Unit): IfBool {
+        prepareParams(listOf(checkedVariable))
+        val ifZero = block.ifZero {
+            pop() // Pop the checked variable
+
+            val innerScope = Scope(emptyList(), block = this, parent = this@Scope)
+            innerScope.inner()
+            innerScope.removeAllVariables()
+        }
+
+        // Default for else branch is just a pop of the checked variable.
+        ifZero.orElse = buildComplexFunction { pop() }
+
+        return IfBool(this, ifZero)
+    }
     /**
      * Runs the inner block while the checked variable is non-zero (or true, for bools).
      */
@@ -258,12 +280,41 @@ class Scope(initVariableNames: List<String>, internal var block: ComplexBlock, p
      *
      * Passes a variable i to the inner block, which **starts at n-1 and goes down to 0**, last iteration has i = 0.
      */
-    fun doNTimes(n: Variable, inner: Scope.(i: Variable) -> Unit) {
+    fun doNTimes(n: Parameter, inner: Scope.(i: Variable) -> Unit) {
         val count = max2(n, const(0))
         whileNonZero(count) {
             set(count) to dec(count)
             val i = dec(subabs(n, count))
             inner(i)
+        }
+    }
+
+    /**
+     * Runs the inner block for the exclusive range [from, to), increasing.
+     *
+     * Passes a variable i to the inner block, which starts at 'from' and ends at 'to'-1.
+     */
+    fun forRange(from: Parameter, to: Parameter, inner: Scope.(i: Variable) -> Unit) {
+        val count = max2(sub(to, from), const(0))
+        val i = copy(from)
+        whileNonZero(count) {
+            inner(i)
+            set(i) to inc(i)
+            set(count) to dec(count)
+        }
+    }
+    /**
+     * Runs the inner block for the inclusive range [from, to], increasing.
+     *
+     * Passes a variable i to the inner block, which starts at 'from' and ends at 'to'.
+     */
+    fun forRangeInclusive(from: Parameter, to: Parameter, inner: Scope.(i: Variable) -> Unit) {
+        val count = max2(inc(sub(to, from)), const(0))
+        val i = copy(from)
+        whileNonZero(count) {
+            inner(i)
+            set(i) to inc(i)
+            set(count) to dec(count)
         }
     }
 }
@@ -293,7 +344,7 @@ fun ComplexBlock.auto(block: Scope.() -> Unit) {
 
 fun ComplexBlock.auto(
     name1: String,
-    block: Scope.(Variable) -> Unit
+    block: Scope.(MutableVariable) -> Unit
 ) {
     val vars = listOf(name1)
     val autoBlock = Scope(vars, this, parent = null)
@@ -305,7 +356,7 @@ fun ComplexBlock.auto(
 fun ComplexBlock.auto(
     name1: String,
     name2: String,
-    block: Scope.(Variable, Variable) -> Unit
+    block: Scope.(MutableVariable, MutableVariable) -> Unit
 ) {
     val vars = listOf(name1, name2)
     val autoBlock = Scope(vars, this, parent = null)
@@ -319,7 +370,7 @@ fun ComplexBlock.auto(
     name1: String,
     name2: String,
     name3: String,
-    block: Scope.(Variable, Variable, Variable) -> Unit
+    block: Scope.(MutableVariable, MutableVariable, MutableVariable) -> Unit
 ) {
     val vars = listOf(name1, name2, name3)
     val autoBlock = Scope(vars, this, parent = null)
@@ -335,7 +386,7 @@ fun ComplexBlock.auto(
     name2: String,
     name3: String,
     name4: String,
-    block: Scope.(Variable, Variable, Variable, Variable) -> Unit
+    block: Scope.(MutableVariable, MutableVariable, MutableVariable, MutableVariable) -> Unit
 ) {
     val vars = listOf(name1, name2, name3, name4)
     val autoBlock = Scope(vars, this, parent = null)
@@ -353,7 +404,7 @@ fun ComplexBlock.auto(
     name3: String,
     name4: String,
     name5: String,
-    block: Scope.(Variable, Variable, Variable, Variable, Variable) -> Unit
+    block: Scope.(MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable) -> Unit
 ) {
     val vars = listOf(name1, name2, name3, name4, name5)
     val autoBlock = Scope(vars, this, parent = null)
@@ -373,7 +424,7 @@ fun ComplexBlock.auto(
     name4: String,
     name5: String,
     name6: String,
-    block: Scope.(Variable, Variable, Variable, Variable, Variable, Variable) -> Unit
+    block: Scope.(MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable) -> Unit
 ) {
     val vars = listOf(name1, name2, name3, name4, name5, name6)
     val autoBlock = Scope(vars, this, parent = null)
@@ -395,7 +446,7 @@ fun ComplexBlock.auto(
     name5: String,
     name6: String,
     name7: String,
-    block: Scope.(Variable, Variable, Variable, Variable, Variable, Variable, Variable) -> Unit
+    block: Scope.(MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable) -> Unit
 ) {
     val vars = listOf(name1, name2, name3, name4, name5, name6, name7)
     val autoBlock = Scope(vars, this, parent = null)
@@ -411,9 +462,9 @@ fun ComplexBlock.auto(
 }
 
 
-data class VarSetter(val scope: Scope, val variable: Variable, val executeAfter: Scope.() -> Unit = {}) {
+data class VarSetter(val scope: Scope, val variable: MutableVariable, val executeAfter: Scope.() -> Unit = {}) {
     infix fun to(parameter: Parameter) {
-        var toIndex = scope.findIndexFromTop(variable)
+        val toIndex = scope.findIndexFromTop(variable)
         scope.prepareParams(listOf(parameter))
 
         // to [vars] val
@@ -437,7 +488,7 @@ data class VarSetter(val scope: Scope, val variable: Variable, val executeAfter:
     }
 }
 
-fun Scope.set(variable: Variable): VarSetter {
+fun Scope.set(variable: MutableVariable): VarSetter {
     return VarSetter(this, variable)
 }
 
@@ -446,7 +497,7 @@ fun Scope.runFun0(vararg params: Parameter, functionCode: ComplexBlock.() -> Uni
     block.functionCode()
 }
 
-fun Scope.runFun1(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Variable {
+fun Scope.runFun1(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): MutableVariable {
     prepareParams(params.toList())
     block.functionCode()
 
@@ -454,7 +505,7 @@ fun Scope.runFun1(vararg params: Parameter, functionCode: ComplexBlock.() -> Uni
     return vars.single()
 }
 
-fun Scope.runFun2(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Pair<Variable, Variable> {
+fun Scope.runFun2(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Pair<MutableVariable, MutableVariable> {
     prepareParams(params.toList())
     block.functionCode()
 
@@ -463,7 +514,7 @@ fun Scope.runFun2(vararg params: Parameter, functionCode: ComplexBlock.() -> Uni
     return vars[0] to vars[1]
 }
 
-fun Scope.runFun3(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Triple<Variable, Variable, Variable> {
+fun Scope.runFun3(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Triple<MutableVariable, MutableVariable, MutableVariable> {
     prepareParams(params.toList())
     block.functionCode()
 
@@ -476,7 +527,7 @@ fun Scope.runFun3(vararg params: Parameter, functionCode: ComplexBlock.() -> Uni
     return Triple(vars[0], vars[1], vars[2])
 }
 
-fun Scope.runFun4(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Quadruple<Variable, Variable, Variable, Variable> {
+fun Scope.runFun4(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Quadruple<MutableVariable, MutableVariable, MutableVariable, MutableVariable> {
     prepareParams(params.toList())
     block.functionCode()
 
@@ -490,7 +541,7 @@ fun Scope.runFun4(vararg params: Parameter, functionCode: ComplexBlock.() -> Uni
     return Quadruple(vars[0], vars[1], vars[2], vars[3])
 }
 
-fun Scope.runFun5(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Quintuple<Variable, Variable, Variable, Variable, Variable> {
+fun Scope.runFun5(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Quintuple<MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable> {
     prepareParams(params.toList())
     block.functionCode()
 
@@ -505,7 +556,7 @@ fun Scope.runFun5(vararg params: Parameter, functionCode: ComplexBlock.() -> Uni
     return Quintuple(vars[0], vars[1], vars[2], vars[3], vars[4])
 }
 
-fun Scope.runFun6(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Sextuple<Variable, Variable, Variable, Variable, Variable, Variable> {
+fun Scope.runFun6(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Sextuple<MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable> {
     prepareParams(params.toList())
     block.functionCode()
 
@@ -521,7 +572,7 @@ fun Scope.runFun6(vararg params: Parameter, functionCode: ComplexBlock.() -> Uni
     return Sextuple(vars[0], vars[1], vars[2], vars[3], vars[4], vars[5])
 }
 
-fun Scope.runFun7(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Septuple<Variable, Variable, Variable, Variable, Variable, Variable, Variable> {
+fun Scope.runFun7(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Septuple<MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable> {
     prepareParams(params.toList())
     block.functionCode()
 
@@ -538,7 +589,7 @@ fun Scope.runFun7(vararg params: Parameter, functionCode: ComplexBlock.() -> Uni
     return Septuple(vars[0], vars[1], vars[2], vars[3], vars[4], vars[5], vars[6])
 }
 
-fun Scope.runFun8(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Octuple<Variable, Variable, Variable, Variable, Variable, Variable, Variable, Variable> {
+fun Scope.runFun8(vararg params: Parameter, functionCode: ComplexBlock.() -> Unit): Octuple<MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable, MutableVariable> {
     prepareParams(params.toList())
     block.functionCode()
 

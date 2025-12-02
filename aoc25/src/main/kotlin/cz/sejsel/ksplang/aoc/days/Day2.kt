@@ -1,9 +1,9 @@
 package cz.sejsel.ksplang.aoc.days
 
-import com.sun.org.apache.xalan.internal.lib.ExsltMath.power
 import cz.sejsel.ksplang.builder.KsplangBuilder
-import cz.sejsel.ksplang.dsl.core.CallInline
-import cz.sejsel.ksplang.dsl.core.ComplexFunction
+import cz.sejsel.ksplang.dsl.auto.auto
+import cz.sejsel.ksplang.dsl.auto.const
+import cz.sejsel.ksplang.dsl.auto.set
 import cz.sejsel.ksplang.dsl.core.KsplangProgram
 import cz.sejsel.ksplang.dsl.core.ProgramFunction1To1
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
@@ -12,27 +12,8 @@ import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.program
-import cz.sejsel.ksplang.std.add
-import cz.sejsel.ksplang.std.countOccurrences
-import cz.sejsel.ksplang.std.dec
-import cz.sejsel.ksplang.std.div
-import cz.sejsel.ksplang.std.dup
-import cz.sejsel.ksplang.std.dupAb
-import cz.sejsel.ksplang.std.dupKthZeroIndexed
-import cz.sejsel.ksplang.std.dupSecond
-import cz.sejsel.ksplang.std.leaveTop
-import cz.sejsel.ksplang.std.map
-import cz.sejsel.ksplang.std.parseNonNegativeNum
-import cz.sejsel.ksplang.std.permute
-import cz.sejsel.ksplang.std.push
-import cz.sejsel.ksplang.std.pushManyBottom
-import cz.sejsel.ksplang.std.pushOn
-import cz.sejsel.ksplang.std.roll
-import cz.sejsel.ksplang.std.stacklen
-import cz.sejsel.ksplang.std.subabs
-import cz.sejsel.ksplang.std.swap2
-import cz.sejsel.ksplang.std.yoink
-import cz.sejsel.ksplang.std.zeroNotPositive
+import cz.sejsel.ksplang.std.auto.*
+import cz.sejsel.ksplang.std.*
 import java.io.File
 
 // Day 2
@@ -118,7 +99,44 @@ fun day2Part1(): KsplangProgram = day2(ProgramFunction1To1("is_invalid_id", buil
     }
 }))
 
-fun day2Part2(): KsplangProgram = TODO()
+fun day2Part2(): KsplangProgram = day2(ProgramFunction1To1("is_invalid_id", buildComplexFunction {
+    // TODO: We need breaks in the auto scopes, this is super inefficient, unfortunately
+    auto("id") { id ->
+        val len = i10log(id)
+        val halfLen = div(len, 2)
+        val isValid = variable(1)
+        forRangeInclusive(const(1), halfLen) { partLen ->
+            val mod = mod(len, partLen)
+            ifNotBool(mod) {
+                val partCount = div(len, partLen)
+                val partsAreEqual = variable(1)
+                val keepRunning = variable(1)
+                val powerOfTen = yoink(partLen) // 10^partlen
+
+                val prevPart = mod(id, powerOfTen)
+                val remaining = div(id, powerOfTen)
+                val partIndex = variable(1)
+                whileNonZero({ bitand(partsAreEqual, keepRunning) }) {
+                    val currentPart = mod(remaining, powerOfTen)
+                    set(remaining) to div(remaining, powerOfTen)
+                    set(partsAreEqual) to bitand(partsAreEqual, zeroNot(subabs(currentPart, prevPart)))
+                    set(prevPart) to currentPart
+
+                    set(partIndex) to inc(partIndex)
+                    ifNotBool(subabs(partIndex, partCount)) {
+                        set(keepRunning) to 0
+                    }
+                }
+
+                ifBool(partsAreEqual) {
+                    set(isValid) to 0
+                }
+            }
+        }
+        keepOnly(isValid)
+    }
+    zeroNotPositive()
+}))
 
 fun day2(isInvalidFunction: ProgramFunction1To1) = program {
     installFunction(isInvalidFunction)

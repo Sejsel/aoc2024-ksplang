@@ -362,4 +362,46 @@ class AutoStackTests : FunSpec({
         println(program)
         runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 0)
     }
+
+    test("forRangeInclusive(1, 4) loops through 1,2,3,4") {
+        val f = buildComplexFunction {
+            push(4)
+            auto {
+                val sum = variable(0)
+
+                forRangeInclusive(const(1), const(4)) { i ->
+                    set(sum) to add(sum, i)
+                }
+
+                keepOnly(sum)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 10)
+    }
+
+    test("forRange(1, 4) loops through 1,2,3") {
+        val f = buildComplexFunction {
+            push(4)
+            auto {
+                val sum = variable(0)
+
+                forRange(const(1), const(4)) { i ->
+                    set(sum) to add(sum, i)
+                }
+
+                keepOnly(sum)
+            }
+        }
+
+        println(f)
+
+        var program = builder.build(f)
+        println(program)
+        runner.run(program, listOf(-1)) shouldContainExactly listOf<Long>(-1, 4, 6)
+    }
 })

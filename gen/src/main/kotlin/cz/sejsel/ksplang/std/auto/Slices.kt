@@ -1,9 +1,9 @@
 package cz.sejsel.ksplang.std.auto
 
+import cz.sejsel.ksplang.dsl.auto.MutableVariable
 import cz.sejsel.ksplang.dsl.auto.Parameter
 import cz.sejsel.ksplang.dsl.auto.Scope
 import cz.sejsel.ksplang.dsl.auto.VarSetter
-import cz.sejsel.ksplang.dsl.auto.Variable
 import cz.sejsel.ksplang.dsl.auto.const
 import cz.sejsel.ksplang.dsl.auto.runFun0
 import cz.sejsel.ksplang.dsl.auto.runFun1
@@ -66,7 +66,7 @@ fun Scope.setSliceTo(slice: Slice, value: Parameter) = runFun0(slice.from, slice
  *
  * Any changes to the value will be reflected in the slice.
  */
-fun Scope.sliceForEach(slice: Slice, block: Scope.(Variable) -> Unit) {
+fun Scope.sliceForEach(slice: Slice, block: Scope.(MutableVariable) -> Unit) {
     val index = copy(slice.from)
     val max = add(slice.from, slice.len)
     whileNonZero({ subabs(index, max) }) {

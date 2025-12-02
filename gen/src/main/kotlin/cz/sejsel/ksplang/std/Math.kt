@@ -205,7 +205,7 @@ fun Block.zeroNot() = function("zeroNot") {
  *
  * Signature: `a -> a == 0 ? 1 : 0`
  */
-fun Block.zeroNotPositive() = function("zeroNot") {
+fun Block.zeroNotPositive() = function("zeroNotPositive") {
     push(1)
     CS()
     bulkxor()

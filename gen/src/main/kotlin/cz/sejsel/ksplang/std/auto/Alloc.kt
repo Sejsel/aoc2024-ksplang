@@ -1,6 +1,7 @@
 package cz.sejsel.ksplang.std.auto
 
 import cz.sejsel.ksplang.dsl.auto.Constant
+import cz.sejsel.ksplang.dsl.auto.MutableVariable
 import cz.sejsel.ksplang.dsl.auto.Parameter
 import cz.sejsel.ksplang.dsl.auto.Scope
 import cz.sejsel.ksplang.dsl.auto.Variable
@@ -17,7 +18,7 @@ import cz.sejsel.ksplang.std.*
  * See also [alloc].
  */
 data class Allocator(
-    val position: Variable
+    val position: MutableVariable
 )
 
 /**

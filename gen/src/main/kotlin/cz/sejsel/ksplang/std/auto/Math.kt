@@ -163,3 +163,8 @@ fun Scope.bitnot(a: Parameter) = runFun1(a) {
 fun Scope.bitshift(a: Parameter, b: Parameter) = runFun1(a, b) {
     bitshift()
 }
+
+fun Scope.i10log(a: Parameter) = runFun1(a) {
+    push(0)
+    lensum()
+}
