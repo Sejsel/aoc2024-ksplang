@@ -1,7 +1,6 @@
-package cz.sejsel.ksplang.aoc
+package cz.sejsel.ksplang.aoc.days
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
-import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
 import cz.sejsel.ksplang.dsl.core.ifZero

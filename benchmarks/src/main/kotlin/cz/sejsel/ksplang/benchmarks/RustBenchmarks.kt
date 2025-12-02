@@ -10,8 +10,8 @@ data class RustBenchmark(
     val name: String = program.name
 }
 
-class RustBenchmarks(val runner: RustKsplangRunner) {
-    val allBenchmarks = listOf(
+class RustBenchmarks(override val runner: RustKsplangRunner) : Benchmarks {
+    override val allBenchmarks = listOf(
         RustBenchmark(Programs.stacklen10000, runs = 20),
         RustBenchmark(Programs.sort100, runs = 20),
         RustBenchmark(Programs.sumloop10000, runs = 20),
@@ -20,6 +20,12 @@ class RustBenchmarks(val runner: RustKsplangRunner) {
         RustBenchmark(Programs.wasmi32factorial10000, runs = 5),
         RustBenchmark(Programs.wasmi64factorial10000, runs = 5),
     )
+}
+
+
+interface Benchmarks {
+    val allBenchmarks: List<RustBenchmark>
+    val runner: RustKsplangRunner
 
     fun runBenchmark(benchmark: RustBenchmark): List<Duration> {
         return List(benchmark.runs) {

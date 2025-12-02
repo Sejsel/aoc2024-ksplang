@@ -56,7 +56,11 @@ class MeasuredLazy<T>(val initializer: () -> T) {
 
 fun measuredLazy(initializer: () -> String): MeasuredLazy<String> = MeasuredLazy(initializer)
 
-object Programs {
+interface ProgramList {
+    fun allPrograms(): List<BenchmarkProgram>
+}
+
+object Programs : ProgramList {
     private val builder = KsplangBuilder()
     /*
     init {
@@ -132,7 +136,7 @@ object Programs {
     )
 
     // Use reflection to get all BenchmarkProgram properties so we don't have to maintain a separate list
-    fun allPrograms(): List<BenchmarkProgram> =
+    override fun allPrograms(): List<BenchmarkProgram> =
         Programs::class.members
             .filterIsInstance<KProperty<*>>()
             .filter { it.returnType.classifier == BenchmarkProgram::class }

@@ -42,7 +42,7 @@ class BenchmarkCommand : CliktCommand(
             add(KsplangInterpreter("exyi optimize last known working", "../exyi-ksplang/ksplang-last-known-working", optimize = true))
         }
 
-        runBenchmarks(ksplangs, enableKotlin)
+        runBenchmarks(ksplangs, enableKotlin, Programs) { RustBenchmarks(it) }
     }
 }
 
@@ -68,7 +68,7 @@ class DumpProgramsCommand : CliktCommand(
     }
 }
 
-fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean) {
+fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean, programs: ProgramList, benchmarksFactory: (RustKsplangRunner) -> Benchmarks = { RustBenchmarks(it) }) {
     val resultsByBenchmark = mutableMapOf<String, MutableMap<String, Double??>>()
 
     ksplangs.forEach { (interpreterName, pathToInterpreter, optimize) ->
@@ -80,7 +80,7 @@ fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean) {
                 "KSPLANGJIT_TRIGGER_COUNT" to "500"
             )
         )
-        val benchmarks = RustBenchmarks(runner)
+        val benchmarks = benchmarksFactory(runner)
         benchmarks.allBenchmarks.forEach { benchmark ->
             try {
                 val result = benchmarks.runBenchmark(benchmark)
@@ -101,7 +101,7 @@ fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean) {
         }
     }
 
-    Programs.allPrograms().forEach {
+    programs.allPrograms().forEach {
         resultsByBenchmark.getOrPut(it.name) { mutableMapOf() }["Instructions"] =
             it.ops.size.toDouble()
         resultsByBenchmark.getOrPut(it.name) { mutableMapOf() }["BUILD"] =

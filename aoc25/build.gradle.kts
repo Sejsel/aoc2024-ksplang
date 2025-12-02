@@ -8,7 +8,11 @@ repositories {
 }
 
 dependencies {
+    implementation(kotlin("reflect"))
+
     implementation(project(":gen"))
+    implementation(project(":benchmarks"))
+
     testImplementation(libs.kotest.framework.engine)
 }
 
