@@ -30,7 +30,7 @@ interface Benchmarks {
     fun runBenchmark(benchmark: RustBenchmark): List<Duration> {
         return List(benchmark.runs) {
             val result = runner.run(benchmark.program.program, benchmark.program.inputStack)
-            if (result.outputStack != benchmark.program.expectedResult) {
+            if (benchmark.program.expectedResult != null && result.outputStack != benchmark.program.expectedResult) {
                 error("Unexpected result for benchmark ${benchmark.name}: expected ${benchmark.program.expectedResult}, got ${result.outputStack}")
             }
             result.executionTime

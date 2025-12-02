@@ -8,12 +8,10 @@ import cz.sejsel.ksplang.dsl.core.ProgramFunction0To1
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
-import cz.sejsel.ksplang.dsl.core.extract
 import cz.sejsel.ksplang.interpreter.VMOptions
 import cz.sejsel.ksplang.interpreter.parseProgram
 import cz.sejsel.ksplang.std.add
 import cz.sejsel.ksplang.std.dec
-import cz.sejsel.ksplang.std.dup
 import cz.sejsel.ksplang.std.leaveTop
 import cz.sejsel.ksplang.std.permute
 import cz.sejsel.ksplang.std.push
@@ -27,7 +25,7 @@ import java.time.Duration
 import kotlin.io.path.Path
 import kotlin.reflect.KProperty
 
-class BenchmarkProgram(val name: String, private val lazyProgram: MeasuredLazy<String>, val inputStack: List<Long>, val expectedResult: List<Long>) {
+class BenchmarkProgram(val name: String, private val lazyProgram: MeasuredLazy<String>, val inputStack: List<Long>, val expectedResult: List<Long>?) {
     val program by lazyProgram
     val buildDuration get() = lazyProgram.duration
     val ops by lazy { parseProgram(program) }

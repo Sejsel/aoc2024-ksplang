@@ -22,9 +22,8 @@ We have multiple interpreters:
 
 | Benchmark                                                                   |                       Instructions |   ksplang | KsplangJIT | KsplangJIT old |
 |-----------------------------------------------------------------------------|-----------------------------------:|----------:|-----------:|---------------:|
-| [Day 1 - part 1](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt) | [4032](/aoc25/ksplang/1-1.ksplang) | 288.33 ms |   75.33 ms |       70.33 ms |
-
-*Note that the build time measurement may be significantly off because of JVM warmup, it is not a good measurement, it's more*
+| [Day 1 - part 1](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt) | [4032](/aoc25/ksplang/1-1.ksplang) | 278.67 ms |   74.00 ms |       67.00 ms |
+| [Day 1 - part 2](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt) | [4894](/aoc25/ksplang/1-2.ksplang) | 297.67 ms |   90.67 ms |       95.33 ms |
 
 ## Journal
 

@@ -1,6 +1,7 @@
 package cz.sejsel.ksplang.aoc
 
 import cz.sejsel.ksplang.aoc.days.day1Part1
+import cz.sejsel.ksplang.aoc.days.day1Part2
 import cz.sejsel.ksplang.benchmarks.Benchmarks
 import cz.sejsel.ksplang.benchmarks.ProgramList
 import cz.sejsel.ksplang.benchmarks.RustBenchmark
@@ -19,9 +20,18 @@ object Programs : ProgramList {
         name = "Day 1 - part 1",
         lazyProgram = measuredLazy { builder.build(day1Part1()) },
         inputStack = loadInput(1).map { it.code.toLong() },
-        expectedResult = listOf(1034L),
+        expectedResult = listOf(1034),
         runs = 3,
         ksplangFilename = "1-1.ksplang",
+        sourceFilename = "days/Day1.kt"
+    )
+    val day2Part1 = AoCBenchmarkProgram(
+        name = "Day 1 - part 2",
+        lazyProgram = measuredLazy { builder.build(day1Part2()) },
+        inputStack = loadInput(1).map { it.code.toLong() },
+        expectedResult = listOf(6166),
+        runs = 3,
+        ksplangFilename = "1-2.ksplang",
         sourceFilename = "days/Day1.kt"
     )
 
@@ -44,7 +54,7 @@ data class AoCBenchmarkProgram(
     val name: String,
     val lazyProgram: MeasuredLazy<String>,
     val inputStack: List<Long>,
-    val expectedResult: List<Long>,
+    val expectedResult: List<Long>?,
     val runs: Int,
     val ksplangFilename: String,
     val sourceFilename: String
