@@ -30,7 +30,7 @@ fun toEnrichedMarkdown(results: BenchmarkResults, programs: List<AoCBenchmarkPro
     val result = StringBuilder()
 
     // Header row
-    result.append("| Benchmark ")
+    result.append("| Program ")
     filteredInterpreters.forEach { name ->
         result.append("| $name ")
     }
@@ -47,14 +47,7 @@ fun toEnrichedMarkdown(results: BenchmarkResults, programs: List<AoCBenchmarkPro
     for (benchmarkName in benchmarks) {
         val program = programsByName[benchmarkName]
         
-        // Create linked benchmark name
-        val benchmarkCell = if (program != null) {
-            "[$benchmarkName](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/${program.sourceFilename})"
-        } else {
-            benchmarkName
-        }
-        
-        result.append("| $benchmarkCell ")
+        result.append("| $benchmarkName ")
         
         for (interpreter in filteredInterpreters) {
             val value = results.resultsByBenchmark[benchmarkName]?.get(interpreter)
@@ -64,7 +57,7 @@ fun toEnrichedMarkdown(results: BenchmarkResults, programs: List<AoCBenchmarkPro
                         val formatted = String.format("%d", value.toInt())
                         // Link Instructions column to ksplang file
                         if (program != null) {
-                            "[$formatted](/aoc25/ksplang/${program.ksplangFilename})"
+                            "[$formatted](/aoc25/ksplang/${program.ksplangFilename}) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/${program.sourceFilename})"
                         } else {
                             formatted
                         }
