@@ -2,6 +2,7 @@ package cz.sejsel.ksplang.aoc
 
 import cz.sejsel.ksplang.aoc.days.day1Part1
 import cz.sejsel.ksplang.aoc.days.day1Part2
+import cz.sejsel.ksplang.aoc.days.day2Part1
 import cz.sejsel.ksplang.benchmarks.Benchmarks
 import cz.sejsel.ksplang.benchmarks.ProgramList
 import cz.sejsel.ksplang.benchmarks.RustBenchmark
@@ -33,6 +34,15 @@ object Programs : ProgramList {
         runs = 3,
         ksplangFilename = "1-2.ksplang",
         sourceFilename = "days/Day1.kt"
+    )
+    val day2Part2 = AoCBenchmarkProgram(
+        name = "Day 2 - part 1",
+        lazyProgram = measuredLazy { builder.build(day2Part1()) },
+        inputStack = loadInput(2).map { it.code.toLong() },
+        expectedResult = listOf(19605500130),
+        runs = 1, // Fairly slow at 50s or so
+        ksplangFilename = "2-1.ksplang",
+        sourceFilename = "days/Day2.kt"
     )
 
     private fun loadInput(day: Int) = File("aoc25/inputs/$day.txt").readText()
