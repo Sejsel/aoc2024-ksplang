@@ -20,10 +20,10 @@ We have multiple interpreters:
 
 ### Progress table
 
-| Program        |                                                                                         Instructions |   ksplang | KsplangJIT | KsplangJIT old |
-|----------------|-----------------------------------------------------------------------------------------------------:|----------:|-----------:|---------------:|
-| Day 1 - part 1 | [4032](/aoc25/ksplang/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt) | 288.33 ms |   77.67 ms |       73.33 ms |
-| Day 1 - part 2 | [4894](/aoc25/ksplang/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt) | 301.33 ms |   96.67 ms |       91.33 ms |
+| Program        |                                                                                          Instructions |   ksplang | KsplangJIT | KsplangJIT old |
+|----------------|------------------------------------------------------------------------------------------------------:|----------:|-----------:|---------------:|
+| Day 1 - part 1 | [4032](/aoc25/ksplang/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt)) | 288.33 ms |   77.67 ms |       73.33 ms |
+| Day 1 - part 2 | [4894](/aoc25/ksplang/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/Day1.kt)) | 301.33 ms |   96.67 ms |       91.33 ms |
 
 ## Journal
 
