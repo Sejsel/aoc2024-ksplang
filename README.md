@@ -27,12 +27,16 @@ which translates these programs into real ksplang, and a standard library of sor
 The builder and standard library do try to optimize programs to be short when possible, generally fewer
 instructions = better (although not necessarily faster in practice).
 
+## Advent of Code 2025
+
+In 2025, I am trying again to do all of Advent of Code. You can see the current progress [here](aoc25/README.md).
+
 ## Advent of Code 2024
 In 2024, I tried to solve Advent of Code tasks using ksplang. Rules are simple: the input is passed to a ksplang
 program (possibly translated from text; `--text-input` in the interpreter), other than that anything goes.
 
 Got to day 9, making improvements to the tooling along the way, then kinda ran out of time,
-it would have been possible to continue, I might get back to it at some point. [See more](AOC24.md).
+it would have been possible to continue, I might get back to it at some point. [See more](aoc24/README.md).
 
 
 | Day | Instructions                                                                                            | Input mode | Runtime    | Executed instructions |
@@ -58,6 +62,7 @@ it would have been possible to continue, I might get back to it at some point. [
 ## Table of contents
 ... or rather a bullet list of contents, really.
 
+- [Advent of Code 2025](aoc25/README.md) - solutions to Advent of Code 2025
 - [Advent of Code 2024](aoc24/README.md) - solutions to Advent of Code 2024
 - [WASM](wasm2ksplang/README.md) - read about the ksplang WASM runtime
 - [gen](/gen) - the ksplang preprocessor (Kotlin DSL to generate ksplang code)
