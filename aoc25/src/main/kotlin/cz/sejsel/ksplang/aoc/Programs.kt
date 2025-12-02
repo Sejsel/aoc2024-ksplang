@@ -40,7 +40,7 @@ object Programs : ProgramList {
         lazyProgram = measuredLazy { builder.build(day2Part1()) },
         inputStack = loadInput(2).map { it.code.toLong() },
         expectedResult = listOf(19605500130),
-        runs = 1, // Fairly slow at 50s or so
+        runs = 1, // Fairly slow at 14s or so
         ksplangFilename = "2-1.ksplang",
         sourceFilename = "days/Day2.kt"
     )

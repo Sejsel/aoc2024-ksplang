@@ -4,6 +4,8 @@ import com.sun.org.apache.xalan.internal.lib.ExsltMath.power
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.CallInline
 import cz.sejsel.ksplang.dsl.core.ComplexFunction
+import cz.sejsel.ksplang.dsl.core.KsplangProgram
+import cz.sejsel.ksplang.dsl.core.ProgramFunction1To1
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.dsl.core.doWhileNonZero
@@ -41,12 +43,10 @@ fun main() {
     File("aoc25/ksplang/2-1.ksplang").writeText(program.toRunnableProgram())
     File("aoc25/ksplang/2-1.ksplang.json").writeText(program.toAnnotatedTreeJson())
     println("Generated program for day 2 part 1")
-    /*
     val program2 = builder.buildAnnotated(day2Part2())
     File("aoc25/ksplang/2-2.ksplang").writeText(program2.toRunnableProgram())
     File("aoc25/ksplang/2-2.ksplang.json").writeText(program2.toAnnotatedTreeJson())
     println("Generated program for day 2 part 2")
-     */
 }
 
 val powersLookup = listOf(
@@ -71,55 +71,57 @@ val powersLookup = listOf(
     1000000000000000000
 )
 
-fun day2Part2(): ComplexFunction = TODO()
-
-fun day2Part1() = program {
-    val isInvalid = function1To1("is_invalid_id") {
-        // id
-        dup()
-        push(0)
-        lensum() // lensum(id, 0) is just a pure i10log
+fun day2Part1(): KsplangProgram = day2(ProgramFunction1To1("is_invalid_id", buildComplexFunction {
+    // id
+    dup()
+    push(0)
+    lensum() // lensum(id, 0) is just a pure i10log
+    // id len
+    dup()
+    push(2)
+    swap2()
+    modulo()
+    // id len len%2
+    ifZero {
+        //    v len is even
+        // id len 0
+        pop()
         // id len
-        dup()
-        push(2)
+        div(2)
+        // id half_len
+        yoink() // Look up power of zero in lookup table at bottom of stack
+        // id 10^half_len
+        dupAb()
+        // id 10^half_len id 10^half_len
         swap2()
         modulo()
-        // id len len%2
-        ifZero {
-            //    v len is even
-            // id len 0
-            pop()
-            // id len
-            div(2)
-            // id half_len
-            yoink() // Look up power of zero in lookup table at bottom of stack
-            // id 10^half_len
-            dupAb()
-            // id 10^half_len id 10^half_len
-            swap2()
-            modulo()
-            // id 10^half_len id%10^half_len
-            // id 10^half_len bottom_half
-            roll(3, 1)
-            // bottom_half id 10^half_len
-            swap2()
-            div()
-            // bottom_half id/10^half_len
-            // bottom_half top_half
-            subabs() // 0 if same
-            zeroNotPositive() // 1 if same
-            // bottom_half==top_half ? 1 : 0
-        } otherwise {
-            //    v len is odd, we know this cannot be a repeating pattern
-            // id len 1
-            pushOn(1, 0)
-            // id len 1 0
-            pop2()
-            pop2()
-            pop2()
-            // 0
-        }
+        // id 10^half_len id%10^half_len
+        // id 10^half_len bottom_half
+        roll(3, 1)
+        // bottom_half id 10^half_len
+        swap2()
+        div()
+        // bottom_half id/10^half_len
+        // bottom_half top_half
+        subabs() // 0 if same
+        zeroNotPositive() // 1 if same
+        // bottom_half==top_half ? 1 : 0
+    } otherwise {
+        //    v len is odd, we know this cannot be a repeating pattern
+        // id len 1
+        pushOn(1, 0)
+        // id len 1 0
+        pop2()
+        pop2()
+        pop2()
+        // 0
     }
+}))
+
+fun day2Part2(): KsplangProgram = TODO()
+
+fun day2(isInvalidFunction: ProgramFunction1To1) = program {
+    installFunction(isInvalidFunction)
 
     body {
         // Replace final line break with comma so we don't need to special case that
@@ -175,7 +177,7 @@ fun day2Part1() = program {
                 inc()
                 // result to from
                 dup()
-                call(isInvalid)
+                call(isInvalidFunction)
                 // result to from is_invalid
                 ifZero {
                     // result to from 0
