@@ -229,3 +229,39 @@ fun ComplexBlock.setSlice() = complexFunction("setSliceTo") {
     // from val
     pop(); pop()
 }
+
+/**
+ * Finds max value in elements of a slice.
+ *
+ * Signature: `from len -> max`
+ */
+fun ComplexBlock.findSliceMax() = complexFunction("findSliceMax") {
+    // from len
+    push(Long.MIN_VALUE)
+    swap2()
+    // from MIN len
+    // from val len
+    whileNonZero {
+        // i val len_remaining+1
+        dec()
+        // i val len_remaining
+        dupThird()
+        // i val len_remaining i
+        yoink()
+        // i val len_remaining s[i]
+        roll(3, 2)
+        // i len_remaining s[i] val
+        max2()
+        // i len_remaining max(s[i],val)
+        swap2()
+        // i max(s[i],val) len_remaining
+        roll(3, 2)
+        // max(s[i],val) len_remaining i
+        inc()
+        // max(s[i],val) len_remaining i+1
+        roll(3, 1)
+        // i+1 max(s[i],val) len_remaining
+    }
+    // i max(s[i],val)
+    pop2()
+}

@@ -345,3 +345,78 @@ class FindUnsafeTests : FunSpec({
         runner.run(program, input) shouldContainExactly output
     }
 })
+
+class FindUnsafeSubAbsTests : FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+
+    val program = builder.build(buildComplexFunction { findUnsafeSubabs() })
+
+    test("findUnsafeSubabs finds at the end") {
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6, 42, 0, 42)
+        val output = listOf<Long>(1, 2, 3, 4, 5, 6, 42, 6)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("findUnsafeSubabs finds at the start") {
+        val input = listOf<Long>(42, 2, 3, 4, 5, 6, 42, 0, 42)
+        val output = listOf<Long>(42, 2, 3, 4, 5, 6, 42, 0)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("findUnsafeSubabs finds negative values") {
+        val input = listOf<Long>(42, 2, 3, 4, 5, 6, -42, 0, -42)
+        val output = listOf<Long>(42, 2, 3, 4, 5, 6, -42, 6)
+        runner.run(program, input) shouldContainExactly output
+    }
+})
+
+class FindTests : FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+
+    val annotated = builder.buildAnnotated(buildComplexFunction { find() })
+    val program = annotated.toRunnableProgram()
+
+    test("find finds at the start") {
+        val input = listOf<Long>(42, 2, 3, 4, 5, 6, 42, 0, 7, 42)
+        val output = listOf<Long>(42, 2, 3, 4, 5, 6, 42, 0)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("find finds one after the start") {
+        val input = listOf<Long>(1, 42, 3, 4, 5, 6, 7, 0, 7, 42)
+        val output = listOf<Long>(1, 42, 3, 4, 5, 6, 7, 1)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("find finds one before end") {
+        val input = listOf<Long>(1, 2, 3, 4, 5, 42, 7, 0, 7, 42)
+        val output = listOf<Long>(1, 2, 3, 4, 5, 42, 7, 5)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("find finds at the end") {
+        val input = listOf<Long>(1, 2, 3, 4, 5, 6, 42, 0, 7, 42)
+        val output = listOf<Long>(1, 2, 3, 4, 5, 6, 42, 6)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("find finds negative values") {
+        val input = listOf<Long>(42, 2, 3, 4, 5, 6, -42, 0, 7, -42)
+        val output = listOf<Long>(42, 2, 3, 4, 5, 6, -42, 6)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("find does not find if it's right before range") {
+        val input = listOf<Long>(1, 42, 3, 4, 5, 6, 7, 2, 4, 42)
+        val output = listOf<Long>(1, 42, 3, 4, 5, 6, 7, -1)
+        runner.run(program, input) shouldContainExactly output
+    }
+
+    test("find does not find if it's right after range") {
+        val input = listOf<Long>(1, 2, 3, 4, 42, 6, 7, 2, 4, 42)
+        val output = listOf<Long>(1, 2, 3, 4, 42, 6, 7, -1)
+        runner.run(program, input) shouldContainExactly output
+    }
+})

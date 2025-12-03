@@ -135,3 +135,25 @@ class SetSliceTests : FunSpec({
         runner.run(program, listOf(1, 2, 3, 4, 5, 6, 1, 0, 42)) shouldContainExactly listOf(1, 2, 3, 4, 5, 6)
     }
 })
+
+class FindMaxSliceTests : FunSpec({
+    val runner = DefaultKsplangRunner()
+    val builder = KsplangBuilder()
+    val program = builder.build(buildComplexFunction { findSliceMax() })
+
+    test("find max in slice from 0, len 3") {
+        runner.run(program, listOf(1, 5, 3, 4, 5, 6, 0, 3)) shouldContainExactly listOf(1, 5, 3, 4, 5, 6, 5)
+    }
+
+    test("find max in slice from 1, len 3") {
+        runner.run(program, listOf(1, 5, 3, 4, 5, 6, 1, 3)) shouldContainExactly listOf(1, 5, 3, 4, 5, 6, 5)
+    }
+
+    test("find max in slice from 2, len 1") {
+        runner.run(program, listOf(1, 5, 3, 4, 5, 6, 2, 1)) shouldContainExactly listOf(1, 5, 3, 4, 5, 6, 3)
+    }
+
+    test("find max in slice from 0, len 0") {
+        runner.run(program, listOf(1, 5, 3, 4, 5, 6, 0, 0)) shouldContainExactly listOf(1, 5, 3, 4, 5, 6, Long.MIN_VALUE)
+    }
+})

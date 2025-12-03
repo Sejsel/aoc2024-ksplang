@@ -4,6 +4,7 @@ import cz.sejsel.ksplang.aoc.days.day1Part1
 import cz.sejsel.ksplang.aoc.days.day1Part2
 import cz.sejsel.ksplang.aoc.days.day2Part1
 import cz.sejsel.ksplang.aoc.days.day2Part2
+import cz.sejsel.ksplang.aoc.days.day3Part1
 import cz.sejsel.ksplang.benchmarks.Benchmarks
 import cz.sejsel.ksplang.benchmarks.ProgramList
 import cz.sejsel.ksplang.benchmarks.RustBenchmark
@@ -53,6 +54,15 @@ object Programs : ProgramList {
         runs = 1, // Even more slow than part 1
         ksplangFilename = "2-2.ksplang",
         sourceFilename = "days/Day2.kt"
+    )
+    val day3Part1 = AoCBenchmarkProgram(
+        name = "Day 3 - part 1",
+        lazyProgram = measuredLazy { builder.build(day3Part1()) },
+        inputStack = loadInput(3).map { it.code.toLong() },
+        expectedResult = listOf(17085),
+        runs = 4, // This one is fast
+        ksplangFilename = "3-1.ksplang",
+        sourceFilename = "days/Day3.kt"
     )
 
     private fun loadInput(day: Int) = File("aoc25/inputs/$day.txt").readText()

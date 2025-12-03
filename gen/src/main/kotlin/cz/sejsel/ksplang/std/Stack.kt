@@ -424,3 +424,104 @@ fun ComplexBlock.findUnsafe() = complexFunction("findUnsafe") {
     pop2()
     // i
 }
+
+/**
+ * Finds the first instance of a value from a given index (inclusive).
+ * If the value does not exist, this will behave unpredictably (crash or wrong results).
+ * If i is outside of the stack, this will crash.
+ * If subabs(a,b) is >= 2^63, this will crash (it's used for the comparison).
+ *
+ * Signature: ```i a -> first(s[i] == a)```
+ */
+fun ComplexBlock.findUnsafeSubabs() = complexFunction("findUnsafeSubabs") {
+    // i a
+    swap2()
+    // a i
+    doWhileZero {
+        // a i
+        dup()
+        // a i i
+        yoink()
+        // a i s[i]
+        dupThird()
+        // a i s[i] a
+        subabs()
+        // a i CMP(s[i]==a)
+        zeroNotPositive()
+        // a i s[i]==a?1:0
+        swap2()
+        inc()
+        swap2()
+        // a i+1 s[i]==a?1:0
+    }
+    // a i+1
+    decPositive()
+    // a i
+    pop2()
+    // i
+}
+
+/**
+ * Finds the first instance of a value between `from` index (inclusive) to `to` index (exclusive).
+ * If the value does not exist, the result is -1.
+ * If from >= to (empty range), the behavior is undefined, it may loop forever.
+ * If from or to is outside of the stack, this will crash.
+ *
+ * Signature: ```from to a -> first(s[i] == a); i in [from, to))```
+ */
+fun ComplexBlock.find() = complexFunction("find") {
+    // from to a
+    roll(3, 1)
+    // a from to
+    dupSecond()
+    // a from to from
+    subabs()
+    // a from |to-from|
+    // a from len
+    push(-1)
+    // a from len -1
+    // a from len result
+    roll(4, 1)
+    // result a from len
+    doWhileNonZero {
+        // result a i len_remaining+1
+        dec()
+        // result a i len_remaining
+        dupSecond()
+        // result a i len_remaining i
+        yoink()
+        // result a i len_remaining s[i]
+        dupFourth()
+        // result a i len_remaining s[i] a
+        cmp()
+        // result a i len_remaining CMP(s[i]==a)
+        ifZero {
+            // this is a match
+            // result a i len_remaining 0
+            pop()
+            pop()
+            // result a i
+            pop2()
+            pop2()
+            // i
+            push(0); push(0); push(0); push(0)
+            // i 0 0 0 0
+        } otherwise {
+            // not a match
+            pop()
+            // result a i len_remaining
+            swap2()
+            inc()
+            // result a len_remaining i+1
+            swap2()
+            // result a i+1 len_remaining
+            CS()
+            // result a i+1 len_remaining CS(len_remaining)
+        }
+    }
+    // result ? ? ? ?
+    pop()
+    pop()
+    pop()
+    // result
+}
