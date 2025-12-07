@@ -78,33 +78,31 @@ fun Block.push(n: Long): SimpleFunction {
             val bitLength = Long.SIZE_BITS - n.countLeadingZeroBits()
             var numsToAdd = 0
 
-            // Try to find longest bit sequence (from LSB) which is still in short pushes
-            var maxKnownBitCount = 0
-            for (i in 1 until bitLength) {
-                val mask = (1L shl i) - 1
-                val maskedN = n and mask
-                if (maskedN in ShortPushes.sequencesByNumber) {
-                    maxKnownBitCount = i
-                }
-            }
-
-            val knownPart = n and ((1L shl maxKnownBitCount) - 1)
-            assert(knownPart in ShortPushes.sequencesByNumber)
-            push(knownPart)
-            numsToAdd += 1
-
-            for (i in maxKnownBitCount until bitLength) {
-                val bit = 1L shl i
-                if (n and bit != 0L) {
-                    if (bit in ShortPushes.sequencesByNumber) {
-                        push(bit)
-                    } else {
-                        push(1)
-                        push(i.toLong())
-                        bitshift()
+            // Try to find longest bit sequence (from LSB) which is still in short pushes;
+            // then repeat and add up all the numbers. Shifts left are super fast, so that's very nice.
+            var remainingN = n
+            var bitOffset = 0
+            while (remainingN != 0L) {
+                var maxKnownBitCount = 0
+                for (i in 1 until bitLength) {
+                    val mask = (1L shl i) - 1
+                    val maskedN = remainingN and mask
+                    if (maskedN in ShortPushes.sequencesByNumber) {
+                        maxKnownBitCount = i
                     }
-                    numsToAdd += 1
                 }
+
+                val knownPart = remainingN and ((1L shl maxKnownBitCount) - 1)
+                assert(knownPart in ShortPushes.sequencesByNumber)
+                remainingN = remainingN ushr maxKnownBitCount
+                push(knownPart)
+                if (bitOffset != 0) {
+                    push(bitOffset.toLong())
+                    bitshift()
+                }
+
+                bitOffset += maxKnownBitCount
+                numsToAdd += 1
             }
 
             repeat(numsToAdd - 1) {

@@ -20,18 +20,27 @@ fun main() {
     File("aoc25/ksplang/3-1.ksplang").writeText(program.toRunnableProgram())
     File("aoc25/ksplang/3-1.ksplang.json").writeText(program.toAnnotatedTreeJson())
     println("Generated program for day 3 part 1")
-    /*
     val program2 = builder.buildAnnotated(day3Part2())
     File("aoc25/ksplang/3-2.ksplang").writeText(program2.toRunnableProgram())
     File("aoc25/ksplang/3-2.ksplang.json").writeText(program2.toAnnotatedTreeJson())
     println("Generated program for day 3 part 2")
-     */
 }
 
-fun day3Part1() = program {
+fun day3Part1(): KsplangProgram = day3(parts = 2)
+fun day3Part2(): KsplangProgram = day3(parts = 12)
+
+fun day3(parts: Int) = program {
     // Very straightforward really:
     // for each line go i = 9..1, find leftmost $i in [0..len-1)
     // then find highest digit to the right of this digit
+    //
+    // part 2 extension:
+    // - still go i = 9..1, but we need to repeat this $parts times (part 1 = 2, part 2 = 12)
+    // track start of the remaining part of the input as $pos,
+    // then in each iteration find leftmost $i in [pos..len-$i-1),
+    // this can be done greedily, no backtracking needed
+
+    if (parts != 2) TODO()
 
     val lineEndLabel = createLabel("end")
 
@@ -141,7 +150,3 @@ fun day3Part1() = program {
         leaveTop()
     }
 }
-
-fun day3Part2(): KsplangProgram = TODO()
-
-
