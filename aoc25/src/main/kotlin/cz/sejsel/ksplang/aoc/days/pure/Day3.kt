@@ -1,4 +1,4 @@
-package cz.sejsel.ksplang.aoc.days
+package cz.sejsel.ksplang.aoc.days.pure
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.KsplangProgram
@@ -8,7 +8,6 @@ import cz.sejsel.ksplang.dsl.core.gotoLabel
 import cz.sejsel.ksplang.dsl.core.ifZero
 import cz.sejsel.ksplang.dsl.core.otherwise
 import cz.sejsel.ksplang.dsl.core.program
-import cz.sejsel.ksplang.std.auto.*
 import cz.sejsel.ksplang.std.*
 import java.io.File
 

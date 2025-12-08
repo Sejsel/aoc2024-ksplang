@@ -1,4 +1,4 @@
-package cz.sejsel.ksplang.aoc.days
+package cz.sejsel.ksplang.aoc.days.pure
 
 import cz.sejsel.ksplang.builder.KsplangBuilder
 import cz.sejsel.ksplang.dsl.core.ComplexBlock

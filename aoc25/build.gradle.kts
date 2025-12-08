@@ -12,6 +12,7 @@ dependencies {
 
     implementation(project(":gen"))
     implementation(project(":benchmarks"))
+    implementation(project(":wasm2ksplang"))
 
     testImplementation(libs.kotest.framework.engine)
 }
