@@ -383,6 +383,7 @@ class WasmFunctionScope private constructor(
     }
 
     fun ComplexFunction.i32RemUnsigned() = instruction("i32RemUnsigned", stackSizeChange = -1) {
+        // TODO: -18 as 4294967278, mod 100 gives 78 instead of 82
         swap2()
         REM()
 

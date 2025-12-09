@@ -20,6 +20,7 @@ import kotlin.reflect.KProperty
 object Programs : ProgramList {
     private val builder = KsplangBuilder()
 
+    /*
     val day1Part1 = AoCBenchmarkProgram(
         name = "Day 1 - part 1",
         lazyProgram = measuredLazy { builder.build(day1Part1()) },
@@ -38,7 +39,6 @@ object Programs : ProgramList {
         ksplangFilename = "1-2.ksplang",
         sourceFilename = "days/pure/Day1.kt"
     )
-    /*
     val day2Part1 = AoCBenchmarkProgram(
         name = "Day 2 - part 1",
         lazyProgram = measuredLazy { builder.build(day2Part1()) },
@@ -57,7 +57,6 @@ object Programs : ProgramList {
         ksplangFilename = "2-2.ksplang",
         sourceFilename = "days/pure/Day2.kt"
     )
-     */
     val day3Part1 = AoCBenchmarkProgram(
         name = "Day 3 - part 1",
         lazyProgram = measuredLazy { builder.build(day3Part1()) },
@@ -67,6 +66,7 @@ object Programs : ProgramList {
         ksplangFilename = "3-1.ksplang",
         sourceFilename = "days/pure/Day3.kt"
     )
+     */
     val day1Part1Wasm = AoCBenchmarkProgram(
         name = "Day 1 - part 1 WASM (Rust)",
         lazyProgram = measuredLazy { builder.build(wasmDay1Part1()) },

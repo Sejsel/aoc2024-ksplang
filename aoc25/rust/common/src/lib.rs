@@ -1,3 +1,5 @@
+pub mod raw_input;
+
 use std::alloc::{Layout, alloc};
 
 #[link(wasm_import_module = "env")]
