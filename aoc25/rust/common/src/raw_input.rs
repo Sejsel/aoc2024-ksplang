@@ -1,5 +1,6 @@
 use crate::read_input;
 
+#[inline]
 pub unsafe fn parse_u32_unchecked(input_pos: &mut i32, terminator: char) -> u32 {
     let mut result = 0;
     loop {

@@ -1,3 +1,10 @@
 [workspace]
 resolver = "3"
 members = ["common", "aoc25-1"]
+
+# This is actually super important in our usecase.
+# Thanks to this, we can avoid the use of WASM memory at all when calling functions from the common module.
+# Without it, parameters would be passed via WASM memory - we don't want that at all, if we can avoid it completely,
+# we can omit it altogether in the ksplang runtime.
+[profile.release]
+lto = "fat"

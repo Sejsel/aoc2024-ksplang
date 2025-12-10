@@ -1,5 +1,5 @@
-use common::{input_size, read_input, };
 use common::raw_input::parse_u32_unchecked;
+use common::{input_size, read_input};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn solve() -> i32 {
