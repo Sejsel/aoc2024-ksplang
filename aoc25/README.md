@@ -81,12 +81,14 @@ but just a lot of *effort*. I think it might be time to switch approaches.
 
 ### [Day 1](https://adventofcode.com/2025/day/1) - again (2025-12-10)
 
-What, you may ask. Why would you go back to day 1. Also, somehow a week went past without anything getting solved.
+What, you may ask. Why would you go back to day 1. Well, somehow a week went past without anything getting solved.
+I still want to get it all done before Christmas for once (and it doesn't matter that there are only 12 puzzles).
 So, yeah, time to do it again, and more efficiently.
 
-Time to use [wasm2ksplang](/wasm2ksplang), the tool which can take a WASM program, translate it to ksplang,
+Time to use [wasm2ksplang](/wasm2ksplang), the tool I made which can take a WASM program, translate it to ksplang,
 creates a runtime layout on the ksplang stack, and allows you to call WASM functions from a ksplang program.
-It allows WASM programs to import functions like `read_input(index)` and `input_size`.
+It allows WASM programs to import functions like `read_input(index)` and `input_size`. It doesn't support floats *yet*,
+but *surely* that's fine for now.
 
 So, yeah. Time to write some programs in Rust and compile them into WASM. No wasm-pack, mind you, that is very much
 aimed at JavaScript interop.
