@@ -109,4 +109,4 @@ make your changes, and use wat2wasm. Super nice thing to have for a "language" l
 Anyway, with a simple dirty script which does that, we now have a ksplang program generated from WASM generated from
 Rust which is comparable to the "pure" ksplang solution I had.
 It has double the instructions or so, but somehow actually runs the same speed or even faster as the
-"manually" written ksplang.
+*organically sourced free-range* ksplang.
