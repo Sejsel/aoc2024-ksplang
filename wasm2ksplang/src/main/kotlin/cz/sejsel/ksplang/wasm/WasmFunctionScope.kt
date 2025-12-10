@@ -20,6 +20,7 @@ import cz.sejsel.ksplang.std.*
 sealed interface BlockFrame {
     val startInstruction: AnnotatedInstruction?
     val valuesReturned: Int
+    val branchValuesReturned: Int
     val previousStackSize: Int
     val branchLabel: Label
     val depth: Int
@@ -30,26 +31,40 @@ data class FunctionBlockFrame(
     override val valuesReturned: Int,
     override val previousStackSize: Int,
     override val branchLabel: Label = createLabel("func_end"),
-    override var isUnreachable: Boolean = false
+    override var isUnreachable: Boolean = false,
 ): BlockFrame {
     override val depth: Int = 0
     override val startInstruction: AnnotatedInstruction? = null
+    override val branchValuesReturned: Int = valuesReturned
 }
 
-/** Block or loop or function */
+/** Block */
 data class SimpleBlockFrame(
     override val startInstruction: AnnotatedInstruction,
     override val valuesReturned: Int,
+    override val branchValuesReturned: Int = valuesReturned,
     override val previousStackSize: Int,
     override val branchLabel: Label,
     override val depth: Int,
-    override var isUnreachable: Boolean
+    override var isUnreachable: Boolean,
+) : BlockFrame
+
+/** Loop */
+data class LoopBlockFrame(
+    override val startInstruction: AnnotatedInstruction,
+    override val valuesReturned: Int,
+    override val branchValuesReturned: Int = 0,
+    override val previousStackSize: Int,
+    override val branchLabel: Label,
+    override val depth: Int,
+    override var isUnreachable: Boolean,
 ) : BlockFrame
 
 /** If-else block */
 data class IfElseBlockFrame(
     override val startInstruction: AnnotatedInstruction,
     override val valuesReturned: Int,
+    override val branchValuesReturned: Int = valuesReturned,
     override val previousStackSize: Int,
     override val depth: Int,
     override var isUnreachable: Boolean,
@@ -137,6 +152,7 @@ class WasmFunctionScope private constructor(
         when (val frame = blockStack.lastOrNull()) {
             is IfElseBlockFrame -> frame.isUnreachable = true
             is SimpleBlockFrame -> frame.isUnreachable = true
+            is LoopBlockFrame -> frame.isUnreachable = true
             is FunctionBlockFrame -> frame.isUnreachable = true
             null -> error("No block frame")
         }
@@ -1810,7 +1826,7 @@ class WasmFunctionScope private constructor(
     }
 
     fun ComplexFunction.startLoop(instruction: AnnotatedInstruction, returnedValues: Int) {
-        val frame = SimpleBlockFrame(
+        val frame = LoopBlockFrame(
             startInstruction = instruction,
             valuesReturned = returnedValues,
             previousStackSize = intermediateStackValues,
@@ -1919,7 +1935,7 @@ class WasmFunctionScope private constructor(
     }
 
     fun ComplexBlock.endLoop(scope: Instruction) {
-        val frame = blockStack.removeLast() as SimpleBlockFrame
+        val frame = blockStack.removeLast() as LoopBlockFrame
         check(frame.startInstruction.scope() == scope) {
             "Mismatched end of loop: expected end of ${frame.startInstruction}, got end of $scope"
         }
@@ -1941,7 +1957,7 @@ class WasmFunctionScope private constructor(
         // We need to "pop" n blocks
         val endedBlocks = blockStack.takeLast(depth + 1)
         val targetBlock = endedBlocks.first()
-        val newStackSize = targetBlock.previousStackSize + targetBlock.valuesReturned
+        val newStackSize = targetBlock.previousStackSize + targetBlock.branchValuesReturned
         val toRemove = intermediateStackValues - newStackSize
         check(toRemove >= 0) { "Stack is smaller than expected when branching to depth $depth, new intermediates $newStackSize, current intermediates $intermediateStackValues, to remove $toRemove" }
         check(!localsPopped)
