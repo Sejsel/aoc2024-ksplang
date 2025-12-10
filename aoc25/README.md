@@ -91,7 +91,11 @@ It allows WASM programs to import functions like `read_input(index)` and `input_
 but *surely* that's fine for now.
 
 So, yeah. Time to write some programs in Rust and compile them into WASM. No wasm-pack, mind you, that is very much
-aimed at JavaScript interop.
+aimed at JavaScript interop. Just this magical incantation:
+
+```sh
+RUSTFLAGS=-Ctarget-cpu=mvp cargo +nightly build --release -Zbuild-std=panic_abort,std --target wasm32-unknown-unknown
+```
 
 Anyway, there are still some optimizations to do with that. One of the slowest
 parts of wasm2ksplang programs is the memory - we need to initialize 16 pages (1 million zeroes) in every Rust WASM
