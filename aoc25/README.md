@@ -71,3 +71,36 @@ tell when an intermediate variable is used for the latest time, so it stays ther
 Not that *that* really matters, because I am also missing a support for breaks or continues in loops and it really, really hurts in this task.
 
 So, super slow solution for now, might come back later if I improve tooling.
+
+### [Day 3](https://adventofcode.com/2025/day/3) (2025-12-03)
+
+This one was not tooo bad, ksplang has a perfect instruction for it - `lensum`. However, it's getting quite complex.
+
+Seeing part 2, which is not *that* horrible all things considered, with the algorithm being still quite fast,
+but just a lot of *effort*. I think it might be time to switch approaches.
+
+### [Day 1](https://adventofcode.com/2025/day/1) - again (2025-12-10)
+
+What, you may ask. Why would you go back to day 1. Also, somehow a week went past without anything getting solved.
+So, yeah, time to do it again, and more efficiently.
+
+Time to use [wasm2ksplang](/wasm2ksplang), the tool which can take a WASM program, translate it to ksplang,
+creates a runtime layout on the ksplang stack, and allows you to call WASM functions from a ksplang program.
+It allows WASM programs to import functions like `read_input(index)` and `input_size`.
+
+So, yeah. Time to write some programs in Rust and compile them into WASM. No wasm-pack, mind you, that is very much
+aimed at JavaScript interop.
+
+Anyway, there are still some optimizations to do with that. One of the slowest
+parts of wasm2ksplang programs is the memory - we need to initialize 16 pages (1 million zeroes) in every Rust WASM
+program, for example, even if it's not used at all! Well, if we don't use a memory, we can patch the WASM to not
+define a memory. Or, eventually, detect that case in wasm2ksplang and not emit a memory if it won't be used,
+with no need to modify WASM files.
+
+On that note, modifying WASM files is actually quite easy. Use wasm2wat to translate it to a text representation,
+make your changes, and use wat2wasm. Super nice thing to have for a "language" like that.
+
+Anyway, with a simple dirty script which does that, we now have a ksplang program generated from WASM generated from
+Rust which is comparable to the "pure" ksplang solution I had.
+It has double the instructions or so, but somehow actually runs the same speed or even faster as the
+"manually" written ksplang.
