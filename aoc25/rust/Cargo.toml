@@ -1,6 +1,11 @@
 [workspace]
 resolver = "3"
-members = ["common", "aoc25-1-1", "aoc25-1-2"]
+members = [
+    "common",
+    "aoc25-1-1",
+    "aoc25-1-2",
+    "aoc25-2-1"
+]
 
 # This is actually super important in our usecase.
 # Thanks to this, we can avoid the use of WASM memory at all when calling functions from the common module.
@@ -8,3 +13,4 @@ members = ["common", "aoc25-1-1", "aoc25-1-2"]
 # we can omit it altogether in the ksplang runtime.
 [profile.release]
 lto = "fat"
+panic = "abort"

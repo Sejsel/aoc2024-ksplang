@@ -32,10 +32,11 @@ We have multiple interpreters:
 
 These are programs made by writing a Rust program, compiling it to WASM, then translating it to ksplang with [wasm2ksplang](/wasm2ksplang).
 
-| Program             |                                                                                                                                               Instructions |   ksplang | KsplangJIT | KsplangJIT old |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------:|----------:|-----------:|---------------:|
-| WASM Day 1 - part 1 | [10965](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-1/src/lib.rs)) | 240.33 ms |   96.67 ms |       85.00 ms |
-| WASM Day 1 - part 2 | [14098](/aoc25/ksplang/wasm/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-2/src/lib.rs)) | 279.00 ms |  124.33 ms |      125.33 ms |
+| Program             |                                                                                                                                                Instructions |      ksplang |  KsplangJIT | KsplangJIT old |
+|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------:|-------------:|------------:|---------------:|
+| WASM Day 1 - part 1 |  [10965](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-1/src/lib.rs)) |    240.33 ms |    96.67 ms |       85.00 ms |
+| WASM Day 1 - part 2 |  [14098](/aoc25/ksplang/wasm/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-2/src/lib.rs)) |    279.00 ms |   124.33 ms |      125.33 ms |
+| WASM Day 2 - part 1 | [382753](/aoc25/ksplang/wasm/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt), [rust](/aoc25/rust/aoc25-2-1/src/lib.rs)) | 560711.00 ms | 16658.00 ms |    20590.00 ms |
 
 ## Journal
 
