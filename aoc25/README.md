@@ -21,22 +21,21 @@ We have multiple interpreters:
 ### Progress table
 
 #### ksplang
-| Program        |                                                                                                Instructions |      ksplang | KsplangJIT | KsplangJIT old |
-|----------------|------------------------------------------------------------------------------------------------------------:|-------------:|-----------:|---------------:|
-| Day 1 - part 1 |  [4032](/aoc25/ksplang/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day1.kt)) |    280.00 ms |   74.33 ms |       71.33 ms |
-| Day 1 - part 2 |  [4894](/aoc25/ksplang/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day1.kt)) |    288.33 ms |   91.33 ms |       88.67 ms |
-| Day 2 - part 1 |  [7759](/aoc25/ksplang/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day2.kt)) |  13315.00 ms | 1836.00 ms |      589.00 ms |
-| Day 2 - part 2 | [11823](/aoc25/ksplang/2-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day2.kt)) | 192519.00 ms | 9379.00 ms |    25760.00 ms |
-| Day 3 - part 1 |  [4538](/aoc25/ksplang/3-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day3.kt)) |    393.50 ms |   67.25 ms |       66.75 ms |
-
+| Program        |                                                                                                                                      Instructions |      ksplang |  KsplangJIT | KsplangJIT old |
+|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------:|-------------:|------------:|---------------:|
+| Day 1 - part 1 |  [4032](/aoc25/ksplang/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day1.kt)) |    281.67 ms |    70.67 ms |       72.67 ms |
+| Day 1 - part 2 |  [4894](/aoc25/ksplang/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day1.kt)) |    285.67 ms |    95.00 ms |       92.00 ms |
+| Day 2 - part 1 |  [7759](/aoc25/ksplang/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day2.kt)) |  13395.00 ms |  1905.00 ms |      630.00 ms |
+| Day 2 - part 2 | [11823](/aoc25/ksplang/2-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day2.kt)) | 190209.00 ms | 10065.00 ms |    25360.00 ms |
+| Day 3 - part 1 |  [4538](/aoc25/ksplang/3-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day3.kt)) |    403.00 ms |    70.50 ms |       65.25 ms |
 #### Translated from WASM
 
 These are programs made by writing a Rust program, compiling it to WASM, then translating it to ksplang with [wasm2ksplang](/wasm2ksplang).
 
-| Program             |                                                                                                                                                                                     Instructions |   ksplang | KsplangJIT | KsplangJIT old |
-|---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|----------:|-----------:|---------------:|
-| WASM Day 1 - part 1 | [10965](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/rust/aoc25-1-1/src/lib.rs)) | 243.33 ms |   87.67 ms |       81.67 ms |
-| WASM Day 1 - part 2 | [14098](/aoc25/ksplang/wasm/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/rust/aoc25-1-2/src/lib.rs)) | 273.00 ms |  129.33 ms |      117.67 ms |
+| Program             |                                                                                                                                                                                                                           Instructions |   ksplang | KsplangJIT | KsplangJIT old |
+|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|----------:|-----------:|---------------:|
+| WASM Day 1 - part 1 | [10965](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/rust/aoc25-1-1/src/lib.rs)) | 240.33 ms |   96.67 ms |       85.00 ms |
+| WASM Day 1 - part 2 | [14098](/aoc25/ksplang/wasm/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/rust/aoc25-1-2/src/lib.rs)) | 279.00 ms |  124.33 ms |      125.33 ms |
 
 ## Journal
 

@@ -28,7 +28,7 @@ object Programs : ProgramList {
         expectedResult = listOf(1034),
         runs = 3,
         ksplangFilename = "1-1.ksplang",
-        sourceFilenames = mapOf("gen" to "days/pure/Day1.kt"),
+        sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day1.kt"),
     )
     val day1Part2 = AoCBenchmarkProgram(
         name = "Day 1 - part 2",
@@ -37,7 +37,7 @@ object Programs : ProgramList {
         expectedResult = listOf(6166),
         runs = 3,
         ksplangFilename = "1-2.ksplang",
-        sourceFilenames = mapOf("gen" to "days/pure/Day1.kt"),
+        sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day1.kt"),
     )
     val day2Part1 = AoCBenchmarkProgram(
         name = "Day 2 - part 1",
@@ -46,7 +46,7 @@ object Programs : ProgramList {
         expectedResult = listOf(19605500130),
         runs = 1, // Fairly slow at 14s or so
         ksplangFilename = "2-1.ksplang",
-        sourceFilenames = mapOf("gen" to "days/pure/Day2.kt"),
+        sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day2.kt"),
     )
     val day2Part2 = AoCBenchmarkProgram(
         name = "Day 2 - part 2",
@@ -55,7 +55,7 @@ object Programs : ProgramList {
         expectedResult = listOf(36862281418),
         runs = 1, // Even more slow than part 1
         ksplangFilename = "2-2.ksplang",
-        sourceFilenames = mapOf("gen" to "days/pure/Day2.kt"),
+        sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day2.kt"),
     )
     val day3Part1 = AoCBenchmarkProgram(
         name = "Day 3 - part 1",
@@ -64,7 +64,7 @@ object Programs : ProgramList {
         expectedResult = listOf(17085),
         runs = 4, // This one is fast
         ksplangFilename = "3-1.ksplang",
-        sourceFilenames = mapOf("gen" to "days/pure/Day3.kt"),
+        sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/pure/Day3.kt"),
     )
     val day1Part1Wasm = AoCBenchmarkProgram(
         name = "WASM Day 1 - part 1",
@@ -73,7 +73,7 @@ object Programs : ProgramList {
         expectedResult = listOf(1034),
         runs = 3,
         ksplangFilename = "wasm/1-1.ksplang",
-        sourceFilenames = mapOf("gen" to "days/wasm/Day1.kt", "rust" to "rust/aoc25-1-1/src/lib.rs"),
+        sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt", "rust" to "rust/aoc25-1-1/src/lib.rs"),
     )
     val day1Part2Wasm = AoCBenchmarkProgram(
         name = "WASM Day 1 - part 2",
@@ -82,7 +82,7 @@ object Programs : ProgramList {
         expectedResult = listOf(6166),
         runs = 3,
         ksplangFilename = "wasm/1-2.ksplang",
-        sourceFilenames = mapOf("gen" to "days/wasm/Day1.kt", "rust" to "rust/aoc25-1-2/src/lib.rs"),
+        sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt", "rust" to "rust/aoc25-1-2/src/lib.rs"),
     )
 
     private fun loadInput(day: Int) = File("aoc25/inputs/$day.txt").readText()
