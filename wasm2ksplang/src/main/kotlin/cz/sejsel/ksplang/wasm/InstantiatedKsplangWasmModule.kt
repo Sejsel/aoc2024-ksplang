@@ -26,6 +26,8 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
     }
     val instance: Instance = store.instantiate(moduleName, module.chicoryModule)
 
+    val isMemoryUsed: Boolean = module.isMemoryUsed
+
     fun getFunction(index: Int): ProgramFunctionBase? = module.getFunction(index)
 
     fun getExportedFunction(builder: KsplangProgramBuilder, name: String): ProgramFunctionBase? {

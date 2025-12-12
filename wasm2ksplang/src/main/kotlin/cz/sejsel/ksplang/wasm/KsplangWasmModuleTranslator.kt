@@ -98,6 +98,7 @@ import cz.sejsel.ksplang.wasm.WasmFunctionScope.Companion.initialize as initiali
 
 class TranslatedWasmModule(
     val programFunctions: List<ProgramFunctionBase>,
+    val isMemoryUsed: Boolean,
     val chicoryModule: WasmModule,
     private val exportedFunctions: Map<String, ProgramFunctionBase>,
     /** Forward declaration, needs to be implemented by embedder */
@@ -264,6 +265,10 @@ class KsplangWasmModuleTranslator() {
             functions.add(createFunction(name = name, paramCount = paramCount, returnCount = returnCount))
         }
 
+        val isMemoryUsed = module.codeSection().functionBodies().any { body ->
+            body.instructions().any { instruction -> isMemoryInstruction(instruction) }
+        }
+
         for (functionIndex in 0..<module.functionSection().functionCount()) {
             val body = functionToKsplang(module, functions, functionIndex, state)
             functions[importFunctionCount + functionIndex].setBody(body)
@@ -294,8 +299,26 @@ class KsplangWasmModuleTranslator() {
             getInputSizeFunction = state.getInputSizeFunction,
             readInputFunction = state.readInputFunction,
             getFunctionAddressFunction = state.getFunctionAddressFunction,
-            saveRawFunction = state.saveRawFunction
+            saveRawFunction = state.saveRawFunction,
+            isMemoryUsed = isMemoryUsed,
         )
+    }
+
+    private val memInstructions = setOf(
+        OpCode.I32_LOAD, OpCode.I64_LOAD, OpCode.F32_LOAD, OpCode.F64_LOAD,
+        OpCode.I32_LOAD8_S, OpCode.I32_LOAD8_U, OpCode.I32_LOAD16_S, OpCode.I32_LOAD16_U,
+        OpCode.I64_LOAD8_S, OpCode.I64_LOAD8_U,
+        OpCode.I64_LOAD16_S, OpCode.I64_LOAD16_U,
+        OpCode.I64_LOAD32_S, OpCode.I64_LOAD32_U,
+        OpCode.I32_STORE, OpCode.I64_STORE,
+        OpCode.F32_STORE, OpCode.F64_STORE,
+        OpCode.I32_STORE8, OpCode.I32_STORE16,
+        OpCode.I64_STORE8, OpCode.I64_STORE16, OpCode.I64_STORE32,
+        OpCode.MEMORY_SIZE, OpCode.MEMORY_GROW, OpCode.MEMORY_INIT, OpCode.MEMORY_COPY, OpCode.MEMORY_FILL,
+    );
+
+    private fun isMemoryInstruction(instruction: AnnotatedInstruction): Boolean {
+        return instruction.opcode() in memInstructions
     }
 
     fun translate(moduleName: String, path: Path): TranslatedWasmModule {

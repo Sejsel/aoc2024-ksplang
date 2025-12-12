@@ -733,7 +733,10 @@ fun InstantiatedKsplangWasmModule.toRuntimeData(): RuntimeData {
         check(it.valueHigh == 0L) { "Unsupported high part" }
         it
     }
-    val memories = instance.memory()?.let { listOf(instance.memory()) } ?: emptyList<Memory>()
+    val memories = instance.memory()?.let {
+        // Only include the memory if it's actually used
+        if (isMemoryUsed) listOf(instance.memory()) else emptyList<Memory>()
+    } ?: emptyList<Memory>()
     val tables = instance.getTables()
     val funTable: List<ProgramFunctionBase?> = if (tables.isEmpty()) {
         emptyList()
