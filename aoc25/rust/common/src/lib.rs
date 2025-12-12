@@ -13,6 +13,8 @@ unsafe extern "C" {
     ///         which do not fit into a byte or you will break invariants.
     #[link_name = "save_raw_i64"]
     fn _save_raw_i64(value: i64, index: usize);
+    #[link_name = "set_input"]
+    fn _set_input(value: i64, index: i32);
 }
 
 pub fn input_size() -> i32 {
@@ -21,6 +23,11 @@ pub fn input_size() -> i32 {
 
 pub fn read_input(index: i32) -> i64 {
     unsafe { _read_input(index) }
+}
+
+/** Replaces value in input with a new value. Mainly useful as an optimization. */
+pub fn set_input(index: i32, value: i64) {
+    unsafe { _set_input(value, index) }
 }
 
 pub fn read_input_to_string() -> String {

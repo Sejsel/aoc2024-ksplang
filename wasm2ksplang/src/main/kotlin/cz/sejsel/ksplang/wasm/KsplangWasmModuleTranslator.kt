@@ -121,6 +121,8 @@ class TranslatedWasmModule(
     val getFunctionAddressFunction: ProgramFunction1To1?,
     /** Forward declaration, needs to be implemented by embedder */
     val saveRawFunction: ProgramFunction2To0?,
+    /** Forward declaration, needs to be implemented by embedder */
+    val setInputFunction: ProgramFunction2To0?,
 ) {
     fun KsplangProgramBuilder.installFunctions() {
         programFunctions.forEach { installFunction(it) }
@@ -134,6 +136,7 @@ class TranslatedWasmModule(
         readInputFunction?.let { installFunction(it) }
         getFunctionAddressFunction?.let { installFunction(it) }
         saveRawFunction?.let { installFunction(it) }
+        setInputFunction?.let { installFunction(it) }
     }
 
     fun getFunction(index: Int): ProgramFunctionBase? {
@@ -161,6 +164,7 @@ class ModuleTranslatorState {
     var readInputFunction: ProgramFunction1To1? = null
     var saveRawFunction: ProgramFunction2To0? = null
     var getFunctionAddressFunction: ProgramFunction1To1? = null
+    var setInputFunction: ProgramFunction2To0? = null
 
     fun getFunctionAddressFunction(): ProgramFunction1To1 {
         // Forward declaration.
@@ -286,6 +290,10 @@ class KsplangWasmModuleTranslator() {
             state.saveRawFunction = it as ProgramFunction2To0
         }
 
+        importedFunctions["env" to "set_input"]?.let {
+            state.setInputFunction = it as ProgramFunction2To0
+        }
+
         return TranslatedWasmModule(
             programFunctions = functions,
             chicoryModule = module,
@@ -301,6 +309,7 @@ class KsplangWasmModuleTranslator() {
             getFunctionAddressFunction = state.getFunctionAddressFunction,
             saveRawFunction = state.saveRawFunction,
             isMemoryUsed = isMemoryUsed,
+            setInputFunction = state.setInputFunction
         )
     }
 

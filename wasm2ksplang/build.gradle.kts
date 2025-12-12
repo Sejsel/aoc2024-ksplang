@@ -11,6 +11,7 @@ dependencies {
     implementation(libs.chicory.wasm)
     api(libs.chicory.runtime)
     implementation(libs.chicory.wasm.tools)
+    implementation(libs.kotlin.logging)
     implementation(project(":gen"))
 
     testImplementation(libs.kotest.framework.engine)

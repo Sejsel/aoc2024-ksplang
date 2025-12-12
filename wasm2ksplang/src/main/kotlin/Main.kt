@@ -46,8 +46,11 @@ import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.instantiateModuleFromPath
 import getGlobals
 import getTables
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import kotlin.io.path.Path
+
+private val logger = KotlinLogging.logger {}
 
 fun main() {
     val builder = KsplangBuilder()
@@ -295,6 +298,12 @@ fun buildSingleModuleProgram(
                 }
             }
 
+            module.getSetInputFunction()?.let {
+                it.setBody {
+                    with(builder) { yeetInput() }
+                }
+            }
+
             builder.block()
         }
     }
@@ -308,6 +317,8 @@ interface WasmBuilder {
     fun ComplexBlock.getInputSize(): ComplexFunction
     fun ComplexBlock.getFunctionAddress(): ComplexFunction
     fun ComplexBlock.yoinkInput(): ComplexFunction
+    /** Signature: ```index value -> input[index] = value``` */
+    fun ComplexBlock.yeetInput(): ComplexFunction
     fun ComplexBlock.yoinkInput(index: Int): ComplexFunction
     fun ComplexBlock.yoinkGlobal(index: Int): ComplexFunction
     fun ComplexBlock.yeetGlobal(index: Int): ComplexFunction
@@ -364,6 +375,13 @@ class NoMemoryWasmBuilder(
         push(indices.inputStartIndex)
         add()
         yoink()
+    }
+
+    override fun ComplexBlock.yeetInput(): ComplexFunction = complexFunction("yeetInput") {
+        // value index
+        push(indices.inputStartIndex)
+        add()
+        yeet()
     }
 
     /**
@@ -448,12 +466,8 @@ class SingleModuleWasmBuilder(
         yoink()
     }
 
-    /**
-     * Signature: ```i -> input[i]```
-     */
-    override fun ComplexBlock.yoinkInput() = complexFunction("yoinkInput") {
+    private fun ComplexBlock.toInputIndex() {
         // input starts at memStartIndex + memSize * 65536
-
         // i
         push(indices.memSizeIndex)
         yoink()
@@ -468,7 +482,23 @@ class SingleModuleWasmBuilder(
         // i mem_start+mem_size*65536
         add()
         // i+mem_start+mem_size*65536
+    }
+
+    /**
+     * Signature: ```i -> input[i]```
+     */
+    override fun ComplexBlock.yoinkInput() = complexFunction("yoinkInput") {
+        // i
+        toInputIndex()
+        // i+mem_start+mem_size*65536
         yoink()
+    }
+
+    override fun ComplexBlock.yeetInput(): ComplexFunction = complexFunction("yeetInput") {
+        // value index
+        toInputIndex()
+        // value real_index
+        yeet()
     }
 
     /**
@@ -735,7 +765,13 @@ fun InstantiatedKsplangWasmModule.toRuntimeData(): RuntimeData {
     }
     val memories = instance.memory()?.let {
         // Only include the memory if it's actually used
-        if (isMemoryUsed) listOf(instance.memory()) else emptyList<Memory>()
+        if (isMemoryUsed) {
+            logger.debug { "WASM memory found and it is used. "}
+            listOf(instance.memory())
+        } else {
+            logger.debug { "WASM memory is unused, ignoring it. "}
+            emptyList<Memory>()
+        }
     } ?: emptyList<Memory>()
     val tables = instance.getTables()
     val funTable: List<ProgramFunctionBase?> = if (tables.isEmpty()) {
