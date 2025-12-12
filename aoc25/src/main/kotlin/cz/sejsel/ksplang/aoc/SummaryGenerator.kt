@@ -57,7 +57,10 @@ fun toEnrichedMarkdown(results: BenchmarkResults, programs: List<AoCBenchmarkPro
                         val formatted = String.format("%d", value.toInt())
                         // Link Instructions column to ksplang file
                         if (program != null) {
-                            "[$formatted](/aoc25/ksplang/${program.ksplangFilename}) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/${program.sourceFilename}))"
+                            val links = program.sourceFilenames.entries.joinToString(", ") { (name, filename) ->
+                                "[$name](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/${filename})"
+                            }
+                            "[$formatted](/aoc25/ksplang/${program.ksplangFilename}) ($links)"
                         } else {
                             formatted
                         }
