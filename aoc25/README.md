@@ -33,9 +33,10 @@ We have multiple interpreters:
 
 These are programs made by writing a Rust program, compiling it to WASM, then translating it to ksplang with [wasm2ksplang](/wasm2ksplang).
 
-| Program                    |                                                                                                     Instructions |      ksplang | KsplangJIT | KsplangJIT old |
-|----------------------------|-----------------------------------------------------------------------------------------------------------------:|-------------:|-----------:|---------------:|
-| Day 1 - part 1 WASM (Rust) | [10965](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt)) |    245.00 ms |   87.00 ms |       80.00 ms |
+| Program                    |                                                                                                     Instructions |   ksplang | KsplangJIT | KsplangJIT old |
+|----------------------------|-----------------------------------------------------------------------------------------------------------------:|----------:|-----------:|---------------:|
+| Day 1 - part 1 WASM (Rust) | [10965](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt)) | 243.67 ms |   90.33 ms |       81.67 ms |
+| Day 1 - part 2 WASM (Rust) | [14098](/aoc25/ksplang/wasm/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt)) | 272.00 ms |  123.33 ms |      119.33 ms |
 
 ## Journal
 
