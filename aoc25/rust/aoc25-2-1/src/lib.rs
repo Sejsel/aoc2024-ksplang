@@ -14,12 +14,18 @@ pub extern "C" fn solve() -> RawI64 {
         if input_pos >= input_size {
             break;
         }
-        let from = unsafe { parse_u64_unchecked(&mut input_pos, '-') };
-        let to = unsafe { parse_u64_unchecked(&mut input_pos, ',') };
-        for value in from..=to {
-            let value: RawI64 = (value as i64).into();
+        let from: RawI64 = (unsafe { parse_u64_unchecked(&mut input_pos, '-') } as i64).into();
+        let to: RawI64 = (unsafe { parse_u64_unchecked(&mut input_pos, ',') } as i64).into();
+
+        let mut value: RawI64 = from;
+        loop {
             if is_invalid(value) {
                 result += value;
+            }
+
+            value += 1.into();
+            if (to - value).sgn() == 0 {
+                break;
             }
         }
     }

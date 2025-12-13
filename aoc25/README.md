@@ -32,11 +32,11 @@ We have multiple interpreters:
 
 These are programs made by writing a Rust program, compiling it to WASM, then translating it to ksplang with [wasm2ksplang](/wasm2ksplang).
 
-| Program             |                                                                                                                                               Instructions |      ksplang | KsplangJIT | KsplangJIT no tracing |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------:|-------------:|-----------:|----------------------:|
-| WASM Day 1 - part 1 | [10965](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-1/src/lib.rs)) |    237.67 ms |   88.00 ms |              84.67 ms |
-| WASM Day 1 - part 2 | [14098](/aoc25/ksplang/wasm/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-2/src/lib.rs)) |    274.33 ms |  124.00 ms |             119.67 ms |
-| WASM Day 2 - part 1 | [19131](/aoc25/ksplang/wasm/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt), [rust](/aoc25/rust/aoc25-2-1/src/lib.rs)) | 101563.00 ms | 2738.00 ms |            2458.00 ms |
+| Program             |                                                                                                                                               Instructions |     ksplang | KsplangJIT | KsplangJIT no tracing |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------:|------------:|-----------:|----------------------:|
+| WASM Day 1 - part 1 | [10965](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-1/src/lib.rs)) |   244.67 ms |   86.00 ms |              83.67 ms |
+| WASM Day 1 - part 2 | [14098](/aoc25/ksplang/wasm/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-2/src/lib.rs)) |   273.33 ms |  123.67 ms |             121.33 ms |
+| WASM Day 2 - part 1 | [10884](/aoc25/ksplang/wasm/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt), [rust](/aoc25/rust/aoc25-2-1/src/lib.rs)) | 39732.00 ms | 1164.00 ms |            1407.00 ms |
 
 ## Journal
 
@@ -111,3 +111,26 @@ Anyway, with a simple dirty script which does that, we now have a ksplang progra
 Rust which is comparable to the "pure" ksplang solution I had.
 It has double the instructions or so, but somehow actually runs the same speed or even faster as the
 *organically sourced free-range* ksplang.
+
+### [Day 2](https://adventofcode.com/2025/day/2) - again (2026-12-13)
+
+Trying to get the Rust program as close to "pure" ksplang performance as possible. The main thing I did was
+expose ksplang instructions as extern functions, so if you want to use ksplang instructions directly from Rust, you can.
+
+In the end, I ended up with a program which is about 3x as slow as my non-WASM solution. Most of the slowness is in
+the pow(10, e) function. In the pure ksplang solution, I have a lookup table on the stack, but here it has to be in WASM
+memory and it is significantly more costly that way (WASM memory is byte-based, so we need to get 8 stack values instead of 1).
+
+It would be possible to somehow extend the generated WASM with lookup table support, there are custom sections in WASM
+and we could then invoke an imported function which would use a lookup table which we defined in the custom section.
+However, that is too much work for now, so I won't bother just yet.
+
+Imported ksplang instructions make it possible to work with 64-bit numbers in Rust without incurring massive performance cost of wrapping
+arithmetic. If you are fine with overflows crashing the program, you can now just use raw ksplang instructions.
+I have a pretty `RawI64` type, and operators on it use the cheaper ksplang instructions.
+
+It is tempting to just have a special mode for wasm2ksplang where i64 instructions would just use
+fast variants and crash upon overflows. Unfortunately, you would not have full control over it - it's LLVM who
+decides which WASM ops are used, and any optimization might cause potential overflows even when you would not expect it from the Rust code.
+And it's signed i64 operation overflows which cause issues, so if you are working with u64, it would also behave
+a bit unexpectedly.

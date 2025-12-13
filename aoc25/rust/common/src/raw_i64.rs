@@ -1,5 +1,5 @@
 use std::ops;
-use crate::instructions::{add_unchecked, and, div_unchecked, lensum, mul_unchecked, negate_unchecked, rem};
+use crate::instructions::{add_unchecked, and, div_unchecked, lensum, mul_unchecked, negate_unchecked, rem, sgn};
 
 /// A wrapper around raw ksplang i64 values, providing fast but **UNSAFE** arithmetic operations which invoke ksplang instructions directly.
 /// Any overflow except for bitshifts causes a program crash.
@@ -29,6 +29,10 @@ impl RawI64 {
     /// - 10-99 is 2
     pub fn digit_len(&self) -> u32 {
         lensum(self.0, 0)
+    }
+    
+    pub fn sgn(&self) -> i32 {
+        sgn(self.0)
     }
 }
 
