@@ -36,6 +36,13 @@ unsafe extern "C" {
     fn _funkcia(a: i64, b: i64) -> u32;
     #[link_name = "spanek"]
     fn _spanek();
+    // Most efficient negation is done through qeq, which has a variable number of stack results,
+    // it's a bit too risky to expose it directly.
+    #[link_name = "negate"]
+    fn _negate(a: i64) -> i64;
+    // Division is also not native
+    #[link_name = "div"]
+    fn _div(a: i64, b: i64) -> i64;
 }
 
 /// Calls the ksplang funkcia instruction, this is safe for all inputs.
@@ -162,6 +169,24 @@ pub fn and(a: i64, b: i64) -> i64 {
 ///
 /// # Safety
 /// This function leads to a program crash if the result does not fit into i64.
-pub unsafe fn gcd(a: i64, b: i64) -> i64 {
+pub unsafe fn gcd_unchecked(a: i64, b: i64) -> i64 {
     unsafe { _gcd(a, b) }
+}
+
+
+/// Negates a number, composite of multiple instructions.
+///
+/// # Safety
+/// This function leads to a program crash if a is [i64::MIN].
+pub unsafe fn negate_unchecked(a: i64) -> i64 {
+    unsafe { _negate(a) }
+}
+
+/// Divides two numbers, composite of multiple instructions.
+///
+/// # Safety
+/// This function leads to a program crash if b == 0 or the result does not fit into i64.
+pub unsafe fn div_unchecked(a: i64, b: i64) -> i64 {
+    // Note the swapped parameters
+    unsafe { _div(b, a) }
 }

@@ -41,6 +41,8 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
         store.addFunction(HostFunction("ksplang", "gcd", FunctionType.of(listOf(ValType.I64, ValType.I64), listOf(ValType.I64))) { _, _ -> error("Dummy function") })
         store.addFunction(HostFunction("ksplang", "funkcia", FunctionType.of(listOf(ValType.I64, ValType.I64), listOf(ValType.I32))) { _, _ -> error("Dummy function") })
         store.addFunction(HostFunction("ksplang", "spanek", FunctionType.of(listOf(), listOf())) { _, _ -> error("Dummy function") })
+        store.addFunction(HostFunction("ksplang", "negate", FunctionType.of(listOf(ValType.I64), listOf(ValType.I64))) { _, _ -> error("Dummy function") })
+        store.addFunction(HostFunction("ksplang", "div", FunctionType.of(listOf(ValType.I64, ValType.I64), listOf(ValType.I64))) { _, _ -> error("Dummy function") })
     }
     val instance: Instance = store.instantiate(moduleName, module.chicoryModule)
 

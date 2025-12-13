@@ -96,8 +96,10 @@ import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
 import cz.sejsel.ksplang.std.add
 import cz.sejsel.ksplang.std.cursedDiv
+import cz.sejsel.ksplang.std.div
 import cz.sejsel.ksplang.std.factorial
 import cz.sejsel.ksplang.std.mul
+import cz.sejsel.ksplang.std.negate
 import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.sgn
 import cz.sejsel.ksplang.std.subabs
@@ -342,6 +344,8 @@ class KsplangWasmModuleTranslator() {
         importedFunctions["ksplang" to "gcd"]?.let { it.function.setBody { gcd() } }
         importedFunctions["ksplang" to "funkcia"]?.let { it.function.setBody { funkcia() } }
         importedFunctions["ksplang" to "spanek"]?.let { it.function.setBody { spanek() } }
+        importedFunctions["ksplang" to "negate"]?.let { it.function.setBody { negate() } }
+        importedFunctions["ksplang" to "div"]?.let { it.function.setBody { div() } }
 
         return TranslatedWasmModule(
             programFunctions = functions.map { it.function },
