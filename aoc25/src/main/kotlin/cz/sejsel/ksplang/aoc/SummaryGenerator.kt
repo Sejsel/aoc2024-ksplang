@@ -7,8 +7,23 @@ import cz.sejsel.ksplang.benchmarks.runBenchmarks
 fun main() {
     val ksplangs = buildList {
         add(KsplangInterpreter("ksplang", "ksplang", optimize = false))
-        add(KsplangInterpreter("KsplangJIT", "../exyi-ksplang/target/release/ksplang-cli", optimize = true))
-        add(KsplangInterpreter("KsplangJIT old", "../exyi-ksplang/ksplang-last-known-working", optimize = true))
+        add(
+            KsplangInterpreter(
+                "KsplangJIT", "../exyi-ksplang/target/release/ksplang-cli", optimize = true, envVariables = mapOf(
+                    "KSPLANGJIT_VERBOSITY" to "0",
+                    "KSPLANGJIT_TRIGGER_COUNT" to "500",
+                )
+            )
+        )
+        add(
+            KsplangInterpreter(
+                "KsplangJIT no tracing", "../exyi-ksplang/target/release/ksplang-cli", optimize = true, envVariables = mapOf(
+                    "KSPLANGJIT_VERBOSITY" to "0",
+                    "KSPLANGJIT_TRIGGER_COUNT" to "500",
+                    "KSPLANGJIT_TRACE_LIMIT" to "0"
+                )
+            )
+        )
     }
 
     val results = runBenchmarks(ksplangs, enableKotlin = false, Programs, ::AoC25Solutions)
@@ -16,17 +31,21 @@ fun main() {
     println(markdown)
 }
 
-fun toEnrichedMarkdown(results: BenchmarkResults, programs: List<AoCBenchmarkProgram>, includeBuildTime: Boolean = false): String {
+fun toEnrichedMarkdown(
+    results: BenchmarkResults,
+    programs: List<AoCBenchmarkProgram>,
+    includeBuildTime: Boolean = false
+): String {
     val benchmarks = results.resultsByBenchmark.keys.sorted()
     val filteredInterpreters = if (includeBuildTime) {
         results.interpreters
     } else {
         results.interpreters.filter { it != "BUILD" }
     }
-    
+
     // Create a map from benchmark name to AoCBenchmarkProgram
     val programsByName = programs.associateBy { it.name }
-    
+
     val result = StringBuilder()
 
     // Header row
@@ -46,9 +65,9 @@ fun toEnrichedMarkdown(results: BenchmarkResults, programs: List<AoCBenchmarkPro
     // Data rows
     for (benchmarkName in benchmarks) {
         val program = programsByName[benchmarkName]
-        
+
         result.append("| $benchmarkName ")
-        
+
         for (interpreter in filteredInterpreters) {
             val value = results.resultsByBenchmark[benchmarkName]?.get(interpreter)
             if (value != null) {
@@ -65,6 +84,7 @@ fun toEnrichedMarkdown(results: BenchmarkResults, programs: List<AoCBenchmarkPro
                             formatted
                         }
                     }
+
                     else -> String.format("%.2f ms", value)
                 }
                 result.append("| $cell ")
@@ -74,7 +94,7 @@ fun toEnrichedMarkdown(results: BenchmarkResults, programs: List<AoCBenchmarkPro
         }
         result.appendLine("|")
     }
-    
+
     return result.toString()
 }
 

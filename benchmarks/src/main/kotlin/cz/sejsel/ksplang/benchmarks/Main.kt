@@ -16,7 +16,8 @@ import kotlin.io.path.writeText
 data class KsplangInterpreter(
     val name: String,
     val pathToInterpreter: String,
-    val optimize: Boolean
+    val optimize: Boolean,
+    val envVariables: Map<String, String> = emptyMap()
 )
 
 data class BenchmarkResults(
@@ -150,10 +151,24 @@ class BenchmarkCommand : CliktCommand(
 
     override fun run() {
         val ksplangs = buildList {
-            add(KsplangInterpreter("system ksplang", "ksplang", optimize = false))
-            //add(KsplangInterpreter("exyi", "../exyi-ksplang/target/release/ksplang-cli", optimize = false))
-            add(KsplangInterpreter("exyi optimize", "../exyi-ksplang/target/release/ksplang-cli", optimize = true))
-            add(KsplangInterpreter("exyi optimize last known working", "../exyi-ksplang/ksplang-last-known-working", optimize = true))
+            add(KsplangInterpreter("ksplang", "ksplang", optimize = false))
+            add(
+                KsplangInterpreter(
+                    "KsplangJIT", "../exyi-ksplang/target/release/ksplang-cli", optimize = true, envVariables = mapOf(
+                        "KSPLANGJIT_VERBOSITY" to "0",
+                        "KSPLANGJIT_TRIGGER_COUNT" to "500",
+                    )
+                )
+            )
+            add(
+                KsplangInterpreter(
+                    "KsplangJIT no tracing", "../exyi-ksplang/target/release/ksplang-cli", optimize = true, envVariables = mapOf(
+                        "KSPLANGJIT_VERBOSITY" to "0",
+                        "KSPLANGJIT_TRIGGER_COUNT" to "500",
+                        "KSPLANGJIT_TRACE_LIMIT" to "0"
+                    )
+                )
+            )
         }
 
         val results = runBenchmarks(ksplangs, enableKotlin, Programs) { RustBenchmarks(it) }
@@ -186,14 +201,11 @@ class DumpProgramsCommand : CliktCommand(
 fun runBenchmarks(ksplangs: List<KsplangInterpreter>, enableKotlin: Boolean, programs: ProgramList, benchmarksFactory: (RustKsplangRunner) -> Benchmarks = { RustBenchmarks(it) }): BenchmarkResults {
     val resultsByBenchmark = mutableMapOf<String, MutableMap<String, Double??>>()
 
-    ksplangs.forEach { (interpreterName, pathToInterpreter, optimize) ->
+    ksplangs.forEach { (interpreterName, pathToInterpreter, optimize, params) ->
         val runner = RustKsplangRunner(
             pathToInterpreter = pathToInterpreter,
             optimize = optimize,
-            environmentVariables = mapOf(
-                "KSPLANGJIT_VERBOSITY" to "0",
-                "KSPLANGJIT_TRIGGER_COUNT" to "500"
-            )
+            environmentVariables = params,
         )
         val benchmarks = benchmarksFactory(runner)
         benchmarks.allBenchmarks.forEach { benchmark ->

@@ -18,7 +18,7 @@ impl RawI64 {
         RawI64(value)
     }
 
-    pub fn get(&self) -> i64 {
+    pub fn to_i64(&self) -> i64 {
         self.0
     }
 
@@ -40,7 +40,7 @@ impl From<i64> for RawI64 {
 
 impl From<RawI64> for i64 {
     fn from(value: RawI64) -> Self {
-        value.get()
+        value.to_i64()
     }
 }
 

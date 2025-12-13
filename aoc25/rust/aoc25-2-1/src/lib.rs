@@ -27,15 +27,33 @@ pub extern "C" fn solve() -> RawI64 {
     result
 }
 
+const POWERS_OF_TEN: [i64; 15] = [
+    1,
+    10,
+    100,
+    1_000,
+    10_000,
+    100_000,
+    1_000_000,
+    10_000_000,
+    100_000_000,
+    1_000_000_000,
+    10_000_000_000,
+    100_000_000_000,
+    1_000_000_000_000,
+    10_000_000_000_000,
+    100_000_000_000_000,
+];
+
 fn is_invalid(value: RawI64) -> bool {
     let len = value.digit_len();
     if len % 2 != 0 {
         return false
     }
 
-    let power_of_ten = 10u64.pow(len / 2) as i64;
-    let bottom_half = value % power_of_ten.into();
-    let top_half = value / power_of_ten.into();
+    let power_of_ten = POWERS_OF_TEN[(len / 2) as usize];
+    let bottom_half = (value % power_of_ten.into()).to_i64() as u32;
+    let top_half = (value / power_of_ten.into()).to_i64() as u32;
 
     top_half == bottom_half
 }

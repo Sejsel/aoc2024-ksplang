@@ -1,4 +1,4 @@
-use crate::instructions::{mul_unchecked, subabs_unchecked};
+use crate::instructions::{add_unchecked, mul_unchecked, subabs_unchecked};
 use crate::read_input;
 
 #[inline]
@@ -28,8 +28,7 @@ pub unsafe fn parse_u64_unchecked(input_pos: &mut i32, terminator: char) -> u64 
         }
 
         // result = result * 10 + (c - '0')
-        result = unsafe { mul_unchecked(result as i64, 10) as u64 }
-            + unsafe { subabs_unchecked(c as i64, '0' as i64) as u64 };
+        result = unsafe { add_unchecked(mul_unchecked(result as i64, 10), subabs_unchecked(c as i64, '0' as i64)) as u64 };
     }
     result
 }
