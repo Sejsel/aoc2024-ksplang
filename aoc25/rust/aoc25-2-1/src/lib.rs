@@ -1,6 +1,6 @@
 use common::raw_input::{parse_u64_unchecked};
 use common::{input_size, set_input};
-use common::raw_i64::RawI64;
+use common::raw_i64::{iter_non_empty_range_inclusive, RawI64};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn solve() -> RawI64 {
@@ -16,22 +16,16 @@ pub extern "C" fn solve() -> RawI64 {
         }
         let from: RawI64 = (unsafe { parse_u64_unchecked(&mut input_pos, '-') } as i64).into();
         let to: RawI64 = (unsafe { parse_u64_unchecked(&mut input_pos, ',') } as i64).into();
-
-        let mut value: RawI64 = from;
-        loop {
+        for value in iter_non_empty_range_inclusive(from, to) {
             if is_invalid(value) {
-                result += value;
-            }
-
-            value += 1.into();
-            if (to - value).sgn() == 0 {
-                break;
+                result += value
             }
         }
     }
 
     result
 }
+
 
 const POWERS_OF_TEN: [i64; 15] = [
     1,

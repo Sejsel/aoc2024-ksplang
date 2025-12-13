@@ -1,5 +1,5 @@
 use std::ops;
-use crate::instructions::{add_unchecked, and, div_unchecked, lensum, mul_unchecked, negate_unchecked, rem, sgn};
+use crate::instructions::{add_unchecked, and, div_unchecked, lensum, mul_unchecked, negate_unchecked, rem, sgn, subabs_unchecked};
 
 /// A wrapper around raw ksplang i64 values, providing fast but **UNSAFE** arithmetic operations which invoke ksplang instructions directly.
 /// Any overflow except for bitshifts causes a program crash.
@@ -30,9 +30,13 @@ impl RawI64 {
     pub fn digit_len(&self) -> u32 {
         lensum(self.0, 0)
     }
-    
+
     pub fn sgn(&self) -> i32 {
         sgn(self.0)
+    }
+
+    pub fn subabs(&self, other: RawI64) -> RawI64 {
+        unsafe { subabs_unchecked(self.0, other.0).into() }
     }
 }
 
@@ -148,3 +152,31 @@ impl ops::BitAndAssign for RawI64 {
         *self = *self & other;
     }
 }
+
+/// Important: if to > from is used, this will run forever!
+pub fn iter_non_empty_range_inclusive(from: RawI64, to: RawI64) -> InclusiveRawI64RangeIter {
+    InclusiveRawI64RangeIter {
+        current: from,
+        to: to + RawI64::new(1),
+    }
+}
+
+pub struct InclusiveRawI64RangeIter {
+    current: RawI64,
+    to: RawI64,
+}
+
+impl Iterator for InclusiveRawI64RangeIter {
+    type Item = RawI64;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current.subabs(self.to) == 0.into() {
+            None
+        } else {
+            let result = self.current;
+            self.current += 1.into();
+            Some(result)
+        }
+    }
+}
+
