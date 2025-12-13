@@ -8,6 +8,7 @@ import cz.sejsel.ksplang.dsl.core.call
 import cz.sejsel.ksplang.std.leaveTop
 import cz.sejsel.ksplang.wasm.KsplangWasmModuleTranslator
 import cz.sejsel.ksplang.wasm.instantiateModuleFromPath
+import java.io.File
 import java.nio.file.Path
 
 /**
@@ -27,5 +28,16 @@ fun buildWasmSingleValueProgram(wasmPath: Path, functionName: String): KsplangPr
             // i32/i64
             leaveTop() // destroys runtime layout
         }
+    }
+}
+
+fun rebuildAllWasm() {
+    val process = ProcessBuilder("./build-all.sh")
+        .directory(File("aoc25/rust"))
+        .inheritIO()
+        .start()
+    val exitCode = process.waitFor()
+    if (exitCode != 0) {
+        error("build-all.sh failed with exit code $exitCode")
     }
 }

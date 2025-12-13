@@ -5,9 +5,12 @@ import cz.sejsel.ksplang.dsl.core.KsplangProgram
 import java.io.File
 import kotlin.io.path.Path
 
-// Day 1
+// Day 2
 // https://adventofcode.com/2025/day/2
 fun main() {
+    // Rebuild WASM files just to be sure
+    rebuildAllWasm()
+
     val builder = KsplangBuilder()
     val program = builder.buildAnnotated(wasmDay2Part1())
     File("aoc25/ksplang/wasm/2-1.ksplang").writeText(program.toRunnableProgram())

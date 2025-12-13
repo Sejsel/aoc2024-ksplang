@@ -1,5 +1,6 @@
 use common::raw_input::{parse_u64_unchecked};
 use common::{input_size, set_input};
+use common::instructions::lensum;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn solve() -> u64 {
@@ -26,7 +27,7 @@ pub extern "C" fn solve() -> u64 {
 }
 
 fn is_invalid(value: u64) -> bool {
-    let len = value.ilog10() + 1;
+    let len = lensum(value as i64, 0);
     if len % 2 != 0 {
         return false
     }

@@ -8,6 +8,9 @@ import kotlin.io.path.Path
 // Day 1
 // https://adventofcode.com/2025/day/1
 fun main() {
+    // Rebuild WASM files just to be sure
+    rebuildAllWasm()
+
     val builder = KsplangBuilder()
     val program = builder.buildAnnotated(wasmDay1Part1())
     File("aoc25/ksplang/wasm/1-1.ksplang").writeText(program.toRunnableProgram())

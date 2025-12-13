@@ -1,3 +1,4 @@
+pub mod instructions;
 pub mod raw_input;
 
 use std::alloc::{Layout, alloc};

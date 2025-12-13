@@ -123,11 +123,11 @@ class WasmFunctionScope private constructor(
         gotoLabel(functionEndLabel)
     }
 
-    fun ComplexFunction.callFunction(function: ProgramFunctionBase) {
+    fun ComplexFunction.callFunction(function: ProgramFunctionBase, inline: CallInline) {
         val inputCount = function.args
         val outputCount = function.outputs
-        instruction("callFunction(${function.name})", stackSizeChange = outputCount - inputCount) {
-            call(function)
+        instruction("callFunction(${function.name},$inline)", stackSizeChange = outputCount - inputCount) {
+            call(function, inline = inline)
         }
     }
 

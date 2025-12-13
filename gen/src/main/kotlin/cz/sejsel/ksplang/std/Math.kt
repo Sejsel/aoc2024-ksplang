@@ -107,6 +107,16 @@ fun Block.cursedDiv() = function("cursedDiv") {
 }
 
 /**
+ * Calculates factorial of the absolute value of the top value on the stack. Crashes when overflowing
+ *
+ * Signature: `a -> |a|!`
+ */
+fun Block.factorial() = function("factorial") {
+    push(4)
+    u()
+}
+
+/**
  * Divides the top two values on the stack. Crashes with division by zero.
  *
  * Signature: `a b -> b // a`

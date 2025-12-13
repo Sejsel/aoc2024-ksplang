@@ -7,6 +7,7 @@ import com.dylibso.chicory.wasm.types.ExternalType
 import com.dylibso.chicory.wasm.types.FunctionImport
 import com.dylibso.chicory.wasm.types.OpCode
 import com.dylibso.chicory.wasm.types.ValType
+import cz.sejsel.ksplang.dsl.core.CallInline
 import cz.sejsel.ksplang.dsl.core.ComplexBlock
 import cz.sejsel.ksplang.dsl.core.KsplangProgramBuilder
 import cz.sejsel.ksplang.dsl.core.ProgramFunction
@@ -93,6 +94,13 @@ import cz.sejsel.ksplang.dsl.core.ProgramFunction8To7
 import cz.sejsel.ksplang.dsl.core.ProgramFunction8To8
 import cz.sejsel.ksplang.dsl.core.ProgramFunctionBase
 import cz.sejsel.ksplang.dsl.core.buildComplexFunction
+import cz.sejsel.ksplang.std.add
+import cz.sejsel.ksplang.std.cursedDiv
+import cz.sejsel.ksplang.std.factorial
+import cz.sejsel.ksplang.std.mul
+import cz.sejsel.ksplang.std.push
+import cz.sejsel.ksplang.std.sgn
+import cz.sejsel.ksplang.std.subabs
 import java.nio.file.Path
 import cz.sejsel.ksplang.wasm.WasmFunctionScope.Companion.initialize as initializeScope
 
@@ -227,13 +235,18 @@ class ModuleTranslatorState {
     }
 }
 
+data class TranslatedFunction(
+    val function: ProgramFunctionBase,
+    val callInline: CallInline
+)
+
 class KsplangWasmModuleTranslator() {
     // TODO: Forward function declaration
     // TODO: Memory
     // TODO: Start function
     fun translate(moduleName: String, module: WasmModule): TranslatedWasmModule {
-        val functions = mutableListOf<ProgramFunctionBase>()
-        val importedFunctions = mutableMapOf<Pair<String, String>, ProgramFunctionBase>()
+        val functions = mutableListOf<TranslatedFunction>()
+        val importedFunctions = mutableMapOf<Pair<String, String>, TranslatedFunction>()
         val state = ModuleTranslatorState()
 
         // First imported functions, then defined functions.
@@ -250,8 +263,17 @@ class KsplangWasmModuleTranslator() {
                     val declaredName = module.nameSection()?.nameOfFunction(i) ?: "anonymous"
                     val name = "wasm_${moduleName}_import_${i}_$declaredName"
                     val function = createFunction(name = name, paramCount = paramCount, returnCount = returnCount)
-                    functions.add(function)
-                    importedFunctions[import.module() to import.name()] = function
+                    // ksplang module functions are just instructions that should be inlined, we don't even
+                    // install those functions
+                    val inline = if (import.module() == "ksplang") {
+                        CallInline.ALWAYS
+                    } else {
+                        CallInline.AUTO
+                    }
+
+                    val hostFunction = TranslatedFunction(function, inline)
+                    importedFunctions[import.module() to import.name()] = hostFunction
+                    functions.add(hostFunction)
                 }
             }
         }
@@ -266,7 +288,15 @@ class KsplangWasmModuleTranslator() {
             // There may be a name in the name custom section
             val declaredName = module.nameSection()?.nameOfFunction(fullIndex) ?: "anonymous"
             val name = "wasm_${moduleName}_${fullIndex}_$declaredName"
-            functions.add(createFunction(name = name, paramCount = paramCount, returnCount = returnCount))
+            functions.add(
+                TranslatedFunction(
+                    createFunction(
+                        name = name,
+                        paramCount = paramCount,
+                        returnCount = returnCount
+                    ), callInline = CallInline.AUTO
+                )
+            )
         }
 
         val isMemoryUsed = module.codeSection().functionBodies().any { body ->
@@ -275,29 +305,48 @@ class KsplangWasmModuleTranslator() {
 
         for (functionIndex in 0..<module.functionSection().functionCount()) {
             val body = functionToKsplang(module, functions, functionIndex, state)
-            functions[importFunctionCount + functionIndex].setBody(body)
+            functions[importFunctionCount + functionIndex].function.setBody(body)
         }
 
         importedFunctions["env" to "input_size"]?.let {
-            state.getInputSizeFunction = it as ProgramFunction0To1
+            state.getInputSizeFunction = it.function as ProgramFunction0To1
         }
 
         importedFunctions["env" to "read_input"]?.let {
-            state.readInputFunction = it as ProgramFunction1To1
+            state.readInputFunction = it.function as ProgramFunction1To1
         }
 
         importedFunctions["env" to "save_raw_i64"]?.let {
-            state.saveRawFunction = it as ProgramFunction2To0
+            state.saveRawFunction = it.function as ProgramFunction2To0
         }
 
         importedFunctions["env" to "set_input"]?.let {
-            state.setInputFunction = it as ProgramFunction2To0
+            state.setInputFunction = it.function as ProgramFunction2To0
         }
 
+        // TODO: Ensure calls are inlined
+        importedFunctions["ksplang" to "max"]?.let { it.function.setBody { max2() } }
+        importedFunctions["ksplang" to "u_add"]?.let { it.function.setBody { add() } }
+        importedFunctions["ksplang" to "u_subabs"]?.let { it.function.setBody { subabs() } }
+        importedFunctions["ksplang" to "u_mul"]?.let { it.function.setBody { mul() } }
+        importedFunctions["ksplang" to "u_curseddiv"]?.let { it.function.setBody { cursedDiv() } }
+        importedFunctions["ksplang" to "u_factorial"]?.let { it.function.setBody { factorial() } }
+        importedFunctions["ksplang" to "u_sgn"]?.let { it.function.setBody { sgn() } }
+        importedFunctions["ksplang" to "rem"]?.let { it.function.setBody { REM() } }
+        importedFunctions["ksplang" to "mod"]?.let { it.function.setBody { modulo() } }
+        importedFunctions["ksplang" to "tetr"]?.let { it.function.setBody { tetr() } }
+        importedFunctions["ksplang" to "cs"]?.let { it.function.setBody { CS(); pop2() } }
+        importedFunctions["ksplang" to "lensum"]?.let { it.function.setBody { lensum() } }
+        importedFunctions["ksplang" to "bitshift"]?.let { it.function.setBody { bitshift() } }
+        importedFunctions["ksplang" to "and"]?.let { it.function.setBody { bitand() } }
+        importedFunctions["ksplang" to "gcd"]?.let { it.function.setBody { gcd() } }
+        importedFunctions["ksplang" to "funkcia"]?.let { it.function.setBody { funkcia() } }
+        importedFunctions["ksplang" to "spanek"]?.let { it.function.setBody { spanek() } }
+
         return TranslatedWasmModule(
-            programFunctions = functions,
+            programFunctions = functions.map { it.function },
             chicoryModule = module,
-            exportedFunctions = associateExportedFunctions(module, functions),
+            exportedFunctions = associateExportedFunctions(module, functions.map { it.function }),
             getGlobalFunctions = state.getGlobalFunctions,
             setGlobalFunctions = state.setGlobalFunctions,
             getMemoryFunction = state.getMemoryFunction,
@@ -355,7 +404,7 @@ class KsplangWasmModuleTranslator() {
         }
     }
 
-    private fun functionToKsplang(module: WasmModule, functions: List<ProgramFunctionBase>, index: Int, state: ModuleTranslatorState): ComplexBlock {
+    private fun functionToKsplang(module: WasmModule, functions: List<TranslatedFunction>, index: Int, state: ModuleTranslatorState): ComplexBlock {
         val functionType = module.typeSection().getType(module.functionSection().getFunctionType(index))
         val code = module.codeSection().functionBodies()[index]
         val localTypes = code.localTypes()
@@ -413,7 +462,10 @@ class KsplangWasmModuleTranslator() {
                             branchTable(instruction.operands().map { it.toInt() })
                         }
                         OpCode.RETURN -> returnFromFunction()
-                        OpCode.CALL -> callFunction(functions[instruction.operands()[0].toInt()])
+                        OpCode.CALL -> {
+                            val function = functions[instruction.operands()[0].toInt()]
+                            callFunction(function.function, function.callInline)
+                        }
                         OpCode.CALL_INDIRECT -> {
                             val type = module.typeSection().getType(instruction.operands()[0].toInt())
                             callIndirect(type)
