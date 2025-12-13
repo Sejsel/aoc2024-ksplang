@@ -11,3 +11,4 @@ RUSTFLAGS="-Ctarget-cpu=mvp -Zunstable-options -Cpanic=immediate-abort" cargo +n
 cp target/wasm32-unknown-unknown/release/aoc25_1_1.wasm "$SCRIPT_DIR/wasm/aoc25_1_1.wasm"
 cp target/wasm32-unknown-unknown/release/aoc25_1_2.wasm "$SCRIPT_DIR/wasm/aoc25_1_2.wasm"
 cp target/wasm32-unknown-unknown/release/aoc25_2_1.wasm "$SCRIPT_DIR/wasm/aoc25_2_1.wasm"
+cp target/wasm32-unknown-unknown/release/aoc25_2_2.wasm "$SCRIPT_DIR/wasm/aoc25_2_2.wasm"
