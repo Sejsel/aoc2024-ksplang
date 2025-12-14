@@ -39,7 +39,7 @@ These are programs made by writing a Rust program, compiling it to WASM, then tr
 | WASM Day 2 - part 1 | [11075](/aoc25/ksplang/wasm/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt), [rust](/aoc25/rust/aoc25-2-1/src/lib.rs)) | 41775.00 ms | 1153.00 ms |            1298.00 ms |
 | WASM Day 3 - part 1 | [15137](/aoc25/ksplang/wasm/3-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-1/src/lib.rs)) |   525.33 ms |   86.67 ms |              85.33 ms |
 | WASM Day 3 - part 2 |  [7601](/aoc25/ksplang/wasm/3-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-2/src/lib.rs)) |  1123.00 ms |  134.00 ms |             109.00 ms |
-| WASM Day 4 - part 1 | [38852](/aoc25/ksplang/wasm/4-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-1/src/lib.rs)) |  1072.33 ms |  398.33 ms |             337.00 ms |
+| WASM Day 4 - part 1 | [34863](/aoc25/ksplang/wasm/4-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-1/src/lib.rs)) |   875.33 ms |      ERROR |             266.00 ms |
 
 
 ## Journal

@@ -1,4 +1,5 @@
 use crate::instructions::{add_unchecked, mul_unchecked, subabs_unchecked};
+use crate::raw_i64::RawI64;
 use crate::read_input;
 
 #[inline]
@@ -45,4 +46,12 @@ pub fn find_next_unsafe(mut from_index: u32, char: char) -> u32 {
         }
         from_index += 1;
     }
+}
+
+/// Check if i64 is a character efficiently.
+///
+/// Arbitrary i64 comparison is fairly slow, so if we know the i64 is a valid character,
+/// we can optimize the comparison.
+pub fn is_char(raw_i64: RawI64, c: char) -> bool {
+    raw_i64.subabs((c as i64).into()) == 0.into()
 }
