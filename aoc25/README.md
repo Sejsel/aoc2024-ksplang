@@ -136,3 +136,13 @@ fast variants and crash upon overflows. Unfortunately, you would not have full c
 decides which WASM ops are used, and any optimization might cause potential overflows even when you would not expect it from the Rust code.
 And it's signed i64 operation overflows which cause issues, so if you are working with u64, it would also behave
 a bit unexpectedly.
+
+### [Day 3](https://adventofcode.com/2025/day/3) - again (2026-12-13)
+
+Now, solving part 1 again in Rust and adding part 2 was so much faster than it ever could have been without wasm2ksplang.
+The performance is quite good considering, only 30% slowdown in part 1.
+
+I wonder how the prformance is going to be going forward, there are no more "pure" ksplang solutions for comparisons.
+But it was good to optimize the current solutions, I now know what to expect - what is expensive (i64) and what is not
+worth spending time optimizing (i32).
+
