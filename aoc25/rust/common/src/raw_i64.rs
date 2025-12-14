@@ -36,7 +36,7 @@ impl RawI64 {
     }
 
     pub fn subabs(&self, other: RawI64) -> RawI64 {
-        unsafe { subabs_unchecked(self.0, other.0).into() }
+        subabs_unchecked(self.0, other.0).into()
     }
 }
 
@@ -56,7 +56,7 @@ impl ops::Add for RawI64 {
     type Output = RawI64;
 
     fn add(self, other: RawI64) -> RawI64 {
-        unsafe { add_unchecked(self.into(), other.into()).into() }
+         add_unchecked(self.into(), other.into()).into()
     }
 }
 
@@ -64,7 +64,7 @@ impl ops::Add<i64> for RawI64 {
     type Output = RawI64;
 
     fn add(self, other: i64) -> RawI64 {
-        unsafe { add_unchecked(self.into(), other).into() }
+        add_unchecked(self.into(), other).into()
     }
 }
 
@@ -72,7 +72,7 @@ impl ops::Neg for RawI64 {
     type Output = RawI64;
 
     fn neg(self) -> RawI64 {
-        RawI64(unsafe { negate_unchecked(self.0) })
+        RawI64(negate_unchecked(self.0))
     }
 }
 
@@ -88,7 +88,7 @@ impl ops::Mul for RawI64 {
     type Output = RawI64;
 
     fn mul(self, other: RawI64) -> RawI64 {
-        unsafe { mul_unchecked(self.into(), other.into()).into() }
+        mul_unchecked(self.into(), other.into()).into()
     }
 }
 
@@ -96,7 +96,7 @@ impl ops::Div for RawI64 {
     type Output = RawI64;
 
     fn div(self, other: RawI64) -> RawI64 {
-        unsafe { div_unchecked(self.0, other.0).into() }
+        div_unchecked(self.0, other.0).into()
     }
 }
 
@@ -113,7 +113,7 @@ impl ops::Rem for RawI64 {
     type Output = RawI64;
 
     fn rem(self, other: RawI64) -> RawI64 {
-        unsafe { rem(self.into(), other.into()).into() }
+        rem(self.into(), other.into()).into()
     }
 }
 
@@ -175,6 +175,32 @@ impl Iterator for InclusiveRawI64RangeIter {
         } else {
             let result = self.current;
             self.current += 1.into();
+            Some(result)
+        }
+    }
+}
+
+pub fn iter_non_empty_range_inclusive_rev(to: RawI64, from: RawI64) -> InclusiveRawI64RangeRevIter {
+    InclusiveRawI64RangeRevIter {
+        current: to,
+        to: from
+    }
+}
+
+pub struct InclusiveRawI64RangeRevIter {
+    current: RawI64,
+    to: RawI64,
+}
+
+impl Iterator for InclusiveRawI64RangeRevIter {
+    type Item = RawI64;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current.subabs(self.to) == 0.into() {
+            None
+        } else {
+            let result = self.current;
+            self.current -= 1.into();
             Some(result)
         }
     }

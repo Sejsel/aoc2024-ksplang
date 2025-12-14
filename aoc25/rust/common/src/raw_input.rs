@@ -2,7 +2,7 @@ use crate::instructions::{add_unchecked, mul_unchecked, subabs_unchecked};
 use crate::read_input;
 
 #[inline]
-pub unsafe fn parse_u32_unchecked(input_pos: &mut i32, terminator: char) -> u32 {
+pub unsafe fn parse_u32_unchecked(input_pos: &mut u32, terminator: char) -> u32 {
     let mut result = 0;
     loop {
         let c = unsafe { std::char::from_u32_unchecked(read_input(*input_pos) as u32) };
@@ -18,7 +18,7 @@ pub unsafe fn parse_u32_unchecked(input_pos: &mut i32, terminator: char) -> u32 
 /// Parses an u64 from the input starting at input_pos until the terminator character is found.
 /// In case of invalid input (non-digit characters before the terminator), the behavior is undefined.
 #[inline]
-pub unsafe fn parse_u64_unchecked(input_pos: &mut i32, terminator: char) -> u64 {
+pub unsafe fn parse_u64_unchecked(input_pos: &mut u32, terminator: char) -> u64 {
     let mut result = 0u64;
     loop {
         let c = unsafe { std::char::from_u32_unchecked(read_input(*input_pos) as u32) };
@@ -28,7 +28,7 @@ pub unsafe fn parse_u64_unchecked(input_pos: &mut i32, terminator: char) -> u64 
         }
 
         // result = result * 10 + (c - '0')
-        result = unsafe { add_unchecked(mul_unchecked(result as i64, 10), subabs_unchecked(c as i64, '0' as i64)) as u64 };
+        result = add_unchecked(mul_unchecked(result as i64, 10), subabs_unchecked(c as i64, '0' as i64)) as u64;
     }
     result
 }

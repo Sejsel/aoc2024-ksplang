@@ -62,7 +62,7 @@ pub fn max(a: i64, b: i64) -> i64 {
 ///
 /// # Safety
 /// This function leads to a program crash if the result overflows i64 (in either direction).
-pub unsafe fn add_unchecked(a: i64, b: i64) -> i64 {
+pub fn add_unchecked(a: i64, b: i64) -> i64 {
     unsafe { _u_add(a, b) }
 }
 
@@ -71,7 +71,7 @@ pub unsafe fn add_unchecked(a: i64, b: i64) -> i64 {
 ///
 /// # Safety
 /// This function leads to a program crash if the result overflows i64.
-pub unsafe fn subabs_unchecked(a: i64, b: i64) -> i64 {
+pub fn subabs_unchecked(a: i64, b: i64) -> i64 {
     unsafe { _u_subabs(a, b) }
 }
 
@@ -80,7 +80,7 @@ pub unsafe fn subabs_unchecked(a: i64, b: i64) -> i64 {
 ///
 /// # Safety
 /// This function leads to a program crash if the result overflows i64.
-pub unsafe fn mul_unchecked(a: i64, b: i64) -> i64 {
+pub fn mul_unchecked(a: i64, b: i64) -> i64 {
     unsafe { _u_mul(a, b) }
 }
 
@@ -89,7 +89,7 @@ pub unsafe fn mul_unchecked(a: i64, b: i64) -> i64 {
 ///
 /// # Safety
 /// This function leads to a program crash if the result does not fit into i64.
-pub unsafe fn curseddiv_unchecked(dividend: i64, divisor: i64) -> i64 {
+pub fn curseddiv_unchecked(dividend: i64, divisor: i64) -> i64 {
     // Note the swapped parameters
     unsafe { _u_curseddiv(divisor, dividend) }
 }
@@ -99,7 +99,7 @@ pub unsafe fn curseddiv_unchecked(dividend: i64, divisor: i64) -> i64 {
 ///
 /// # Safety
 /// This function leads to a program crash if the result overflows i64.
-pub unsafe fn factorial_unchecked(a: i64) -> i64 {
+pub fn factorial_unchecked(a: i64) -> i64 {
     unsafe { _u_factorial(a) }
 }
 
@@ -113,7 +113,7 @@ pub fn sgn(a: i64) -> i32 {
 /// Result: `a rem b`. (like C %)
 /// # Safety
 /// This function leads to a program crash if b == 0.
-pub unsafe fn rem(dividend: i64, divisor: i64) -> i64 {
+pub fn rem(dividend: i64, divisor: i64) -> i64 {
     // Note the swapped parameters
     unsafe { _rem(divisor, dividend) }
 }
@@ -123,7 +123,7 @@ pub unsafe fn rem(dividend: i64, divisor: i64) -> i64 {
 ///
 /// # Safety
 /// This function leads to a program crash if b == 0.
-pub unsafe fn euclid_mod(dividend: i64, divisor: i64) -> i64 {
+pub fn euclid_mod(dividend: i64, divisor: i64) -> i64 {
     // Note the swapped parameters
     unsafe { _rem(divisor, dividend) }
 }
@@ -133,7 +133,7 @@ pub unsafe fn euclid_mod(dividend: i64, divisor: i64) -> i64 {
 ///
 /// # Safety
 /// This function leads to a program crash if the result does not fit into i64.
-pub unsafe fn tetr(a: i64, b: i64) -> i64 {
+pub fn tetr(a: i64, b: i64) -> i64 {
     unsafe { _tetr(a, b) }
 }
 
@@ -154,7 +154,7 @@ pub fn lensum(a: i64, b: i64) -> u32 {
 ///
 /// # Safety
 /// This crashes the program with negative `by` values.
-pub unsafe fn bitshift(num: i64, by: i64) -> i64 {
+pub fn bitshift(num: i64, by: i64) -> i64 {
     unsafe { _bitshift(num, by) }
 }
 
@@ -169,7 +169,7 @@ pub fn and(a: i64, b: i64) -> i64 {
 ///
 /// # Safety
 /// This function leads to a program crash if the result does not fit into i64.
-pub unsafe fn gcd_unchecked(a: i64, b: i64) -> i64 {
+pub fn gcd_unchecked(a: i64, b: i64) -> i64 {
     unsafe { _gcd(a, b) }
 }
 
@@ -178,7 +178,7 @@ pub unsafe fn gcd_unchecked(a: i64, b: i64) -> i64 {
 ///
 /// # Safety
 /// This function leads to a program crash if a is [i64::MIN].
-pub unsafe fn negate_unchecked(a: i64) -> i64 {
+pub fn negate_unchecked(a: i64) -> i64 {
     unsafe { _negate(a) }
 }
 
@@ -186,7 +186,7 @@ pub unsafe fn negate_unchecked(a: i64) -> i64 {
 ///
 /// # Safety
 /// This function leads to a program crash if b == 0 or the result does not fit into i64.
-pub unsafe fn div_unchecked(a: i64, b: i64) -> i64 {
+pub fn div_unchecked(a: i64, b: i64) -> i64 {
     // Note the swapped parameters
     unsafe { _div(b, a) }
 }

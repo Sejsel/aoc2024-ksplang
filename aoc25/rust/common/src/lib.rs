@@ -3,32 +3,37 @@ pub mod raw_input;
 pub mod raw_i64;
 
 use std::alloc::{Layout, alloc};
+use crate::raw_i64::RawI64;
 
 #[link(wasm_import_module = "env")]
 unsafe extern "C" {
     #[link_name = "input_size"]
-    fn _input_size() -> i32;
+    fn _input_size() -> u32;
     #[link_name = "read_input"]
-    fn _read_input(index: i32) -> i64;
+    fn _read_input(index: u32) -> i64;
     /// Method to save raw i64 data into memory (normally, it would be individual bytes).
     /// SAFETY: never deallocate memory manipulated by this to contain values
     ///         which do not fit into a byte or you will break invariants.
     #[link_name = "save_raw_i64"]
     fn _save_raw_i64(value: i64, index: usize);
     #[link_name = "set_input"]
-    fn _set_input(value: i64, index: i32);
+    fn _set_input(value: i64, index: u32);
 }
 
-pub fn input_size() -> i32 {
+pub fn input_size() -> u32 {
     unsafe { _input_size() }
 }
 
-pub fn read_input(index: i32) -> i64 {
+pub fn read_input(index: u32) -> i64 {
     unsafe { _read_input(index) }
 }
 
+pub fn read_input_raw(index: u32) -> RawI64 {
+    read_input(index).into()
+}
+
 /** Replaces value in input with a new value. Mainly useful as an optimization. */
-pub fn set_input(index: i32, value: i64) {
+pub fn set_input(index: u32, value: i64) {
     unsafe { _set_input(value, index) }
 }
 
