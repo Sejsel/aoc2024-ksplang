@@ -157,3 +157,44 @@ and then might implement a better way.
 
 Part 2 was actually way faster than I expected even without any smart approach. Might come back to it later,
 but this is okay by me for now.
+
+Now I am running into a performance issue where the WASM compiler generates one of two things when comparing an i64
+with zero depending on what it likes for control flow. Either it generates the "equals to zero" instruction or it does
+a generic "not equals" comparison with a zero constant because WASM does not have an "neqz" isntruction.
+
+First option:
+```wat
+i64.eqz
+```
+
+This is something that has a very efficient translation to ksplang, we can use what I call `zeroNot`:
+```kotlin
+/*
+ * Returns 1 if the top value on the stack is zero, 0 otherwise. A negation of "zeroity".
+ *
+ * Signature: `a -> a == 0 ? 1 : 0`
+ */
+fun Block.zeroNot() = function("zeroNot") {
+    // x
+    sgn()
+    // sgn(x)
+    abs()
+    // |sgn(x)|, i.e. 0 or 1
+    CS(); j(); inc()
+    // |sgn(x)| 1
+    CS()
+    // |sgn(x)| 1 1
+    bulkxor()
+}
+```
+
+The alternative is that it generates this sequence:
+
+```wat
+i64.const 0
+i64.ne
+```
+
+This in theory also has an efficient translation (like `zeroNot` twice), but right now we go instruction by instruction,
+so we don't know it's comparison with a constant. I might end up adding an intermediate representation when translating
+WASM which would allow for optimizations like this. But not right now.
