@@ -32,3 +32,17 @@ pub unsafe fn parse_u64_unchecked(input_pos: &mut u32, terminator: char) -> u64 
     }
     result
 }
+
+
+/// Finds the index of the next occurrence of char in the input starting from from_index.
+///
+/// Will go out of input bounds if char is not in input on from_index or after
+pub fn find_next_unsafe(mut from_index: u32, char: char) -> u32 {
+    loop {
+        let input = read_input(from_index);
+        if subabs_unchecked(input, char as i64) == 0 {
+            return from_index;
+        }
+        from_index += 1;
+    }
+}

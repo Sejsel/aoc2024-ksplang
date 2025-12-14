@@ -1,6 +1,6 @@
-use common::instructions::subabs_unchecked;
 use common::raw_i64::RawI64;
-use common::{input_size, read_input, read_input_raw};
+use common::raw_input::find_next_unsafe;
+use common::{input_size, read_input_raw};
 
 const DIGITS: u32 = 12;
 
@@ -40,15 +40,4 @@ pub extern "C" fn solve() -> RawI64 {
     }
 
     result
-}
-
-// Will go out of input bounds if char is not in input on from_index or after
-fn find_next_unsafe(mut from_index: u32, char: char) -> u32 {
-    loop {
-        let input = read_input(from_index);
-        if subabs_unchecked(input, char as i64) == 0 {
-            return from_index;
-        }
-        from_index += 1;
-    }
 }

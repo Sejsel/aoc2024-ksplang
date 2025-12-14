@@ -39,6 +39,8 @@ These are programs made by writing a Rust program, compiling it to WASM, then tr
 | WASM Day 2 - part 1 | [11075](/aoc25/ksplang/wasm/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt), [rust](/aoc25/rust/aoc25-2-1/src/lib.rs)) | 41775.00 ms | 1153.00 ms |            1298.00 ms |
 | WASM Day 3 - part 1 | [15137](/aoc25/ksplang/wasm/3-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-1/src/lib.rs)) |   525.33 ms |   86.67 ms |              85.33 ms |
 | WASM Day 3 - part 2 |  [7601](/aoc25/ksplang/wasm/3-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-2/src/lib.rs)) |  1123.00 ms |  134.00 ms |             109.00 ms |
+| WASM Day 4 - part 1 | [38852](/aoc25/ksplang/wasm/4-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-1/src/lib.rs)) |  1072.33 ms |  398.33 ms |             337.00 ms |
+
 
 ## Journal
 
@@ -102,7 +104,7 @@ RUSTFLAGS=-Ctarget-cpu=mvp cargo +nightly build --release -Zbuild-std=panic_abor
 
 Anyway, there are still some optimizations to do with that. One of the slowest
 parts of wasm2ksplang programs is the memory - we need to initialize 16 pages (1 million zeroes) in every Rust WASM
-program, for example, even if it's not used at all! Well, if we don't use a memory, we can patch the WASM to not
+program, even if it's not used at all! Well, if we don't use a memory, we can patch the WASM to not
 define a memory. Or, eventually, detect that case in wasm2ksplang and not emit a memory if it won't be used,
 with no need to modify WASM files.
 
@@ -142,7 +144,11 @@ a bit unexpectedly.
 Now, solving part 1 again in Rust and adding part 2 was so much faster than it ever could have been without wasm2ksplang.
 The performance is quite good considering, only 30% slowdown in part 1.
 
-I wonder how the prformance is going to be going forward, there are no more "pure" ksplang solutions for comparisons.
+I wonder how the performance is going to be going forward, there are no more "pure" ksplang solutions for comparisons.
 But it was good to optimize the current solutions, I now know what to expect - what is expensive (i64) and what is not
 worth spending time optimizing (i32).
 
+### [Day 4](https://adventofcode.com/2025/day/4) - 2026-12-14
+
+Part 1 is sweet and simple. Part 2 actually a nice task, will try the most trivial approach first
+and then might implement a better way.
