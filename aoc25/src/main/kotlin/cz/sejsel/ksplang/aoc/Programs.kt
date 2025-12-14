@@ -12,6 +12,7 @@ import cz.sejsel.ksplang.aoc.days.wasm.wasmDay2Part2
 import cz.sejsel.ksplang.aoc.days.wasm.wasmDay3Part1
 import cz.sejsel.ksplang.aoc.days.wasm.wasmDay3Part2
 import cz.sejsel.ksplang.aoc.days.wasm.wasmDay4Part1
+import cz.sejsel.ksplang.aoc.days.wasm.wasmDay4Part2
 import cz.sejsel.ksplang.benchmarks.Benchmarks
 import cz.sejsel.ksplang.benchmarks.ProgramList
 import cz.sejsel.ksplang.benchmarks.RustBenchmark
@@ -135,6 +136,15 @@ object Programs : ProgramList {
         runs = 3,
         ksplangFilename = "wasm/4-1.ksplang",
         sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt", "rust" to "rust/aoc25-4-1/src/lib.rs"),
+    )
+    val day4Part2Wasm = AoCBenchmarkProgram(
+        name = "WASM Day 4 - part 2",
+        lazyProgram = measuredLazy { builder.build(wasmDay4Part2()) },
+        inputStack = loadInput(4).map { it.code.toLong() },
+        expectedResult = listOf(8184),
+        runs = 1,
+        ksplangFilename = "wasm/4-2.ksplang",
+        sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt", "rust" to "rust/aoc25-4-2/src/lib.rs"),
     )
 
     private fun loadInput(day: Int) = File("aoc25/inputs/$day.txt").readText()

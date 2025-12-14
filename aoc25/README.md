@@ -40,6 +40,8 @@ These are programs made by writing a Rust program, compiling it to WASM, then tr
 | WASM Day 3 - part 1 | [15137](/aoc25/ksplang/wasm/3-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-1/src/lib.rs)) |   525.33 ms |   86.67 ms |              85.33 ms |
 | WASM Day 3 - part 2 |  [7601](/aoc25/ksplang/wasm/3-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-2/src/lib.rs)) |  1123.00 ms |  134.00 ms |             109.00 ms |
 | WASM Day 4 - part 1 | [34863](/aoc25/ksplang/wasm/4-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-1/src/lib.rs)) |   875.33 ms |      ERROR |             266.00 ms |
+| WASM Day 4 - part 2 | [41621](/aoc25/ksplang/wasm/4-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-2/src/lib.rs)) | 17167.00 ms |      ERROR |                 ERROR |
+
 
 
 ## Journal
@@ -152,3 +154,6 @@ worth spending time optimizing (i32).
 
 Part 1 is sweet and simple. Part 2 actually a nice task, will try the most trivial approach first
 and then might implement a better way.
+
+Part 2 was actually way faster than I expected even without any smart approach. Might come back to it later,
+but this is okay by me for now.
