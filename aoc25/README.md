@@ -32,17 +32,17 @@ We have multiple interpreters:
 
 These are programs made by writing a Rust program, compiling it to WASM, then translating it to ksplang with [wasm2ksplang](/wasm2ksplang).
 
-| Program             |                                                                                                                                               Instructions |      ksplang | KsplangJIT | KsplangJIT no tracing |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------:|-------------:|-----------:|----------------------:|
-| WASM Day 1 - part 1 | [10965](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-1/src/lib.rs)) |    237.33 ms |   89.33 ms |              85.00 ms |
-| WASM Day 1 - part 2 | [14098](/aoc25/ksplang/wasm/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-2/src/lib.rs)) |    276.67 ms |  141.00 ms |             124.00 ms |
-| WASM Day 2 - part 1 | [11075](/aoc25/ksplang/wasm/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt), [rust](/aoc25/rust/aoc25-2-1/src/lib.rs)) |  41775.00 ms | 1153.00 ms |            1298.00 ms |
-| WASM Day 2 - part 2 |                                                                                                                                                 TODO rerun | approx. 280s |      ERROR |                  TODO |
-| WASM Day 3 - part 1 | [15137](/aoc25/ksplang/wasm/3-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-1/src/lib.rs)) |    525.33 ms |   86.67 ms |              85.33 ms |
-| WASM Day 3 - part 2 |  [7601](/aoc25/ksplang/wasm/3-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-2/src/lib.rs)) |   1123.00 ms |  134.00 ms |             109.00 ms |
-| WASM Day 4 - part 1 | [34863](/aoc25/ksplang/wasm/4-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-1/src/lib.rs)) |    875.33 ms |      ERROR |             266.00 ms |
-| WASM Day 4 - part 2 | [41621](/aoc25/ksplang/wasm/4-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-2/src/lib.rs)) |  17167.00 ms |      ERROR |                 ERROR |
-
+| Program             |                                                                                                                                                Instructions |      ksplang | KsplangJIT | KsplangJIT no tracing |
+|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------:|-------------:|-----------:|----------------------:|
+| WASM Day 1 - part 1 |  [10965](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-1/src/lib.rs)) |    237.33 ms |   89.33 ms |              85.00 ms |
+| WASM Day 1 - part 2 |  [14098](/aoc25/ksplang/wasm/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-2/src/lib.rs)) |    276.67 ms |  141.00 ms |             124.00 ms |
+| WASM Day 2 - part 1 |  [11075](/aoc25/ksplang/wasm/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt), [rust](/aoc25/rust/aoc25-2-1/src/lib.rs)) |  41775.00 ms | 1153.00 ms |            1298.00 ms |
+| WASM Day 2 - part 2 |                                                                                                                                                  TODO rerun | approx. 280s |      ERROR |                  TODO |
+| WASM Day 3 - part 1 |  [15137](/aoc25/ksplang/wasm/3-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-1/src/lib.rs)) |    525.33 ms |   86.67 ms |              85.33 ms |
+| WASM Day 3 - part 2 |   [7601](/aoc25/ksplang/wasm/3-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-2/src/lib.rs)) |   1123.00 ms |  134.00 ms |             109.00 ms |
+| WASM Day 4 - part 1 |  [34863](/aoc25/ksplang/wasm/4-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-1/src/lib.rs)) |    875.33 ms |      ERROR |             266.00 ms |
+| WASM Day 4 - part 2 |  [41621](/aoc25/ksplang/wasm/4-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-2/src/lib.rs)) |  17167.00 ms |      ERROR |                 ERROR |
+| WASM Day 5 - part 1 | [919133](/aoc25/ksplang/wasm/5-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day5.kt), [rust](/aoc25/rust/aoc25-5-1/src/lib.rs)) |   7105.00 ms |  671.00 ms |             533.00 ms |
 
 
 ## Journal
@@ -199,3 +199,8 @@ i64.ne
 This in theory also has an efficient translation (like `zeroNot` twice), but right now we go instruction by instruction,
 so we don't know it's comparison with a constant. I might end up adding an intermediate representation when translating
 WASM which would allow for optimizations like this. But not right now.
+
+### [Day 5](https://adventofcode.com/2025/day/5) - 2026-12-14
+
+I was afraid part 1 would be super slow, but it was actually more than fine. Now part 2, this is finally a place for
+WASM translation to shine because I don't have any good sorting implemented in my ksplang "stdlib".
