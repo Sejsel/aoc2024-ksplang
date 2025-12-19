@@ -44,7 +44,8 @@ These are programs made by writing a Rust program, compiling it to WASM, then tr
 | WASM Day 4 - part 2 |   [41621](/aoc25/ksplang/wasm/4-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-2/src/lib.rs)) |  17167.00 ms |      ERROR |                 ERROR |
 | WASM Day 5 - part 1 |  [919133](/aoc25/ksplang/wasm/5-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day5.kt), [rust](/aoc25/rust/aoc25-5-1/src/lib.rs)) |   7144.00 ms |  666.00 ms |             523.00 ms |
 | WASM Day 5 - part 2 | [2541218](/aoc25/ksplang/wasm/5-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day5.kt), [rust](/aoc25/rust/aoc25-5-2/src/lib.rs)) |   4378.00 ms |  729.00 ms |             724.00 ms |
-| WASM Day 6 - part 1 |   [37412](/aoc25/ksplang/wasm/6-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day6.kt), [rust](/aoc25/rust/aoc25-6-1/src/lib.rs)) |    458.00 ms |  168.00 ms |             159.33 ms |
+| WASM Day 6 - part 1 |   [37412](/aoc25/ksplang/wasm/6-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day6.kt), [rust](/aoc25/rust/aoc25-6-1/src/lib.rs)) |    480.33 ms |  168.33 ms |             173.33 ms |
+| WASM Day 6 - part 2 |   [39420](/aoc25/ksplang/wasm/6-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day7.kt), [rust](/aoc25/rust/aoc25-6-2/src/lib.rs)) |    467.67 ms |  194.67 ms |             186.00 ms |
 
 
 ## Journal
@@ -209,3 +210,8 @@ actually more than fine.
 
 Now part 2, this is finally a place for WASM translation to shine because I don't have any good sorting
 implemented in my ksplang "stdlib".
+
+### [Day 6](https://adventofcode.com/2025/day/6) - 2026-12-19
+
+This one was not too bad at all. Part 2 was super fast to implement, faster than it would be in other languages,
+just because I needed to implement a parse function before already, and could modify it super quickly. Neat.
