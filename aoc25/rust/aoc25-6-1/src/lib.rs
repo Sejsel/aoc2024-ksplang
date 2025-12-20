@@ -1,5 +1,6 @@
 use common::raw_input::{is_char, parse_u32_unchecked};
 use common::{input_size, read_input_raw, set_input};
+use common::input_utils::{count_chars, count_other_chars, find_first_other_char};
 use common::raw_i64::RawI64;
 
 #[unsafe(no_mangle)]
@@ -42,33 +43,4 @@ pub extern "C" fn solve() -> RawI64 {
     }
 
     result
-}
-
-fn count_chars(from: u32, to: u32, char: char) -> u32 {
-    let mut range_count = 0;
-    for i in from..to {
-        if is_char(read_input_raw(i), char) {
-            range_count += 1;
-        }
-    }
-    range_count
-}
-
-fn count_other_chars(from: u32, to: u32, char: char) -> u32 {
-    let mut range_count = 0;
-    for i in from..to {
-        if !is_char(read_input_raw(i), char) {
-            range_count += 1;
-        }
-    }
-    range_count
-}
-
-fn find_first_other_char(from: u32, to: u32, char: char) -> u32 {
-    for i in from..to {
-        if !is_char(read_input_raw(i), char) {
-            return i;
-        }
-    }
-    to
 }
