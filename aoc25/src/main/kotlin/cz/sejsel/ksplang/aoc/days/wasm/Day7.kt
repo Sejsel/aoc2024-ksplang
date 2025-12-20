@@ -17,12 +17,10 @@ fun main() {
     File("aoc25/ksplang/wasm/7-1.ksplang.json").writeText(program.toAnnotatedTreeJson())
     println("Generated program for day 7 part 1")
 
-    /*
     val program2 = builder.buildAnnotated(wasmDay7Part2())
     File("aoc25/ksplang/wasm/7-2.ksplang").writeText(program2.toRunnableProgram())
     File("aoc25/ksplang/wasm/7-2.ksplang.json").writeText(program2.toAnnotatedTreeJson())
     println("Generated program for day 7 part 2")
-     */
 }
 
 fun wasmDay7Part1(): KsplangProgram = buildWasmSingleValueProgram(Path("aoc25/rust/wasm/aoc25_7_1.wasm"), "solve")

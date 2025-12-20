@@ -21,7 +21,7 @@ cp target/wasm32-unknown-unknown/release/aoc25_5_2.wasm "$SCRIPT_DIR/wasm/aoc25_
 cp target/wasm32-unknown-unknown/release/aoc25_6_1.wasm "$SCRIPT_DIR/wasm/aoc25_6_1.wasm"
 cp target/wasm32-unknown-unknown/release/aoc25_6_2.wasm "$SCRIPT_DIR/wasm/aoc25_6_2.wasm"
 cp target/wasm32-unknown-unknown/release/aoc25_7_1.wasm "$SCRIPT_DIR/wasm/aoc25_7_1.wasm"
-#cp target/wasm32-unknown-unknown/release/aoc25_7_2.wasm "$SCRIPT_DIR/wasm/aoc25_7_2.wasm"
+cp target/wasm32-unknown-unknown/release/aoc25_7_2.wasm "$SCRIPT_DIR/wasm/aoc25_7_2.wasm"
 #cp target/wasm32-unknown-unknown/release/aoc25_8_1.wasm "$SCRIPT_DIR/wasm/aoc25_8_1.wasm"
 #cp target/wasm32-unknown-unknown/release/aoc25_8_2.wasm "$SCRIPT_DIR/wasm/aoc25_8_2.wasm"
 #cp target/wasm32-unknown-unknown/release/aoc25_9_1.wasm "$SCRIPT_DIR/wasm/aoc25_9_1.wasm"

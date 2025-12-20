@@ -47,6 +47,7 @@ These are programs made by writing a Rust program, compiling it to WASM, then tr
 | WASM Day 6 - part 1 |   [37412](/aoc25/ksplang/wasm/6-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day6.kt), [rust](/aoc25/rust/aoc25-6-1/src/lib.rs)) |    480.33 ms |  168.33 ms |             173.33 ms |
 | WASM Day 6 - part 2 |   [39420](/aoc25/ksplang/wasm/6-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day6.kt), [rust](/aoc25/rust/aoc25-6-2/src/lib.rs)) |    467.67 ms |  194.67 ms |             186.00 ms |
 | WASM Day 7 - part 1 |   [20701](/aoc25/ksplang/wasm/7-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day7.kt), [rust](/aoc25/rust/aoc25-7-1/src/lib.rs)) |    466.00 ms |   99.00 ms |              95.67 ms |
+| WASM Day 7 - part 2 |   [29495](/aoc25/ksplang/wasm/7-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day7.kt), [rust](/aoc25/rust/aoc25-7-2/src/lib.rs)) |    684.00 ms |  121.67 ms |             118.33 ms |
 
 
 
@@ -217,3 +218,13 @@ implemented in my ksplang "stdlib".
 
 This one was not too bad at all. Part 2 was super fast to implement, faster than it would be in other languages,
 just because I needed to implement a parse function before already, and could modify it super quickly. Neat.
+
+### [Day 7](https://adventofcode.com/2025/day/6) - 2026-12-20
+
+Another one that was kind of straightforward. There is even some potential for optimization which I
+haven't even done because it was more than fast enough without it already.
+
+Thankfully, part 2 was very easy, but I can imagine it being super annoying if you don't figure out the simple approach.
+
+I did have to debug on mistake a bit, I might extend `annotools` to not only list function calls, but to also list
+what parameters the functions were called with. That would have saved me quite a bit of time.
