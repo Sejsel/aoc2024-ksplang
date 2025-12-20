@@ -45,7 +45,9 @@ These are programs made by writing a Rust program, compiling it to WASM, then tr
 | WASM Day 5 - part 1 |  [919133](/aoc25/ksplang/wasm/5-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day5.kt), [rust](/aoc25/rust/aoc25-5-1/src/lib.rs)) |   7144.00 ms |  666.00 ms |             523.00 ms |
 | WASM Day 5 - part 2 | [2541218](/aoc25/ksplang/wasm/5-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day5.kt), [rust](/aoc25/rust/aoc25-5-2/src/lib.rs)) |   4378.00 ms |  729.00 ms |             724.00 ms |
 | WASM Day 6 - part 1 |   [37412](/aoc25/ksplang/wasm/6-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day6.kt), [rust](/aoc25/rust/aoc25-6-1/src/lib.rs)) |    480.33 ms |  168.33 ms |             173.33 ms |
-| WASM Day 6 - part 2 |   [39420](/aoc25/ksplang/wasm/6-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day7.kt), [rust](/aoc25/rust/aoc25-6-2/src/lib.rs)) |    467.67 ms |  194.67 ms |             186.00 ms |
+| WASM Day 6 - part 2 |   [39420](/aoc25/ksplang/wasm/6-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day6.kt), [rust](/aoc25/rust/aoc25-6-2/src/lib.rs)) |    467.67 ms |  194.67 ms |             186.00 ms |
+| WASM Day 7 - part 1 |   [20701](/aoc25/ksplang/wasm/7-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day7.kt), [rust](/aoc25/rust/aoc25-7-1/src/lib.rs)) |    466.00 ms |   99.00 ms |              95.67 ms |
+
 
 
 ## Journal

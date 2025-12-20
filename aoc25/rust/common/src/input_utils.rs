@@ -29,3 +29,12 @@ pub fn find_first_other_char(from: u32, to: u32, char: char) -> u32 {
     }
     to
 }
+
+pub fn find_first_char(from: u32, to: u32, char: char) -> u32 {
+    for i in from..to {
+        if is_char(read_input_raw(i), char) {
+            return i;
+        }
+    }
+    to
+}

@@ -21,7 +21,7 @@ pub extern "C" fn solve() -> RawI64 {
     let columns = count_other_chars(last_row_start, input_size - 1, ' '); // -1 to ignore last '\n'
 
     let mut op_pos = last_row_start;
-    for column in 0..columns {
+    for _ in 0..columns {
         let next_pos = find_first_other_char(op_pos + 1, input_size, ' ');
         let is_mul = is_char(read_input_raw(op_pos), '*'); // otherwise '+' - addition
         let mut column_result: RawI64 = if is_mul { 1.into() } else { 0.into() };
