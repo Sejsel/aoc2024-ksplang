@@ -20,13 +20,13 @@ sealed interface AnnotatedKsplangSegment {
 sealed interface BlockType {
     @Serializable
     @SerialName("inlined_function")
-    data object InlinedFunction : BlockType
+    data class InlinedFunction(@SerialName("in") val argCount: Int?, @SerialName("out") val outCount: Int?) : BlockType
     @Serializable
     @SerialName("function_call")
-    data object FunctionCall : BlockType
+    data class FunctionCall(@SerialName("in") val argCount: Int?, @SerialName("out") val outCount: Int?) : BlockType
     @Serializable
-    @SerialName("function_call_inlined")
-    data object InlinedFunctionCall : BlockType
+    @SerialName("block")
+    data class Block(@SerialName("in") val argCount: Int?, @SerialName("out") val outCount: Int?) : BlockType
 }
 
 @Serializable

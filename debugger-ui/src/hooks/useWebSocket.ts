@@ -20,7 +20,7 @@ export function useWebSocket(url: string) {
         {
           type: 'block' as const,
           name: 'factorial',
-          blockType: { type: 'inlined_function' as const },
+          blockType: { type: 'inlined_function' as const, in: 1, out: 1 },
           children: [
             { type: 'op' as const, instruction: 'CS' },
             { type: 'op' as const, instruction: '++' },
@@ -30,7 +30,7 @@ export function useWebSocket(url: string) {
         {
           type: 'block' as const,
           name: null,
-          blockType: { type: 'function_call' as const },
+          blockType: { type: 'function_call' as const, in: 2, out: 1 },
           children: [
             { type: 'op' as const, instruction: 'pop2' },
             { type: 'op' as const, instruction: 'lroll' },

@@ -285,7 +285,7 @@ class KsplangBuilder(
                     check(state.program[push.programIndex].isEmpty()) { "Prepared push applied twice or program index is broken" }
                     state.program[push.programIndex] = buildList {
                         val blockId = state.getNextBlockId()
-                        add(BlockStart(paddedPush.name, blockId, BlockType.InlinedFunction))
+                        add(BlockStart(paddedPush.name, blockId, BlockType.Block(0, 1)))
                         paddedPush.asSequence().forEach { add(Op(it.text)) }
                         add(BlockEnd(blockId))
                     }
@@ -321,7 +321,7 @@ class KsplangBuilder(
                         is SimpleFunction -> {
                             var optimized = false
                             val blockId = state.getNextBlockId()
-                            state.program.add(listOf(BlockStart(block.name, blockId, BlockType.InlinedFunction)))
+                            state.program.add(listOf(BlockStart(block.name, blockId, BlockType.Block(null, null))))
 
                             if (enablePushOptimizations && state.lastSimpleFunction != null) {
                                 val lastMatch = pushNameRegex.find(state.lastSimpleFunction!!.name ?: "")
@@ -362,7 +362,7 @@ class KsplangBuilder(
 
                         is ComplexFunction -> {
                             val blockId = state.getNextBlockId()
-                            state.program.add(listOf(BlockStart(block.name, blockId, BlockType.InlinedFunctionCall)))
+                            state.program.add(listOf(BlockStart(block.name, blockId, BlockType.Block(null, null))))
                             // It may be called complex, but it is so simple, oh so simple:
                             for (child in block.children) {
                                 e(child)
@@ -445,7 +445,10 @@ class KsplangBuilder(
                             when (block.inline) {
                                 CallInline.AUTO, CallInline.NEVER -> {
                                     val blockId = state.getNextBlockId()
-                                    state.program.add(listOf(BlockStart("call_${block.calledFunction.name}", blockId, BlockType.FunctionCall)))
+                                    state.program.add(listOf(BlockStart("call_${block.calledFunction.name}", blockId, BlockType.FunctionCall(
+                                        argCount = block.calledFunction.args,
+                                        outCount = block.calledFunction.outputs
+                                    ))))
 
                                     val functionState = state.getFunctionState(block.calledFunction.name)
                                     functionState.callIndex?.let { callIndex ->
@@ -464,7 +467,10 @@ class KsplangBuilder(
                                 }
                                 CallInline.ALWAYS -> {
                                     val blockId = state.getNextBlockId()
-                                    state.program.add(listOf(BlockStart("call_inlined_${block.calledFunction.name}", blockId, BlockType.InlinedFunction)))
+                                    state.program.add(listOf(BlockStart("call_inlined_${block.calledFunction.name}", blockId, BlockType.InlinedFunction(
+                                        argCount = block.calledFunction.args,
+                                        outCount = block.calledFunction.outputs
+                                    ))))
                                     e(block.calledFunction.body ?: error("Function ${block.calledFunction.name} has no body - forward declaration without body?"))
                                     state.program.add(listOf(BlockEnd(blockId)))
                                 }

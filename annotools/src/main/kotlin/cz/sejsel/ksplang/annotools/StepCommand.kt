@@ -1,30 +1,28 @@
 package cz.sejsel.ksplang.annotools
 
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.arguments.convert
-import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
-import com.github.ajalt.clikt.parameters.types.defaultStdin
-import com.github.ajalt.clikt.parameters.types.inputStream
 import com.github.ajalt.clikt.parameters.types.path
-import cz.sejsel.ksplang.builder.AnnotatedKsplangSegment
 import cz.sejsel.ksplang.builder.AnnotatedKsplangTree
 import cz.sejsel.ksplang.builder.BlockType
-import cz.sejsel.ksplang.dsl.core.Instruction
 import cz.sejsel.ksplang.interpreter.Op
 import cz.sejsel.ksplang.interpreter.PiDigits
 import cz.sejsel.ksplang.interpreter.State
-import cz.sejsel.ksplang.interpreter.VMOptions
-import cz.sejsel.ksplang.interpreter.parseProgram
 import cz.sejsel.ksplang.interpreter.parseWord
 import kotlinx.serialization.json.Json
 import kotlin.collections.forEach
 import kotlin.io.path.readText
+
+data class CallFrame(
+    val returnIp: Long,
+    val argCount: Int?,
+    val outCount: Int?,
+    val args: List<Long>?,
+)
 
 class StepCommand : CliktCommand(name = "step") {
     private val instructionCount by option(
@@ -80,7 +78,7 @@ class StepCommand : CliktCommand(name = "step") {
 
         echo("Starting run, op count = ${ops.size}")
 
-        val callstack = mutableListOf<Long>()
+        val callstack = mutableListOf<CallFrame>()
 
         val state = State(
             ops = ops,
@@ -108,20 +106,44 @@ class StepCommand : CliktCommand(name = "step") {
                 if (prevOp == Op.Call) {
                     val parent = parentCache.getOrPut(prevIp!!) { getParent(tree = tree, targetIndex = prevIp) }
                     //echo("Call detected at IP=${state.getCurrentIp()}, parent = $parent")
-                    if (parent is AnnotatedKsplangTree.Block && (parent.type == BlockType.FunctionCall || parent.type == BlockType.InlinedFunctionCall)) {
+                    if (parent is AnnotatedKsplangTree.Block && (parent.type is BlockType.FunctionCall || parent.type is BlockType.InlinedFunction)) {
+                        val nArgs = when (parent.type) {
+                            is BlockType.FunctionCall -> (parent.type as BlockType.FunctionCall).argCount
+                            is BlockType.InlinedFunction -> (parent.type as BlockType.InlinedFunction).argCount
+                            else -> null
+                        }
+                        val nOut = when (parent.type) {
+                            is BlockType.FunctionCall -> (parent.type as BlockType.FunctionCall).outCount
+                            is BlockType.InlinedFunction -> (parent.type as BlockType.InlinedFunction).outCount
+                            else -> null
+                        }
+
+                        val frame = CallFrame(
+                            returnIp = state.getCurrentIp().toLong(),
+                            argCount = nArgs,
+                            outCount = nOut,
+                            // stack at this point is [args] return_ip, so we need to ignore the last element
+                            args = if (nArgs != null) state.getStack().takeLast(nArgs + 1).dropLast(1) else null
+                        )
+                        val tabs = "  ".repeat(callstack.size)
                         // Function call
-                        echo("$counter Entering call to IP=${state.getCurrentIp()} (name = ${parent.name})")
-                        callstack.add(state.getCurrentIp().toLong())
+                        echo("$counter ${tabs}Entering call to IP=${state.getCurrentIp()} (name = ${parent.name}), args = ${frame.args ?: "?"}" )
+                        callstack.add(frame)
                     }
                 } else if (prevOp == Op.Goto) {
                     //echo("Goto detected at IP=${state.getCurrentIp()}")
                     val parent = parentCache.getOrPut(prevIp!!) { getParent(tree = tree, targetIndex = prevIp) }
                     if (parent is AnnotatedKsplangTree.Block && parent.name?.startsWith("fun_wrapper_") ?: false) {
                         // Function return
-                        echo("$counter Returning from call to IP=${state.getCurrentIp()} (name = ${parent.name})")
-                        if (callstack.isNotEmpty()) {
-                            callstack.removeAt(callstack.size - 1)
+                        val frame = callstack.removeLast()
+                        val returnedValues = if (frame.outCount != null) {
+                            // [out] IP
+                            state.getStack().takeLast(frame.outCount + 1).dropLast(1)
+                        } else {
+                            null
                         }
+                        val tabs = "  ".repeat(callstack.size)
+                        echo("$counter ${tabs}Returning from call to IP=${state.getCurrentIp()} (name = ${parent.name}), args = ${frame.args ?: "?"} -> res = ${returnedValues ?: "?"}" )
                     }
                 }
             }

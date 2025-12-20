@@ -191,12 +191,19 @@ const RenderNode = memo(function RenderNode({ node, depth, currentIp, instructio
   if (node.type === 'block') {
     const displayName = node.name || `[${node.blockType.type}]`;
     const isFunction = node.blockType.type === 'function_call';
-    const emoji = isFunction ? ' 📞' : '';
+    const isInlinedFunction = node.blockType.type === 'inlined_function';
+    const emoji = isFunction ? ' 📞' : isInlinedFunction ? ' 🛼' : '';
+    
+    // Format arg counts if available
+    const argInfo = (node.blockType.in !== null && node.blockType.in !== undefined) || 
+                    (node.blockType.out !== null && node.blockType.out !== undefined)
+      ? ` – ${node.blockType.in ?? '?'} → ${node.blockType.out ?? '?'}`
+      : '';
     
     return (
       <div className="mb-2 ml-2">
         <div className="text-xs text-blue-600 dark:text-blue-400 mb-1 font-semibold bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded">
-          {displayName}{emoji}
+          {displayName}{emoji}{argInfo}
         </div>
         <div className={`border-l-2 ${borderColor} pl-2`}>
           {groups!.map((group, groupIndex) => {
@@ -480,11 +487,17 @@ export function CodeDisplay({ program, currentState, onRunToInstruction, onRunTo
       const isFunction = node.blockType.type === 'function_call';
       const emoji = isFunction ? ' 📞' : '';
       
+      // Format arg counts if available
+      const argInfo = (node.blockType.in !== null && node.blockType.in !== undefined) || 
+                      (node.blockType.out !== null && node.blockType.out !== undefined)
+        ? ` (${node.blockType.in ?? '?'} → ${node.blockType.out ?? '?'})`
+        : '';
+      
       return (
         <div style={{ ...style, marginLeft: `${item.depth * 8}px` }} {...ariaAttributes}>
           <div className="mb-2">
             <div className="text-xs text-blue-600 dark:text-blue-400 mb-1 font-semibold bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded inline-block">
-              {displayName}{emoji}
+              {displayName}{emoji}{argInfo}
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
- CS CS lensum CS funkcia ++ praise qeq qeq pop2 funkcia and funkcia CS ++ ++ ++ pop
+ CS CS lensum CS funkcia ++ praise qeq pop pop2 pop2 funkcia funkcia pop2 ++ funkcia CS funkcia ++ ++
 j
  pop2
    CS CS lensum CS funkcia ++
@@ -61,7 +61,7 @@ j
     CS
     CS
     CS
-       CS CS lensum ++ CS lensum CS ++ bitshift ++ ++ ++
+       CS CS lensum ++ CS lensum ++ ++ CS ++ funkcia ++
     call pop
      CS CS lensum CS funkcia
       CS ++ ++ ++
@@ -73,48 +73,20 @@ j
       CS CS lensum CS funkcia ++
        CS ++ CS bitshift
      lroll
-    CS CS lensum CS funkcia ++
-      CS ++ CS CS ++ ^^ bitshift CS bitshift
-        CS CS lensum CS funkcia
-     u
-    CS CS lensum ++ CS lensum praise qeq qeq pop pop2 bitshift pop2 pop2 pop2 pop2 pop2 pop2 CS CS lensum CS funkcia ++ u pop2 pop2 pop2 CS CS lensum ++ CS lensum ++ u pop2
-   and
-     CS CS lensum ++ CS CS CS % qeq CS ++ ++ bitshift CS ++ bitshift CS bitshift
-        CS CS lensum CS funkcia
-     u
-     CS CS lensum CS funkcia ++
-      CS ++
-    lroll
-     CS CS lensum ++ CS lensum CS bitshift CS ++ bitshift CS bitshift
-        CS CS lensum CS funkcia
-     u
-    CS CS lensum ++ CS lensum praise qeq qeq pop pop2 bitshift pop2 pop2 pop2 pop2 pop2 pop2 CS CS lensum CS funkcia ++ u pop2 pop2 pop2 CS CS lensum ++ CS lensum ++ u pop2
-   and
-     CS CS lensum ++ CS CS CS % qeq CS ++ ++ bitshift CS ++ bitshift CS bitshift
-        CS CS lensum CS funkcia
-     u
-      CS CS lensum CS funkcia ++
-     CS CS % qeq
-      CS CS lensum CS funkcia
-     u
-     CS CS lensum ++ CS lensum ++ ++ ++
-    u
-     CS CS lensum CS funkcia ++
-    CS bulkxor
-   CS CS lensum ++ CS lensum CS ++ funkcia ++ CS ++ funkcia CS ++ ++ funkcia ++ CS ++ ++ ++ ++ ++ pop
+   CS CS lensum CS funkcia ++ praise qeq ++ funkcia pop2 pop2 funkcia pop2 pop2 funkcia ++ CS ++ ++ ++ ++ ++ ++ ++ pop
     CS CS lensum CS funkcia ++
      CS ++
    lroll
   brz pop2
-   CS CS lensum ++ CS lensum CS ++ tetr ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+   CS CS lensum ++ CS lensum CS ++ tetr ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
   j pop2 pop
-   CS CS lensum ++ CS lensum CS ++ tetr ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+   CS CS lensum ++ CS lensum CS ++ tetr ++ ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
   j pop pop
-    CS CS lensum CS funkcia ++ praise qeq pop2 funkcia ++ funkcia pop2 pop2 ++ funkcia pop2 CS ++ ++ ++ ++ ++ ++ pop
+    CS CS lensum CS funkcia ++ praise qeq qeq pop2 pop2 gcd bitshift ++ ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ pop
    goto
   CS pop
     CS CS lensum CS funkcia
-   CS CS lensum CS funkcia ++ praise CS d pop ++ CS u funkcia ++ ++ CS funkcia ++ CS ++ ++ ++ ++ pop
+   CS CS lensum CS funkcia ++ praise qeq qeq qeq and CS funkcia CS CS lensum bitshift ++ CS funkcia CS ++ ++ ++ ++ pop
   goto CS pop
     CS CS lensum ++ CS lensum ++ CS ++ bitshift ++ ++
         CS CS lensum ++ CS CS CS % qeq
@@ -171,7 +143,7 @@ j
       CS CS lensum CS funkcia ++
        CS ++ ++ ++ ++
      lroll
-     CS CS lensum ++ CS lensum ++ CS bitshift ++ CS funkcia ++
+     CS CS lensum ++ CS lensum ++ CS bitshift ++ CS funkcia ++ ++ ++
     call pop
       CS CS lensum ++ CS CS CS % qeq
        CS ++ ++
@@ -219,7 +191,7 @@ j
       CS CS lensum CS funkcia ++
        CS ++ ++ ++
      lroll
-     CS CS lensum ++ CS lensum ++ CS bitshift ++ CS funkcia ++
+     CS CS lensum ++ CS lensum ++ CS bitshift ++ CS funkcia ++ ++ ++
     call pop
     CS CS lensum ++ CS lensum praise qeq qeq pop pop2 bitshift pop2 pop2 pop2 pop2 pop2 pop2 CS CS lensum CS funkcia ++ u pop2 pop2 pop2 CS CS lensum ++ CS lensum ++ u pop2
    and
@@ -243,16 +215,16 @@ j
     CS j ++ CS bulkxor
      CS CS lensum CS funkcia ++
     CS bulkxor
-   CS CS lensum ++ CS lensum CS bitshift CS ++ ++ ++ funkcia ++ CS ++ ++ funkcia CS ++ ++ ++ ++ ++ pop
+   CS CS lensum ++ CS lensum CS ++ bitshift ++ CS funkcia CS ++ funkcia ++ CS ++ ++ ++ ++ ++ ++ ++ ++ pop
     CS CS lensum CS funkcia ++
      CS ++
    lroll
   brz pop2
-   CS CS lensum ++ CS lensum CS ++ tetr ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+   CS CS lensum ++ CS lensum CS ++ tetr ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
   j pop2 pop
-   CS CS lensum ++ CS lensum CS ++ tetr ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+   CS CS lensum ++ CS lensum CS ++ tetr ++ ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
   j pop pop
-    CS CS lensum CS funkcia ++ praise CS d pop ++ CS CS % u pop2 CS ++ funkcia CS ++ ++ ++ ++ pop
+    CS CS lensum CS funkcia ++ praise qeq qeq ++ funkcia pop2 pop2 pop2 CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
    goto
   CS pop
       CS CS lensum ++ CS lensum ++ ++
@@ -308,14 +280,14 @@ j
       CS CS lensum CS funkcia
      CS ++ u
     CS j ++ CS bulkxor
-    CS CS lensum CS funkcia ++ praise CS d pop2 bitshift pop2 ++ CS CS lensum ++ ++ funkcia CS ++ ++ ++ ++ pop
+    CS CS lensum ++ CS lensum ++ ++ CS ++ bitshift ++ CS CS funkcia bitshift ++ CS ++ ++ ++ ++ ++ ++ ++ pop
      CS CS lensum CS funkcia ++
       CS ++
     lroll
    brz pop2
-    CS CS lensum ++ CS lensum CS ++ tetr ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+    CS CS lensum ++ CS lensum CS ++ tetr ++ ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
    j pop2 pop pop2
-    CS CS lensum ++ CS lensum ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+    CS CS lensum ++ CS lensum ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
    j pop pop pop CS pop
       CS CS lensum ++ CS lensum CS ++ funkcia ++
        CS ++
@@ -416,14 +388,14 @@ j
     CS bulkxor
      CS CS lensum CS funkcia ++
     CS bulkxor
-    CS CS lensum ++ CS lensum ++ CS bitshift ++ CS ++ funkcia ++ CS ++ bitshift ++ ++ CS ++ ++ ++ ++ pop
+    CS CS lensum CS funkcia ++ praise qeq ++ funkcia pop2 pop2 funkcia pop2 pop2 ++ funkcia ++ CS funkcia CS ++ ++ ++ ++ pop
      CS CS lensum CS funkcia ++
       CS ++
     lroll
    brz pop2
-    CS CS lensum ++ CS lensum CS ++ tetr ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+    CS CS lensum ++ CS lensum CS ++ tetr ++ ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
    j pop2 pop pop2
-    CS CS lensum ++ CS lensum ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+    CS CS lensum ++ CS lensum ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
    j pop pop pop CS pop
      CS CS lensum CS funkcia
       CS ++ ++ ++
@@ -469,25 +441,6 @@ j
       CS CS lensum CS funkcia ++
        CS ++ CS bitshift ++
      lroll
-     CS CS lensum ++ CS lensum CS bitshift CS ++ bitshift CS bitshift
-        CS CS lensum CS funkcia
-     u
-    CS CS lensum ++ CS lensum praise qeq qeq pop pop2 bitshift pop2 pop2 pop2 pop2 pop2 pop2 CS CS lensum CS funkcia ++ u pop2 pop2 pop2 CS CS lensum ++ CS lensum ++ u pop2
-   and
-     CS CS lensum ++ CS CS CS % qeq CS ++ ++ bitshift CS ++ bitshift CS bitshift
-        CS CS lensum CS funkcia
-     u
-     CS CS lensum CS funkcia ++
-      CS ++
-    lroll
-     CS CS lensum ++ CS lensum CS bitshift CS ++ bitshift CS bitshift
-        CS CS lensum CS funkcia
-     u
-    CS CS lensum ++ CS lensum praise qeq qeq pop pop2 bitshift pop2 pop2 pop2 pop2 pop2 pop2 CS CS lensum CS funkcia ++ u pop2 pop2 pop2 CS CS lensum ++ CS lensum ++ u pop2
-   and
-     CS CS lensum ++ CS CS CS % qeq CS ++ ++ bitshift CS ++ bitshift CS bitshift
-        CS CS lensum CS funkcia
-     u
       CS CS lensum CS funkcia ++
      CS CS % qeq
       CS CS lensum CS funkcia
@@ -495,19 +448,21 @@ j
      CS CS lensum ++ CS lensum ++ ++ ++
     u
      CS CS lensum CS funkcia ++
+    CS CS % qeq
+     CS CS lensum CS funkcia ++
     CS bulkxor
      CS CS lensum CS funkcia ++
     CS bulkxor
-   CS CS lensum ++ CS lensum ++ CS ++ ++ CS bitshift ++ funkcia CS CS lensum bitshift CS ++ ++ ++ ++ ++ pop
+   CS CS lensum CS funkcia ++ praise qeq qeq qeq and CS ++ funkcia ++ ++ CS ++ funkcia CS ++ ++ ++ ++ ++ pop
     CS CS lensum CS funkcia ++
      CS ++
    lroll
   brz pop2
-   CS CS lensum ++ CS lensum CS ++ tetr ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+   CS CS lensum ++ CS lensum CS ++ tetr ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
   j pop2 pop
-   CS CS lensum ++ CS lensum ++ ++ CS ++ funkcia ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+   CS CS lensum ++ CS lensum ++ CS bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
   j pop pop
-    CS CS lensum CS funkcia ++ praise qeq pop pop rem pop2 pop2 funkcia pop2 ++ ++
+    CS CS lensum CS funkcia ++ praise qeq qeq ++ rem ++ funkcia pop2 pop2 ++ CS CS lensum funkcia
    goto
   CS pop
       CS CS lensum ++ CS lensum ++ ++
@@ -519,7 +474,7 @@ j
       CS CS lensum CS funkcia ++
        CS ++ CS ++ funkcia
      lroll
-   CS CS lensum CS funkcia ++ praise CS d pop ++ CS u funkcia ++ ++ CS funkcia ++ CS ++ ++ ++ ++ pop
+   CS CS lensum CS funkcia ++ praise qeq qeq qeq and CS funkcia CS CS lensum bitshift ++ CS funkcia CS ++ ++ ++ ++ pop
   goto CS pop
       CS CS lensum CS funkcia
        CS ++
@@ -559,12 +514,12 @@ j
      CS bulkxor
       CS CS lensum CS funkcia
      u
-     CS CS lensum CS funkcia ++ praise CS d pop pop2 pop2 CS funkcia ++ CS CS rem bitshift CS ++ ++ ++ ++ pop
+     CS CS lensum ++ CS lensum CS ++ tetr ++ CS bitshift CS funkcia CS ++ CS bitshift funkcia ++ CS ++ ++ ++ ++ pop
       CS CS lensum CS funkcia ++
        CS ++
      lroll
     brz pop2
-     CS CS lensum CS funkcia ++ praise CS d qeq ++ ++ CS CS lensum ++ ++ ++ bitshift ++ ++ CS ++ ++ pop
+     CS CS lensum ++ CS lensum ++ ++ CS CS bitshift ++ ++ ++ funkcia CS ++ ++ ++ funkcia CS ++ ++ ++ ++ pop
     j pop2 pop
       CS CS lensum ++ CS lensum CS bitshift CS ++ bitshift CS bitshift
          CS CS lensum CS funkcia
@@ -659,12 +614,12 @@ j
        lroll
       CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2
      and
-      CS CS lensum ++ CS lensum CS CS bitshift bitshift ++ ++ CS funkcia ++ ++ CS CS funkcia bitshift CS ++ ++ ++ pop
+      CS CS lensum CS funkcia ++ praise qeq qeq qeq pop2 ++ CS funkcia ++ CS CS funkcia funkcia ++ CS ++ ++ ++ ++ pop
        CS CS lensum CS funkcia ++
         CS ++
       lroll
      brz pop2
-      CS CS lensum ++ CS lensum ++ ++ ++ CS ++ bitshift ++ CS funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ pop
+      CS CS lensum ++ CS lensum ++ ++ CS ++ bitshift ++ CS funkcia CS funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ pop
      j pop2 pop
       CS CS lensum CS funkcia ++
         CS
@@ -696,7 +651,7 @@ j
        u
         CS CS lensum ++ CS lensum ++
        u
-      CS CS lensum ++ CS lensum ++ CS ++ bitshift ++ CS funkcia CS CS gcd bitshift ++ CS ++ ++ ++ ++ ++ pop
+      CS CS lensum ++ CS lensum ++ ++ ++ CS ++ bitshift ++ CS CS lensum bitshift CS ++ ++ ++ ++ ++ ++ ++ pop
      j pop ++
        CS CS lensum CS funkcia ++
       CS CS % qeq
@@ -767,16 +722,16 @@ j
           CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
              CS CS lensum CS funkcia ++
           u
-         CS CS lensum CS funkcia ++ praise qeq qeq gcd bitshift rem pop2 CS funkcia CS CS rem funkcia ++ CS ++ ++ ++ pop
+         CS CS lensum CS funkcia ++ praise qeq qeq gcd ++ funkcia pop2 pop2 ++ CS ++ ++ ++ ++ funkcia CS ++ ++ ++ pop
           CS CS lensum CS funkcia ++
            CS ++
          lroll
         brz pop2
-         CS CS lensum ++ CS lensum CS ++ funkcia ++ CS ++ funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum CS funkcia ++ praise qeq qeq funkcia pop2 pop2 pop2 CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop2 pop
          CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
         pop2
-         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop pop
           CS CS lensum ++ CS CS CS % qeq
             CS
@@ -803,16 +758,16 @@ j
           CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
              CS CS lensum CS funkcia ++
           u
-         CS CS lensum CS funkcia ++ praise qeq qeq pop2 funkcia ++ rem funkcia ++ CS funkcia CS ++ funkcia ++ ++ CS ++ pop
+         CS CS lensum CS funkcia ++ praise CS d pop2 bitshift pop2 ++ ++ ++ ++ CS funkcia CS ++ ++ ++ ++ ++ ++ pop
           CS CS lensum CS funkcia ++
            CS ++
          lroll
         brz pop2
-         CS CS lensum ++ CS lensum CS ++ funkcia ++ CS ++ funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum CS funkcia ++ praise qeq qeq funkcia pop2 pop2 pop2 CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop2 pop
          CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
         pop2
-         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop pop
           CS CS lensum ++ CS CS CS % qeq
             CS
@@ -837,16 +792,16 @@ j
           CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
              CS CS lensum CS funkcia ++
           u
-         CS CS lensum ++ CS lensum CS ++ funkcia CS bitshift ++ CS ++ funkcia ++ ++ CS ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum CS funkcia ++ praise qeq qeq funkcia funkcia pop2 pop2 ++ ++ ++ ++ ++ ++ ++ CS ++ ++ ++ ++ pop
           CS CS lensum CS funkcia ++
            CS ++
          lroll
         brz pop2
-         CS CS lensum ++ CS lensum CS ++ funkcia ++ CS ++ funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum CS funkcia ++ praise qeq qeq funkcia pop2 pop2 pop2 CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop2 pop
          CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
         pop2
-         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop pop
           CS CS lensum ++ CS CS CS % qeq
             CS
@@ -875,12 +830,12 @@ j
        lroll
       CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2
      and
-      CS CS lensum ++ CS lensum CS CS bitshift bitshift ++ CS ++ funkcia ++ ++ ++ CS funkcia ++ ++ CS ++ ++ pop
+      CS CS lensum ++ CS lensum ++ ++ ++ CS CS bitshift ++ ++ ++ funkcia CS CS lensum bitshift ++ ++ CS ++ ++ pop
        CS CS lensum CS funkcia ++
         CS ++
       lroll
      brz pop2
-      CS CS lensum ++ CS lensum ++ ++ ++ CS ++ bitshift ++ CS funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ pop
+      CS CS lensum ++ CS lensum ++ ++ CS ++ bitshift ++ CS funkcia CS funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ pop
      j pop2 pop
       CS CS lensum CS funkcia ++
         CS
@@ -912,7 +867,7 @@ j
        u
         CS CS lensum ++ CS lensum ++
        u
-      CS CS lensum ++ CS lensum ++ CS ++ bitshift ++ CS funkcia CS CS gcd bitshift ++ CS ++ ++ ++ ++ ++ pop
+      CS CS lensum ++ CS lensum ++ ++ ++ CS ++ bitshift ++ CS CS lensum bitshift CS ++ ++ ++ ++ ++ ++ ++ pop
      j pop ++
        CS CS lensum CS funkcia ++
       CS CS % qeq
@@ -983,16 +938,16 @@ j
           CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
              CS CS lensum CS funkcia ++
           u
-         CS CS lensum ++ CS lensum ++ CS bitshift ++ ++ CS ++ ++ ++ ++ bitshift ++ ++ CS funkcia CS ++ ++ pop
+         CS CS lensum ++ CS lensum ++ ++ CS bitshift CS bitshift ++ ++ CS funkcia ++ ++ ++ ++ CS ++ ++ ++ ++ pop
           CS CS lensum CS funkcia ++
            CS ++
          lroll
         brz pop2
-         CS CS lensum ++ CS lensum CS ++ funkcia ++ CS ++ funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum CS funkcia ++ praise qeq qeq funkcia pop2 pop2 pop2 CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop2 pop
          CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
         pop2
-         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop pop
           CS CS lensum ++ CS CS CS % qeq
             CS
@@ -1019,16 +974,16 @@ j
           CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
              CS CS lensum CS funkcia ++
           u
-         CS CS lensum ++ CS lensum CS bitshift CS ++ funkcia CS ++ ++ funkcia ++ CS CS rem funkcia CS ++ ++ ++ pop
+         CS CS lensum ++ CS lensum ++ ++ CS ++ bitshift ++ CS funkcia ++ CS CS bitshift funkcia CS ++ ++ ++ ++ ++ pop
           CS CS lensum CS funkcia ++
            CS ++
          lroll
         brz pop2
-         CS CS lensum ++ CS lensum CS ++ funkcia ++ CS ++ funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum CS funkcia ++ praise qeq qeq funkcia pop2 pop2 pop2 CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop2 pop
          CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
         pop2
-         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop pop
           CS CS lensum ++ CS CS CS % qeq
             CS
@@ -1053,16 +1008,16 @@ j
           CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
              CS CS lensum CS funkcia ++
           u
-         CS CS lensum ++ CS lensum ++ CS ++ ++ CS bitshift ++ funkcia ++ ++ CS funkcia CS ++ ++ ++ ++ ++ pop
+         CS CS lensum ++ CS lensum CS bitshift CS ++ funkcia CS ++ ++ funkcia ++ CS CS rem funkcia CS ++ ++ ++ ++ pop
           CS CS lensum CS funkcia ++
            CS ++
          lroll
         brz pop2
-         CS CS lensum ++ CS lensum CS ++ funkcia ++ CS ++ funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum CS funkcia ++ praise qeq qeq funkcia pop2 pop2 pop2 CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop2 pop
          CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
         pop2
-         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+         CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
         j pop pop
           CS CS lensum ++ CS CS CS % qeq
             CS
@@ -1100,16 +1055,16 @@ j
         CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
            CS CS lensum CS funkcia ++
         u
-       CS CS lensum CS funkcia ++ praise qeq qeq qeq funkcia ++ CS CS lensum funkcia ++ ++ ++ ++ ++ ++ CS ++ pop
+       CS CS lensum CS funkcia ++ praise pop2 pop2 pop2 pop2 funkcia pop2 ++ funkcia pop2 funkcia pop2 ++ ++ ++ ++ ++ CS ++ pop
         CS CS lensum CS funkcia ++
          CS ++
        lroll
       brz pop2
-       CS CS lensum ++ CS lensum CS ++ funkcia ++ CS ++ funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+       CS CS lensum CS funkcia ++ praise qeq qeq funkcia pop2 pop2 pop2 CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
       j pop2 pop
        CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
       pop2
-       CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+       CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
       j pop pop
         CS CS lensum ++ CS CS CS % qeq
           CS
@@ -1136,16 +1091,16 @@ j
         CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
            CS CS lensum CS funkcia ++
         u
-       CS CS lensum ++ CS lensum CS ++ bitshift CS funkcia CS ++ funkcia ++ ++ CS CS rem bitshift CS ++ ++ ++ pop
+       CS CS lensum CS funkcia ++ praise CS d bitshift ++ funkcia pop2 ++ ++ ++ CS CS bitshift funkcia CS ++ ++ ++ ++ pop
         CS CS lensum CS funkcia ++
          CS ++
        lroll
       brz pop2
-       CS CS lensum ++ CS lensum CS ++ funkcia ++ CS ++ funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+       CS CS lensum CS funkcia ++ praise qeq qeq funkcia pop2 pop2 pop2 CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
       j pop2 pop
        CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
       pop2
-       CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+       CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
       j pop pop
         CS CS lensum ++ CS CS CS % qeq
           CS
@@ -1170,16 +1125,16 @@ j
         CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
            CS CS lensum CS funkcia ++
         u
-       CS CS lensum CS funkcia ++ praise qeq qeq pop funkcia pop2 pop2 ++ CS funkcia ++ ++ ++ CS ++ ++ ++ ++ pop
+       CS CS lensum CS funkcia ++ praise qeq qeq funkcia ++ and CS CS % ++ ++ u pop2 ++ CS ++ ++ ++ ++ pop
         CS CS lensum CS funkcia ++
          CS ++
        lroll
       brz pop2
-       CS CS lensum ++ CS lensum CS ++ funkcia ++ CS ++ funkcia CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+       CS CS lensum CS funkcia ++ praise qeq qeq funkcia pop2 pop2 pop2 CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
       j pop2 pop
        CS CS lensum CS funkcia ++ praise qeq pop2 pop2 funkcia ++ bitshift pop2 pop2 pop2 ++ CS CS lensum CS funkcia ++ CS CS % qeq
       pop2
-       CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+       CS CS lensum ++ CS lensum CS ++ ++ bitshift CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
       j pop pop
         CS CS lensum ++ CS CS CS % qeq
           CS
@@ -1190,7 +1145,7 @@ j
           CS CS lensum CS funkcia
          u
       CS pop
-     CS CS lensum ++ CS lensum CS bitshift ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
+     CS CS lensum ++ CS lensum CS bitshift ++ ++ CS ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ pop
     j pop pop
       CS CS lensum ++ CS lensum
      u
@@ -1243,7 +1198,7 @@ j
       CS CS lensum CS funkcia ++
        CS ++ ++
      lroll
-    CS CS lensum CS funkcia ++ praise qeq pop2 pop2 pop2 ++ bitshift pop2 rem pop2 CS funkcia
+    CS CS lensum ++ CS lensum CS CS bitshift ++ bitshift
    goto
   CS pop
      CS CS lensum CS funkcia ++
@@ -1293,7 +1248,7 @@ pop
     CS CS lensum CS funkcia ++
      CS ++
    lroll
-   CS CS lensum CS funkcia ++ praise qeq pop2 gcd ++ bitshift pop2 pop2 pop2 pop2 CS funkcia CS funkcia ++ ++ ++
+   CS CS lensum ++ CS lensum ++ CS bitshift CS ++ CS bitshift ++ funkcia ++ CS CS lensum ++ funkcia
       CS CS lensum CS funkcia ++
      CS ++
    lroll
@@ -1332,7 +1287,7 @@ pop
    CS ++
  lroll
 lroll
-  CS CS lensum CS funkcia ++ praise qeq pop pop funkcia pop2 pop2 funkcia pop2 ++
+  CS CS lensum ++ CS lensum ++ CS bitshift CS CS bitshift ++ ++ ++ funkcia ++
  call pop
    CS CS lensum CS funkcia
    CS CS pop pop
@@ -1372,7 +1327,7 @@ lroll
      CS CS lensum CS funkcia ++
       CS ++
     lroll
-    CS CS lensum ++ CS lensum ++ CS ++ bitshift ++ CS CS bitshift ++ ++ ++ ++ funkcia
+    CS CS lensum CS funkcia ++ praise qeq qeq pop bitshift rem rem CS bitshift CS ++ ++ funkcia CS funkcia ++
        CS CS lensum CS funkcia ++
       CS ++
     lroll
@@ -1422,7 +1377,7 @@ lroll
      CS CS lensum CS funkcia ++
       CS ++
     lroll
-    CS CS lensum CS funkcia ++ praise pop pop2 pop2 pop2 pop2 ++ funkcia funkcia pop2 pop2 pop2 ++ ++ CS ++ funkcia
+    CS CS lensum CS funkcia ++ praise qeq pop ++ rem ++ funkcia funkcia pop2 pop2 pop2
        CS CS lensum CS funkcia ++
       CS ++
     lroll
@@ -1440,7 +1395,7 @@ lroll
     CS CS lensum CS funkcia
    CS ++ u
   CS j ++ CS bulkxor
-  CS CS lensum CS funkcia ++ praise qeq pop pop2 pop2 pop2 funkcia pop2 pop2
+  CS CS lensum CS funkcia ++ praise qeq qeq rem bitshift pop2 rem CS funkcia CS funkcia ++ ++ ++
      CS CS lensum CS funkcia ++
     CS ++
   lroll

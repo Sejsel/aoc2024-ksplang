@@ -362,6 +362,7 @@ components:
       oneOf:
         - $ref: '#/components/schemas/InlinedFunction'
         - $ref: '#/components/schemas/FunctionCall'
+        - $ref: '#/components/schemas/Block'
       discriminator: type
 
     InlinedFunction:
@@ -372,6 +373,14 @@ components:
         type:
           type: string
           const: inlined_function
+        in:
+          type: integer
+          nullable: true
+          description: Number of input arguments
+        out:
+          type: integer
+          nullable: true
+          description: Number of output values
       description: A function that has been inlined into the program
 
     FunctionCall:
@@ -382,4 +391,30 @@ components:
         type:
           type: string
           const: function_call
+        in:
+          type: integer
+          nullable: true
+          description: Number of input arguments
+        out:
+          type: integer
+          nullable: true
+          description: Number of output values
       description: A function call block
+
+    Block:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: block
+        in:
+          type: integer
+          nullable: true
+          description: Number of input arguments
+        out:
+          type: integer
+          nullable: true
+          description: Number of output values
+      description: A code block (e.g., simple function, complex function)

@@ -72,14 +72,24 @@ export interface KsplangRoot {
   children: AnnotatedKsplangTree[];
 }
 
-export type BlockType = InlinedFunction | FunctionCall;
+export type BlockType = InlinedFunction | FunctionCall | Block;
 
 export interface InlinedFunction {
   type: 'inlined_function';
+  in?: number | null;
+  out?: number | null;
 }
 
 export interface FunctionCall {
   type: 'function_call';
+  in?: number | null;
+  out?: number | null;
+}
+
+export interface Block {
+  type: 'block';
+  in?: number | null;
+  out?: number | null;
 }
 
 // UI state types

@@ -43,7 +43,7 @@ pub extern "C" fn solve() -> RawI64 {
             } else {
                 // not a splitter
                 // copy from above
-                if num_above.subabs((-1).into()) != 0.into() { // char == -1 // char == -1
+                if num_above.subabs((-1).into()) != 0.into() { // char == -1
                     // number above is not a splitter, we can copy
                     let num = read_input_xy(x, row, row_len);
                     set_input_xy(x, row, row_len, num + num_above);
