@@ -122,8 +122,8 @@ class StepCommand : CliktCommand(name = "step") {
                             returnIp = state.getCurrentIp().toLong(),
                             argCount = nArgs,
                             outCount = nOut,
-                            // stack at this point is [args] return_ip, so we need to ignore the last element
-                            args = if (nArgs != null) state.getStack().takeLast(nArgs + 1).dropLast(1) else null
+                            // stack at this point is [args] current_ip return_ip, so we need to ignore the last element
+                            args = if (nArgs != null) state.getStack().takeLast(nArgs + 2).dropLast(2) else null
                         )
                         val tabs = "  ".repeat(callstack.size)
                         // Function call
