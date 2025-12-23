@@ -298,6 +298,12 @@ fun buildSingleModuleProgram(
                 }
             }
 
+            module.getReadRawFunction()?.let {
+                it.setBody {
+                    with(builder) { yoinkMemory() }
+                }
+            }
+
             module.getSetInputFunction()?.let {
                 it.setBody {
                     with(builder) { yeetInput() }

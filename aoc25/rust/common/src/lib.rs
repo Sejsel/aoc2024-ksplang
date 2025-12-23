@@ -2,6 +2,7 @@ pub mod instructions;
 pub mod raw_input;
 pub mod raw_i64;
 pub mod input_utils;
+pub mod raw_array;
 
 use std::alloc::{Layout, alloc};
 use crate::raw_i64::RawI64;
@@ -17,6 +18,8 @@ unsafe extern "C" {
     ///         which do not fit into a byte or you will break invariants.
     #[link_name = "save_raw_i64"]
     fn _save_raw_i64(value: i64, index: usize);
+    #[link_name = "read_raw_i64"]
+    fn _read_raw_i64(index: usize) -> i64;
     #[link_name = "set_input"]
     fn _set_input(value: i64, index: u32);
 }

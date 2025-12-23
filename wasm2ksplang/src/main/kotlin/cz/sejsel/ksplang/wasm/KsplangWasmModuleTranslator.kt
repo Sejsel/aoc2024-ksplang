@@ -132,6 +132,8 @@ class TranslatedWasmModule(
     /** Forward declaration, needs to be implemented by embedder */
     val saveRawFunction: ProgramFunction2To0?,
     /** Forward declaration, needs to be implemented by embedder */
+    val readRawFunction: ProgramFunction1To1?,
+    /** Forward declaration, needs to be implemented by embedder */
     val setInputFunction: ProgramFunction2To0?,
 ) {
     fun KsplangProgramBuilder.installFunctions() {
@@ -146,6 +148,7 @@ class TranslatedWasmModule(
         readInputFunction?.let { installFunction(it) }
         getFunctionAddressFunction?.let { installFunction(it) }
         saveRawFunction?.let { installFunction(it) }
+        readRawFunction?.let { installFunction(it) }
         setInputFunction?.let { installFunction(it) }
     }
 
@@ -173,6 +176,7 @@ class ModuleTranslatorState {
     var getInputSizeFunction: ProgramFunction0To1? = null
     var readInputFunction: ProgramFunction1To1? = null
     var saveRawFunction: ProgramFunction2To0? = null
+    var readRawFunction: ProgramFunction1To1? = null
     var getFunctionAddressFunction: ProgramFunction1To1? = null
     var setInputFunction: ProgramFunction2To0? = null
 
@@ -322,11 +326,14 @@ class KsplangWasmModuleTranslator() {
             state.saveRawFunction = it.function as ProgramFunction2To0
         }
 
+        importedFunctions["env" to "read_raw_i64"]?.let {
+            state.readRawFunction = it.function as ProgramFunction1To1
+        }
+
         importedFunctions["env" to "set_input"]?.let {
             state.setInputFunction = it.function as ProgramFunction2To0
         }
 
-        // TODO: Ensure calls are inlined
         importedFunctions["ksplang" to "max"]?.let { it.function.setBody { max2() } }
         importedFunctions["ksplang" to "u_add"]?.let { it.function.setBody { add() } }
         importedFunctions["ksplang" to "u_subabs"]?.let { it.function.setBody { subabs() } }
@@ -361,6 +368,7 @@ class KsplangWasmModuleTranslator() {
             readInputFunction = state.readInputFunction,
             getFunctionAddressFunction = state.getFunctionAddressFunction,
             saveRawFunction = state.saveRawFunction,
+            readRawFunction = state.readRawFunction,
             isMemoryUsed = isMemoryUsed,
             setInputFunction = state.setInputFunction
         )

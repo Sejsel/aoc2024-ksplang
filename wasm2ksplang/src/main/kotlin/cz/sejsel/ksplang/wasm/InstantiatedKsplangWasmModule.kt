@@ -23,6 +23,7 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
         store.addFunction(HostFunction("env", "input_size", FunctionType.of(listOf(), listOf(ValType.I32))) { _, _ -> error("Dummy function") })
         store.addFunction(HostFunction("env", "read_input", FunctionType.of(listOf(ValType.I32), listOf(ValType.I64))) { _, _ -> error("Dummy function") })
         store.addFunction(HostFunction("env", "save_raw_i64", FunctionType.of(listOf(ValType.I64, ValType.I32), listOf())) { _, _ -> error("Dummy function") })
+        store.addFunction(HostFunction("env", "read_raw_i64", FunctionType.of(listOf(ValType.I32), listOf(ValType.I64))) { _, _ -> error("Dummy function") })
         store.addFunction(HostFunction("env", "set_input", FunctionType.of(listOf(ValType.I64, ValType.I32), listOf())) { _, _ -> error("Dummy function") })
         store.addFunction(HostFunction("ksplang", "max", FunctionType.of(listOf(ValType.I64, ValType.I64), listOf(ValType.I64))) { _, _ -> error("Dummy function") })
         store.addFunction(HostFunction("ksplang", "u_add", FunctionType.of(listOf(ValType.I64, ValType.I64), listOf(ValType.I64))) { _, _ -> error("Dummy function") })
@@ -82,6 +83,7 @@ class InstantiatedKsplangWasmModule(val moduleName: String, val module: Translat
     fun getGetFunctionAddressFunction(): ProgramFunction1To1? = module.getFunctionAddressFunction
 
     fun getSaveRawFunction(): ProgramFunction2To0? = module.saveRawFunction
+    fun getReadRawFunction(): ProgramFunction1To1? = module.readRawFunction
 
     fun getSetInputFunction(): ProgramFunction2To0? = module.setInputFunction
 

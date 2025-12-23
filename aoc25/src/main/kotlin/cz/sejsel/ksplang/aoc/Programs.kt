@@ -97,6 +97,7 @@ object Programs : ProgramList {
         ksplangFilename = "wasm/1-2.ksplang",
         sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt", "rust" to "rust/aoc25-1-2/src/lib.rs"),
     )
+    */
     val day2Part1Wasm = AoCBenchmarkProgram(
         name = "WASM Day 2 - part 1",
         lazyProgram = measuredLazy { builder.build(wasmDay2Part1()) },
@@ -115,6 +116,7 @@ object Programs : ProgramList {
         ksplangFilename = "wasm/2-2.ksplang",
         sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt", "rust" to "rust/aoc25-2-2/src/lib.rs"),
     )
+    /*
     val day3Part1Wasm = AoCBenchmarkProgram(
         name = "WASM Day 3 - part 1",
         lazyProgram = measuredLazy { builder.build(wasmDay3Part1()) },
@@ -187,7 +189,6 @@ object Programs : ProgramList {
         ksplangFilename = "wasm/6-2.ksplang",
         sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day6.kt", "rust" to "rust/aoc25-6-2/src/lib.rs"),
     )
-     */
     val day7Part1Wasm = AoCBenchmarkProgram(
         name = "WASM Day 7 - part 1",
         lazyProgram = measuredLazy { builder.build(wasmDay7Part1()) },
@@ -206,6 +207,7 @@ object Programs : ProgramList {
         ksplangFilename = "wasm/7-2.ksplang",
         sourceFilenames = mapOf("gen" to "src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day7.kt", "rust" to "rust/aoc25-7-2/src/lib.rs"),
     )
+     */
 
     private fun loadInput(day: Int) = File("aoc25/inputs/$day.txt").readText()
 

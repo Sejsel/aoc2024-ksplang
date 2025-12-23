@@ -1,31 +1,7 @@
 use common::raw_input::{parse_u64_unchecked};
 use common::{input_size, set_input};
+use common::raw_array::RawFastArray;
 use common::raw_i64::{iter_non_empty_range_inclusive, RawI64};
-
-#[unsafe(no_mangle)]
-pub extern "C" fn solve() -> RawI64 {
-    let mut input_pos = 0;
-    let mut result = RawI64::new(0);
-    let input_size = input_size();
-    // replace final line break with comma so we don't need to special case that
-    set_input(input_size - 1, ',' as i64);
-
-    loop {
-        if input_pos >= input_size {
-            break;
-        }
-        let from: RawI64 = (unsafe { parse_u64_unchecked(&mut input_pos, '-') } as i64).into();
-        let to: RawI64 = (unsafe { parse_u64_unchecked(&mut input_pos, ',') } as i64).into();
-        for value in iter_non_empty_range_inclusive(from, to) {
-            if is_invalid(value) {
-                result += value
-            }
-        }
-    }
-
-    result
-}
-
 
 const POWERS_OF_TEN: [i64; 15] = [
     1,
@@ -45,13 +21,43 @@ const POWERS_OF_TEN: [i64; 15] = [
     100_000_000_000_000,
 ];
 
-fn is_invalid(value: RawI64) -> bool {
+#[unsafe(no_mangle)]
+pub extern "C" fn solve() -> RawI64 {
+    let mut input_pos = 0;
+    let mut result = RawI64::new(0);
+    let input_size = input_size();
+    // replace final line break with comma so we don't need to special case that
+    set_input(input_size - 1, ',' as i64);
+
+    let mut lookup_table = RawFastArray::new_leaked(POWERS_OF_TEN.len());
+    for (i, power) in POWERS_OF_TEN.iter().enumerate() {
+        lookup_table.set(i, *power);
+    }
+
+    loop {
+        if input_pos >= input_size {
+            break;
+        }
+        let from: RawI64 = (unsafe { parse_u64_unchecked(&mut input_pos, '-') } as i64).into();
+        let to: RawI64 = (unsafe { parse_u64_unchecked(&mut input_pos, ',') } as i64).into();
+        for value in iter_non_empty_range_inclusive(from, to) {
+            if is_invalid(value, &lookup_table) {
+                result += value
+            }
+        }
+    }
+
+    result
+}
+
+
+fn is_invalid(value: RawI64, powers_of_ten: &RawFastArray) -> bool {
     let len = value.digit_len();
     if len % 2 != 0 {
         return false
     }
 
-    let power_of_ten = POWERS_OF_TEN[(len / 2) as usize];
+    let power_of_ten = powers_of_ten.get((len / 2) as usize);
     let bottom_half = (value % power_of_ten.into()).to_i64() as u32;
     let top_half = (value / power_of_ten.into()).to_i64() as u32;
 
