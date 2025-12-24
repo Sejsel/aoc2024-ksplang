@@ -34,20 +34,20 @@ These are programs made by writing a Rust program, compiling it to WASM, then tr
 
 | Program             |                                                                                                                                                 Instructions |      ksplang | KsplangJIT | KsplangJIT no tracing |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------:|-------------:|-----------:|----------------------:|
-| WASM Day 1 - part 1 |   [10965](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-1/src/lib.rs)) |    237.33 ms |   89.33 ms |              85.00 ms |
-| WASM Day 1 - part 2 |   [14098](/aoc25/ksplang/wasm/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-2/src/lib.rs)) |    276.67 ms |  141.00 ms |             124.00 ms |
-| WASM Day 2 - part 1 | [499549](/aoc25/ksplang/wasm/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt), [rust](/aoc25/rust/aoc25-2-1/src/lib.rs)) | 29399.00 ms | ERROR | ERROR |
-| WASM Day 2 - part 2 | [508533](/aoc25/ksplang/wasm/2-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt), [rust](/aoc25/rust/aoc25-2-2/src/lib.rs)) | 242942.00 ms | 5660.00 ms | 14533.00 ms |
-| WASM Day 3 - part 1 |   [15137](/aoc25/ksplang/wasm/3-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-1/src/lib.rs)) |    525.33 ms |   86.67 ms |              85.33 ms |
-| WASM Day 3 - part 2 |    [7601](/aoc25/ksplang/wasm/3-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-2/src/lib.rs)) |   1123.00 ms |  134.00 ms |             109.00 ms |
-| WASM Day 4 - part 1 |   [34863](/aoc25/ksplang/wasm/4-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-1/src/lib.rs)) |    875.33 ms |      ERROR |             266.00 ms |
-| WASM Day 4 - part 2 |   [41621](/aoc25/ksplang/wasm/4-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-2/src/lib.rs)) |  17167.00 ms |      ERROR |                 ERROR |
-| WASM Day 5 - part 1 |  [919133](/aoc25/ksplang/wasm/5-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day5.kt), [rust](/aoc25/rust/aoc25-5-1/src/lib.rs)) |   7144.00 ms |  666.00 ms |             523.00 ms |
-| WASM Day 5 - part 2 | [2541218](/aoc25/ksplang/wasm/5-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day5.kt), [rust](/aoc25/rust/aoc25-5-2/src/lib.rs)) |   4378.00 ms |  729.00 ms |             724.00 ms |
-| WASM Day 6 - part 1 |   [37412](/aoc25/ksplang/wasm/6-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day6.kt), [rust](/aoc25/rust/aoc25-6-1/src/lib.rs)) |    480.33 ms |  168.33 ms |             173.33 ms |
-| WASM Day 6 - part 2 |   [39420](/aoc25/ksplang/wasm/6-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day6.kt), [rust](/aoc25/rust/aoc25-6-2/src/lib.rs)) |    467.67 ms |  194.67 ms |             186.00 ms |
-| WASM Day 7 - part 1 |   [20701](/aoc25/ksplang/wasm/7-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day7.kt), [rust](/aoc25/rust/aoc25-7-1/src/lib.rs)) |    466.00 ms |   99.00 ms |              95.67 ms |
-| WASM Day 7 - part 2 |   [29495](/aoc25/ksplang/wasm/7-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day7.kt), [rust](/aoc25/rust/aoc25-7-2/src/lib.rs)) |    684.00 ms |  121.67 ms |             118.33 ms |
+| WASM Day 1 - part 1 | [10655](/aoc25/ksplang/wasm/1-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-1/src/lib.rs)) | 232.67 ms | 79.67 ms | 76.67 ms |
+| WASM Day 1 - part 2 | [13721](/aoc25/ksplang/wasm/1-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day1.kt), [rust](/aoc25/rust/aoc25-1-2/src/lib.rs)) | 268.67 ms | 113.00 ms | 106.33 ms |
+| WASM Day 2 - part 1 | [499549](/aoc25/ksplang/wasm/2-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt), [rust](/aoc25/rust/aoc25-2-1/src/lib.rs)) | 27123.00 ms | 859.00 ms | 1793.00 ms |
+| WASM Day 2 - part 2 | [508533](/aoc25/ksplang/wasm/2-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day2.kt), [rust](/aoc25/rust/aoc25-2-2/src/lib.rs)) | 218731.00 ms | 5459.00 ms | 14314.00 ms |
+| WASM Day 3 - part 1 | [15137](/aoc25/ksplang/wasm/3-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-1/src/lib.rs)) | 534.33 ms | 80.33 ms | 77.67 ms |
+| WASM Day 3 - part 2 | [7601](/aoc25/ksplang/wasm/3-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day3.kt), [rust](/aoc25/rust/aoc25-3-2/src/lib.rs)) | 1361.00 ms | 127.50 ms | 99.00 ms |
+| WASM Day 4 - part 1 | [34863](/aoc25/ksplang/wasm/4-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-1/src/lib.rs)) | 907.33 ms | 272.67 ms | 254.67 ms |
+| WASM Day 4 - part 2 | [41621](/aoc25/ksplang/wasm/4-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day4.kt), [rust](/aoc25/rust/aoc25-4-2/src/lib.rs)) | 16726.00 ms | 1010.00 ms | 1028.00 ms |
+| WASM Day 5 - part 1 | [919133](/aoc25/ksplang/wasm/5-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day5.kt), [rust](/aoc25/rust/aoc25-5-1/src/lib.rs)) | 6840.00 ms | 605.00 ms | 459.00 ms |
+| WASM Day 5 - part 2 | [2541218](/aoc25/ksplang/wasm/5-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day5.kt), [rust](/aoc25/rust/aoc25-5-2/src/lib.rs)) | 4215.00 ms | 655.00 ms | 641.00 ms |
+| WASM Day 6 - part 1 | [55476](/aoc25/ksplang/wasm/6-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day6.kt), [rust](/aoc25/rust/aoc25-6-1/src/lib.rs)) | 428.67 ms | 211.67 ms | 205.00 ms |
+| WASM Day 6 - part 2 | [57975](/aoc25/ksplang/wasm/6-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day6.kt), [rust](/aoc25/rust/aoc25-6-2/src/lib.rs)) | 460.33 ms | 210.67 ms | 201.33 ms |
+| WASM Day 7 - part 1 | [20701](/aoc25/ksplang/wasm/7-1.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day7.kt), [rust](/aoc25/rust/aoc25-7-1/src/lib.rs)) | 456.67 ms | 102.33 ms | 92.67 ms |
+| WASM Day 7 - part 2 | [29495](/aoc25/ksplang/wasm/7-2.ksplang) ([gen](/aoc25/src/main/kotlin/cz/sejsel/ksplang/aoc/days/wasm/Day7.kt), [rust](/aoc25/rust/aoc25-7-2/src/lib.rs)) | 653.33 ms | 121.33 ms | 117.67 ms |
 
 
 

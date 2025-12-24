@@ -100,7 +100,6 @@ import cz.sejsel.ksplang.std.div
 import cz.sejsel.ksplang.std.factorial
 import cz.sejsel.ksplang.std.mul
 import cz.sejsel.ksplang.std.negate
-import cz.sejsel.ksplang.std.push
 import cz.sejsel.ksplang.std.sgn
 import cz.sejsel.ksplang.std.subabs
 import java.nio.file.Path
@@ -385,7 +384,7 @@ class KsplangWasmModuleTranslator() {
         OpCode.I32_STORE8, OpCode.I32_STORE16,
         OpCode.I64_STORE8, OpCode.I64_STORE16, OpCode.I64_STORE32,
         OpCode.MEMORY_SIZE, OpCode.MEMORY_GROW, OpCode.MEMORY_INIT, OpCode.MEMORY_COPY, OpCode.MEMORY_FILL,
-    );
+    )
 
     private fun isMemoryInstruction(instruction: AnnotatedInstruction): Boolean {
         return instruction.opcode() in memInstructions
